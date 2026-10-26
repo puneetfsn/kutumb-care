@@ -374,6 +374,20 @@ fun ItemEditorScreen(
             Spacer(Modifier.height(8.dp))
             val docContext = androidx.compose.ui.platform.LocalContext.current
             val docScope = androidx.compose.runtime.rememberCoroutineScope()
+            var captureUri by remember { mutableStateOf<android.net.Uri?>(null) }
+            val cameraLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+                androidx.activity.result.contract.ActivityResultContracts.TakePicture()
+            ) { success ->
+                val uri = captureUri
+                if (success && uri != null) {
+                    docScope.launch {
+                        val added = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            com.puneetfsn.kutumbcare.data.DocumentStore.importImage(docContext, uri)
+                        }
+                        if (added != null) attachments = (attachments + added).take(4)
+                    }
+                }
+            }
             val photoPicker = androidx.activity.compose.rememberLauncherForActivityResult(
                 androidx.activity.result.contract.ActivityResultContracts.PickMultipleVisualMedia(4)
             ) { uris ->
@@ -409,13 +423,26 @@ fun ItemEditorScreen(
                 Spacer(Modifier.height(8.dp))
             }
             if (attachments.size < 4) {
-                OutlinedButton(onClick = {
-                    photoPicker.launch(
-                        androidx.activity.result.PickVisualMediaRequest(
-                            androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = {
+                        runCatching {
+                            val dir = java.io.File(docContext.cacheDir, "camera").apply { mkdirs() }
+                            val file = java.io.File.createTempFile("doc_", ".jpg", dir)
+                            val uri = androidx.core.content.FileProvider.getUriForFile(
+                                docContext, docContext.packageName + ".fileprovider", file
+                            )
+                            captureUri = uri
+                            cameraLauncher.launch(uri)
+                        }
+                    }) { Text(strings.takePhoto) }
+                    OutlinedButton(onClick = {
+                        photoPicker.launch(
+                            androidx.activity.result.PickVisualMediaRequest(
+                                androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
+                            )
                         )
-                    )
-                }) { Text(strings.addPhoto) }
+                    }) { Text(strings.addPhoto) }
+                }
                 Spacer(Modifier.height(16.dp))
             }
             val templateKey = item.specOrder.takeIf { it != 0 } ?: item.sortOrder
