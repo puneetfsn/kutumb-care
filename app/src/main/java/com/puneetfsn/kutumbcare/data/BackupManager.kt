@@ -11,21 +11,29 @@ class BackupManager(
     private val checklistRepository: ChecklistRepository,
     private val settingsRepository: SettingsRepository
 ) {
-    suspend fun exportTo(stream: OutputStream) {
+    /** [passphrase] non-blank → the written file is an encrypted envelope. */
+    suspend fun exportTo(stream: OutputStream, passphrase: String? = null) {
         val items = checklistRepository.getAll()
-        val json = BackupFormat.encode(
+        val plain = BackupFormat.encode(
             items = items,
             preferences = settingsRepository.snapshot(),
             attachmentData = checklistRepository.attachmentData()
         )
+        val json = if (passphrase.isNullOrBlank()) plain else BackupCrypto.encrypt(passphrase, plain)
         stream.bufferedWriter(Charsets.UTF_8).use { writer ->
             writer.write(json)
             writer.flush()
         }
     }
 
-    suspend fun importFrom(stream: InputStream) {
-        val text = stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+    /** Encrypted envelopes need the [passphrase] they were exported with. */
+    suspend fun importFrom(stream: InputStream, passphrase: String? = null) {
+        val raw = stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+        val text = if (BackupCrypto.isEncrypted(raw)) {
+            require(!passphrase.isNullOrBlank()) { "This backup is encrypted — enter its backup password first." }
+            runCatching { BackupCrypto.decrypt(passphrase, raw) }
+                .getOrElse { throw IllegalArgumentException("Wrong backup password, or the file is damaged.") }
+        } else raw
         val payload = BackupFormat.decode(text)
 
         payload.profile?.let { profile ->

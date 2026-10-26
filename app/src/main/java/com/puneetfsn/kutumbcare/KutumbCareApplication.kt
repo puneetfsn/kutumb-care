@@ -18,6 +18,7 @@ class KutumbCareApplication : Application() {
         container = AppContainer(this)
         applicationScope.launch {
             container.checklistRepository.seedIfEmpty()
+            container.checklistRepository.encryptExistingIfNeeded()
         }
     }
 }

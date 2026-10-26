@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.map
 private val Context.settingsStore by preferencesDataStore(name = "kutumb_care_settings")
 
 class SettingsRepository(context: Context) {
-    private val store = context.applicationContext.settingsStore
+    private val appContext = context.applicationContext
+    private val store = appContext.settingsStore
 
     val preferences: Flow<UserPreferences> = store.data.map { it.toUserPreferences() }
 
@@ -40,7 +41,8 @@ class SettingsRepository(context: Context) {
     }
 
     suspend fun setNominees(nominees: List<NomineeProfile>) {
-        store.edit { it[NOMINEES_JSON] = NomineesCodec.encode(nominees) }
+        // Nominee cards carry full ID numbers — encrypted at rest like records.
+        store.edit { it[NOMINEES_JSON] = VaultCrypto.encryptField(NomineesCodec.encode(nominees)) }
     }
 
     suspend fun upsertNominee(profile: NomineeProfile) {
@@ -62,11 +64,14 @@ class SettingsRepository(context: Context) {
         }
     }
 
+    /** Sets the unlock secret: a 6+ digit PIN or a passphrase. Only its hash is stored. */
     suspend fun setPin(pin: String) {
-        require(pin.matches(Regex("^\\d{4}$"))) { "PIN must be 4 digits" }
+        require(pin.length >= 6) { "Use at least 6 characters" }
         store.edit {
             it[PIN_HASH] = hashPin(pin)
             it[PIN_ENABLED] = true
+            it[PIN_FAIL_COUNT] = 0
+            it[PIN_LOCK_UNTIL] = 0L
         }
     }
 
@@ -74,6 +79,8 @@ class SettingsRepository(context: Context) {
         store.edit {
             it[PIN_HASH] = ""
             it[PIN_ENABLED] = false
+            it[PIN_FAIL_COUNT] = 0
+            it[PIN_LOCK_UNTIL] = 0L
         }
     }
 
@@ -81,6 +88,32 @@ class SettingsRepository(context: Context) {
         val prefs = snapshot()
         if (!prefs.pinEnabled || prefs.pinHash.isBlank()) return true
         return hashPin(pin) == prefs.pinHash
+    }
+
+    /** Seconds remaining in the anti-brute-force lockout (0 = may try now). */
+    suspend fun lockWaitSeconds(): Long {
+        val prefs = store.data.first()
+        val until = prefs[PIN_LOCK_UNTIL] ?: 0L
+        return maxOf(0L, (until - System.currentTimeMillis() + 999) / 1000)
+    }
+
+    /** Records a failed unlock; from the 5th failure the wait doubles each time (30s → 1m → 2m…, capped at 30m). */
+    suspend fun recordFailedAttempt() {
+        store.edit { prefs ->
+            val fails = (prefs[PIN_FAIL_COUNT] ?: 0) + 1
+            prefs[PIN_FAIL_COUNT] = fails
+            if (fails >= 5) {
+                val waitSec = minOf(1800L, 30L shl minOf(6, fails - 5))
+                prefs[PIN_LOCK_UNTIL] = System.currentTimeMillis() + waitSec * 1000
+            }
+        }
+    }
+
+    suspend fun resetFailedAttempts() {
+        store.edit {
+            it[PIN_FAIL_COUNT] = 0
+            it[PIN_LOCK_UNTIL] = 0L
+        }
     }
 
     companion object {
@@ -95,6 +128,8 @@ class SettingsRepository(context: Context) {
         internal val LANGUAGE = stringPreferencesKey("app_language")
         internal val LANGUAGE_CHOSEN = booleanPreferencesKey("language_chosen")
         internal val NOMINEES_JSON = stringPreferencesKey("nominees_json")
+        internal val PIN_FAIL_COUNT = androidx.datastore.preferences.core.intPreferencesKey("pin_fail_count")
+        internal val PIN_LOCK_UNTIL = androidx.datastore.preferences.core.longPreferencesKey("pin_lock_until")
 
         fun hashPin(pin: String): String {
             val bytes = MessageDigest.getInstance("SHA-256").digest(pin.toByteArray())
@@ -122,5 +157,7 @@ private fun Preferences.toUserPreferences(): UserPreferences = UserPreferences(
     setupComplete = this[SettingsRepository.SETUP_COMPLETE] ?: false,
     language = AppLanguage.fromRaw(this[SettingsRepository.LANGUAGE]),
     languageChosen = this[SettingsRepository.LANGUAGE_CHOSEN] ?: false,
-    nominees = NomineesCodec.decode(this[SettingsRepository.NOMINEES_JSON])
+    nominees = NomineesCodec.decode(
+        this[SettingsRepository.NOMINEES_JSON]?.let { VaultCrypto.decryptField(it) }
+    )
 )

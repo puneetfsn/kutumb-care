@@ -54,6 +54,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     var phone by remember { mutableStateOf("") }
     var pin by remember { mutableStateOf("") }
     var pinConfirm by remember { mutableStateOf("") }
+    var backupPass by remember { mutableStateOf("") }
     var hydrated by remember { mutableStateOf(false) }
 
     LaunchedEffect(prefs.setupComplete, prefs.primaryUserName, prefs.familyLabel) {
@@ -79,7 +80,12 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     }
     val openBackup = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
-            context.contentResolver.openInputStream(uri)?.let { viewModel.importBackup(it) }
+            context.contentResolver.openInputStream(uri)?.let { viewModel.importBackup(it, backupPass.ifBlank { null }) }
+        }
+    }
+    val createEncryptedBackup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) {
+            context.contentResolver.openOutputStream(uri)?.let { viewModel.exportBackup(it, backupPass) }
         }
     }
 
@@ -237,23 +243,27 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
-            pin, { if (it.length <= 4 && it.all(Char::isDigit)) pin = it },
+            pin, { pin = it },
             label = { Text(strings.newPin) },
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
-            pinConfirm, { if (it.length <= 4 && it.all(Char::isDigit)) pinConfirm = it },
+            pinConfirm, { pinConfirm = it },
             label = { Text(strings.confirmPin) },
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(8.dp))
+        Text(
+            strings.pinRecovery,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error
+        )
+        Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            Button(onClick = { viewModel.setPin(pin, pinConfirm) }, modifier = Modifier.weight(1f), enabled = pin.length == 4) {
+            Button(onClick = { viewModel.setPin(pin, pinConfirm) }, modifier = Modifier.weight(1f), enabled = pin.length >= 6) {
                 Text(strings.setPin)
             }
             if (prefs.pinEnabled) {
@@ -274,6 +284,21 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         Spacer(Modifier.height(8.dp))
         Button(onClick = { createBackup.launch("kutumb-care-backup.json") }, modifier = Modifier.fillMaxWidth()) {
             Text(strings.exportBackup)
+        }
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            backupPass, { backupPass = it },
+            label = { Text(strings.backupPassword) },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = { createEncryptedBackup.launch("kutumb-care-backup-encrypted.json") },
+            enabled = backupPass.length >= 6,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(strings.exportEncrypted)
         }
         Spacer(Modifier.height(8.dp))
         OutlinedButton(

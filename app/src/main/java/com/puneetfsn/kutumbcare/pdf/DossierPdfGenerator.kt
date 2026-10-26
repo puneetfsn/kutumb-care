@@ -214,9 +214,7 @@ class DossierPdfGenerator(private val context: Context) {
             "${strings.category(item.categoryEnum)} · ${strings.documentCopy}",
             MARGIN, y, bodyPaint(11f, MUTED), CONTENT_WIDTH
         )
-        val bitmap = android.graphics.BitmapFactory.decodeFile(
-            com.puneetfsn.kutumbcare.data.DocumentStore.file(context, name).path
-        ) ?: return
+        val bitmap = com.puneetfsn.kutumbcare.data.DocumentStore.loadBitmap(context, name) ?: return
         val area = RectF(MARGIN, y + 10f, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 84f)
         val scale = minOf(area.width() / bitmap.width, area.height() / bitmap.height)
         val w = bitmap.width * scale
