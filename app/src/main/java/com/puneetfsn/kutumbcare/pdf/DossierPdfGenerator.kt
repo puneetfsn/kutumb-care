@@ -83,7 +83,7 @@ class DossierPdfGenerator(private val context: Context) {
         return file
     }
 
-    private fun drawCover(canvas: Canvas, snapshot: DashboardSnapshot, pageNo: Int, pageCount: Int) {
+    private fun drawCover(canvas: Canvas, snapshot: DashboardSnapshot, pageNo: Int, pageCount: Int, includeReadiness: Boolean = true) {
         drawPageChrome(canvas, pageNo, pageCount)
         val prefs = snapshot.preferences
         val date = SimpleDateFormat("d MMMM yyyy", Locale("en", "IN")).format(Date())
