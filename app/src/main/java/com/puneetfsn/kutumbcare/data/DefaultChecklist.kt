@@ -203,8 +203,7 @@ object DefaultChecklist {
             "The agent or relationship manager who can file a life or health claim.",
             "LIC / बीमा एजेंट",
             "वह एजेंट या रिलेशनशिप मैनेजर जो जीवन या स्वास्थ्य दावा दाखिल कर सकता है।", NomineeStatus.NOT_APPLICABLE
-        )
-
+        ),
         item(
             AssetCategory.DIGITAL_LEGACY, 250,
             "Primary Gmail / Google account",
