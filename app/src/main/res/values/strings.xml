@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kutumb Care</string>
+    <string name="widget_name">Family readiness</string>
+    <string name="widget_description">Shows your Kutumb Care family readiness score and nominee alerts.</string>
+    <string name="privacy_never_passwords">Never save net-banking passwords, UPI PINs, ATM PINs, OTPs or CVVs. Record locations and metadata only.</string>
+</resources>
