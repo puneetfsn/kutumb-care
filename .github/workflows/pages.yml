@@ -1,14 +1,11 @@
 name: Deploy web app to GitHub Pages
 
-# Deployment strategy: publish web/ to the gh-pages branch with a plain git
-# push. The previous approach (configure-pages with enablement + deploy-pages)
-# failed with "Resource not accessible by integration" because neither the
-# workflow GITHUB_TOKEN nor an app integration token is allowed to CREATE a
-# Pages site through the API — that first creation is reserved for a human in
-# repo Settings. A git push to gh-pages needs only contents:write and is the
-# classic publishing source; once the branch exists GitHub serves it at
-# https://puneetfsn.github.io/kutumb-care/ (Settings → Pages shows
-# "Deploy from a branch: gh-pages" if it ever needs re-selecting).
+# The Pages site now EXISTS with build_type "workflow" (Settings → Pages →
+# GitHub Actions), so the official Actions deployment works. The original
+# failure ("Resource not accessible by integration" in configure-pages with
+# enablement: true) happened because no token is allowed to CREATE a site —
+# that one-time creation has since been done by a human, so enablement is
+# deliberately NOT requested here anymore.
 
 on:
   push:
@@ -17,7 +14,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages
@@ -25,19 +24,24 @@ concurrency:
 
 jobs:
   deploy:
-    name: Publish web/ to gh-pages
+    name: Publish web/
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Publish web folder to gh-pages branch
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Set up Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload web app
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./web
-          publish_branch: gh-pages
-          commit_message: "Deploy Kutumb Care web app"
-          user_name: "github-actions[bot]"
-          user_email: "github-actions[bot]@users.noreply.github.com"
+          path: web
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
