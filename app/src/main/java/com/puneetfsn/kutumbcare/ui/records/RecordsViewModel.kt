@@ -6,6 +6,7 @@ import com.puneetfsn.kutumbcare.data.AssetCategory
 import com.puneetfsn.kutumbcare.data.ChecklistItem
 import com.puneetfsn.kutumbcare.data.ChecklistRepository
 import com.puneetfsn.kutumbcare.data.NomineeStatus
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -19,6 +20,14 @@ class RecordsViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun observeItem(id: Long) = checklistRepository.observeItem(id)
+
+    /** True while the open record editor holds unsaved edits (drives the discard prompt). */
+    private val _editorDirty = MutableStateFlow(false)
+    val editorDirty: StateFlow<Boolean> = _editorDirty
+
+    fun setEditorDirty(dirty: Boolean) {
+        _editorDirty.value = dirty
+    }
 
     fun save(item: ChecklistItem) {
         viewModelScope.launch { checklistRepository.save(item) }

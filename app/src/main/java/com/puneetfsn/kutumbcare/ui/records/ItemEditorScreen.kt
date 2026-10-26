@@ -26,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,8 +35,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.puneetfsn.kutumbcare.data.AssetCategory
+import com.puneetfsn.kutumbcare.data.EntryFieldLabel
+import com.puneetfsn.kutumbcare.data.EntryFieldsCatalog
 import com.puneetfsn.kutumbcare.data.NomineeStatus
 import com.puneetfsn.kutumbcare.ui.LocalAppLanguage
 import com.puneetfsn.kutumbcare.ui.LocalStrings
@@ -66,6 +72,40 @@ fun ItemEditorScreen(
     var notes by remember { mutableStateOf("") }
     var nominee by remember { mutableStateOf(NomineeStatus.NOT_APPLICABLE) }
     var loadedKey by remember { mutableStateOf<String?>(null) }
+    var initial by remember { mutableStateOf<List<String>?>(null) }
+
+    fun currentValues() = listOf(
+        title, institution, accountRef, location, contactName, contactPhone, notes, nominee.name
+    )
+
+    LaunchedEffect(title, institution, accountRef, location, contactName, contactPhone, notes, nominee) {
+        val snapshot = initial
+        if (snapshot != null) viewModel.setEditorDirty(currentValues() != snapshot)
+    }
+    DisposableEffect(Unit) {
+        onDispose { viewModel.setEditorDirty(false) }
+    }
+
+    val editorDirty by viewModel.editorDirty.collectAsStateWithLifecycle()
+    var showDiscard by remember { mutableStateOf(false) }
+    BackHandler(enabled = editorDirty) { showDiscard = true }
+    if (showDiscard) {
+        AlertDialog(
+            onDismissRequest = { showDiscard = false },
+            title = { Text(strings.discardTitle) },
+            text = { Text(strings.discardBody) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDiscard = false
+                    viewModel.setEditorDirty(false)
+                    onBack()
+                }) { Text(strings.discardLeave) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscard = false }) { Text(strings.discardKeep) }
+            }
+        )
+    }
 
     LaunchedEffect(item?.id, item?.updatedAt, itemId) {
         val current = item ?: return@LaunchedEffect
@@ -79,6 +119,11 @@ fun ItemEditorScreen(
             contactPhone = current.contactPhone
             notes = current.additionalNotes
             nominee = current.nomineeEnum
+            initial = listOf(
+                current.title, current.institutionName, current.accountRef, current.physicalLocation,
+                current.contactName, current.contactPhone, current.additionalNotes, current.nomineeStatus
+            )
+            viewModel.setEditorDirty(false)
             loadedKey = key
         }
     }
@@ -95,7 +140,7 @@ fun ItemEditorScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { if (editorDirty) showDiscard = true else onBack() }) {
                         Icon(Icons.Outlined.ArrowBack, contentDescription = strings.back)
                     }
                 },
@@ -103,6 +148,7 @@ fun ItemEditorScreen(
                     if (item?.isUserCreated == true && (item.id > 0)) {
                         IconButton(onClick = {
                             viewModel.delete(item)
+                            viewModel.setEditorDirty(false)
                             onBack()
                         }) {
                             Icon(Icons.Outlined.Delete, contentDescription = strings.delete)
@@ -130,6 +176,13 @@ fun ItemEditorScreen(
             )
             Spacer(Modifier.height(8.dp))
             PrivacyBanner()
+            Spacer(Modifier.height(10.dp))
+            val fields = EntryFieldsCatalog.forItem(item)
+            Text(
+                fields.guidance(hindi),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.secondary
+            )
             Spacer(Modifier.height(16.dp))
             if (item.isUserCreated) {
                 OutlinedTextField(
@@ -147,67 +200,54 @@ fun ItemEditorScreen(
                 )
                 Spacer(Modifier.height(12.dp))
             }
-            OutlinedTextField(
-                value = institution,
-                onValueChange = { institution = it },
-                label = { Text(strings.institution) },
-                placeholder = { Text(strings.institutionPlaceholder) },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(10.dp))
-            OutlinedTextField(
-                value = accountRef,
-                onValueChange = { accountRef = it },
-                label = { Text(strings.refLabel) },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(10.dp))
-            OutlinedTextField(
-                value = location,
-                onValueChange = { location = it },
-                label = { Text(strings.location) },
-                placeholder = { Text(strings.locationPlaceholder) },
-                minLines = 2,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(16.dp))
-            Text(strings.nomineeStatus, style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(8.dp))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.horizontalScroll(rememberScrollState())
-            ) {
-                NomineeStatus.entries.forEach { status ->
-                    FilterChip(
-                        selected = nominee == status,
-                        onClick = { nominee = status },
-                        label = { Text(strings.nominee(status)) }
-                    )
-                }
+            fields.primary?.let { label ->
+                EntryField(value = institution, onChange = { institution = it }, label = label, hindi = hindi)
+                Spacer(Modifier.height(10.dp))
             }
-            Spacer(Modifier.height(16.dp))
-            OutlinedTextField(
-                value = contactName,
-                onValueChange = { contactName = it },
-                label = { Text(strings.contactPerson) },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(10.dp))
-            OutlinedTextField(
-                value = contactPhone,
-                onValueChange = { contactPhone = it },
-                label = { Text(strings.contactPhone) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(10.dp))
-            OutlinedTextField(
-                value = notes,
-                onValueChange = { notes = it },
-                label = { Text(strings.notes) },
-                minLines = 3,
-                modifier = Modifier.fillMaxWidth()
-            )
+            fields.ref?.let { label ->
+                EntryField(value = accountRef, onChange = { accountRef = it }, label = label, hindi = hindi)
+                Spacer(Modifier.height(10.dp))
+            }
+            fields.location?.let { label ->
+                EntryField(
+                    value = location, onChange = { location = it }, label = label, hindi = hindi, minLines = 2
+                )
+                Spacer(Modifier.height(10.dp))
+            }
+            if (fields.nomineeRelevant) {
+                Spacer(Modifier.height(6.dp))
+                Text(strings.nomineeStatus, style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.horizontalScroll(rememberScrollState())
+                ) {
+                    NomineeStatus.entries.forEach { status ->
+                        FilterChip(
+                            selected = nominee == status,
+                            onClick = { nominee = status },
+                            label = { Text(strings.nominee(status)) }
+                        )
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+            fields.contact?.let { label ->
+                EntryField(value = contactName, onChange = { contactName = it }, label = label, hindi = hindi)
+                Spacer(Modifier.height(10.dp))
+            }
+            fields.phone?.let { label ->
+                EntryField(
+                    value = contactPhone, onChange = { contactPhone = it }, label = label, hindi = hindi,
+                    keyboardType = KeyboardType.Phone
+                )
+                Spacer(Modifier.height(10.dp))
+            }
+            fields.notes?.let { label ->
+                EntryField(
+                    value = notes, onChange = { notes = it }, label = label, hindi = hindi, minLines = 3
+                )
+            }
             Spacer(Modifier.height(20.dp))
             Button(
                 onClick = {
@@ -220,9 +260,11 @@ fun ItemEditorScreen(
                             contactName = contactName.trim(),
                             contactPhone = contactPhone.trim(),
                             additionalNotes = notes.trim(),
-                            nomineeStatus = nominee.name
+                            nomineeStatus = if (fields.nomineeRelevant) nominee.name
+                            else NomineeStatus.NOT_APPLICABLE.name
                         )
                     )
+                    viewModel.setEditorDirty(false)
                     onBack()
                 },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
@@ -233,4 +275,27 @@ fun ItemEditorScreen(
             Spacer(Modifier.height(24.dp))
         }
     }
+}
+
+
+@Composable
+private fun EntryField(
+    value: String,
+    onChange: (String) -> Unit,
+    label: EntryFieldLabel,
+    hindi: Boolean,
+    minLines: Int = 1,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onChange,
+        label = { Text(label.label(hindi)) },
+        placeholder = if (label.placeholder(hindi).isNotBlank()) {
+            { Text(label.placeholder(hindi)) }
+        } else null,
+        minLines = minLines,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        modifier = Modifier.fillMaxWidth()
+    )
 }

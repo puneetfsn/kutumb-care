@@ -13,6 +13,7 @@ import android.text.TextPaint
 import com.puneetfsn.kutumbcare.data.AssetCategory
 import com.puneetfsn.kutumbcare.data.ChecklistItem
 import com.puneetfsn.kutumbcare.data.DashboardSnapshot
+import com.puneetfsn.kutumbcare.data.EntryFieldsCatalog
 import com.puneetfsn.kutumbcare.data.NomineeStatus
 import com.puneetfsn.kutumbcare.ui.UiStrings
 import java.io.File
@@ -204,15 +205,26 @@ class DossierPdfGenerator(private val context: Context) {
 
             var inner = y + 12f
             inner = drawText(canvas, item.displayTitle(strings.hindi), MARGIN + 12f, inner, titlePaint(13f, FOREST), CONTENT_WIDTH - 24f)
-            val nominee = strings.nominee(item.nomineeEnum)
-            inner = drawText(
-                canvas,
-                nominee + if (item.isCompleted) "  ·  ${strings.pdfRecorded}" else "  ·  ${strings.pdfNotYet}",
-                MARGIN + 12f,
-                inner + 2f,
-                bodyPaint(10f, if (item.nomineeEnum == NomineeStatus.NEEDS_NOMINEE) SAFFRON else MUTED),
-                CONTENT_WIDTH - 24f
-            )
+            if (EntryFieldsCatalog.forItem(item).nomineeRelevant) {
+                val nominee = strings.nominee(item.nomineeEnum)
+                inner = drawText(
+                    canvas,
+                    nominee + if (item.isCompleted) "  ·  ${strings.pdfRecorded}" else "  ·  ${strings.pdfNotYet}",
+                    MARGIN + 12f,
+                    inner + 2f,
+                    bodyPaint(10f, if (item.nomineeEnum == NomineeStatus.NEEDS_NOMINEE) SAFFRON else MUTED),
+                    CONTENT_WIDTH - 24f
+                )
+            } else {
+                inner = drawText(
+                    canvas,
+                    if (item.isCompleted) strings.pdfRecorded else strings.pdfNotYet,
+                    MARGIN + 12f,
+                    inner + 2f,
+                    bodyPaint(10f, MUTED),
+                    CONTENT_WIDTH - 24f
+                )
+            }
             itemLines(item, hindiPdf).forEach { line ->
                 inner = drawText(canvas, line, MARGIN + 12f, inner + 3f, bodyPaint(10.5f, INK), CONTENT_WIDTH - 24f)
             }
@@ -231,18 +243,25 @@ class DossierPdfGenerator(private val context: Context) {
 
     private fun itemLines(item: ChecklistItem, hindi: Boolean = false): List<String> {
         val strings = UiStrings(hindi)
+        val fields = EntryFieldsCatalog.forItem(item)
+        // Blank values become writing lines, so a printed dossier (filled or
+        // blank) can still be completed by hand with room to write.
+        fun line(label: String?, value: String): String? = when {
+            label == null -> null
+            value.isNotBlank() -> "$label: $value"
+            else -> "$label: ________________________________________"
+        }
         return buildList {
-            if (item.institutionName.isNotBlank()) add("${strings.pdfInstitution}: ${item.institutionName}")
-            if (item.accountRef.isNotBlank()) add("${strings.pdfReference}: ${item.accountRef}")
-            add("${strings.pdfLocation}: ${item.physicalLocation.ifBlank { strings.pdfNotRecorded }}")
-            if (item.contactName.isNotBlank() || item.contactPhone.isNotBlank()) {
-                add(
-                    "${strings.pdfContact}: " + listOf(item.contactName, item.contactPhone)
-                        .filter { it.isNotBlank() }
-                        .joinToString("  ·  ")
-                )
-            }
-            if (item.additionalNotes.isNotBlank()) add("${strings.pdfNotes}: ${item.additionalNotes}")
+            line(fields.primary?.label(hindi), item.institutionName)?.let { add(it) }
+            line(fields.ref?.label(hindi), item.accountRef)?.let { add(it) }
+            line(fields.location?.label(hindi), item.physicalLocation)?.let { add(it) }
+            val contact = listOf(item.contactName, item.contactPhone).filter { it.isNotBlank() }.joinToString("  ·  ")
+            val contactLabel = listOfNotNull(fields.contact?.label(hindi), fields.phone?.label(hindi))
+                .takeIf { fields.contact != null || fields.phone != null }
+                ?.joinToString(" / ")
+            line(contactLabel, contact)?.let { add(it) }
+            line(fields.notes?.label(hindi), item.additionalNotes)?.let { add(it) }
+            add("__________________________________________________________")
         }
     }
 
@@ -278,10 +297,18 @@ class DossierPdfGenerator(private val context: Context) {
 
     private fun drawPageChrome(canvas: Canvas, pageNo: Int, pageCount: Int) {
         canvas.drawColor(Color.WHITE)
-        canvas.drawText(
-            "Kutumb Care  ·  Family copy  ·  Page $pageNo of $pageCount",
+        drawText(
+            canvas,
+            UiStrings(hindiPdf).pdfFinePrint,
             MARGIN,
-            PAGE_HEIGHT - 28f,
+            PAGE_HEIGHT - 46f,
+            bodyPaint(7.5f, MUTED),
+            CONTENT_WIDTH
+        )
+        canvas.drawText(
+            "Kutumb Care  ·  Family copy  ·  ${UiStrings(hindiPdf).pdfPage} $pageNo ${UiStrings(hindiPdf).pdfOf} $pageCount",
+            MARGIN,
+            PAGE_HEIGHT - 22f,
             bodyPaint(9f, MUTED)
         )
     }

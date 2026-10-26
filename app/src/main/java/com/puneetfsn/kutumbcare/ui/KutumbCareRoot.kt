@@ -11,7 +11,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -31,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -158,12 +161,43 @@ private fun KutumbCareRootContent(
     val navController = rememberNavController()
     val backStack by navController.currentBackStackEntryAsState()
     val route = backStack?.destination?.route.orEmpty()
-    val showBar = route == Routes.HOME || route.startsWith("records") || route == Routes.SETTINGS
+    // The bottom bar stays visible on EVERY screen, including the record
+    // editor — hiding it there left families with only the back arrow and no
+    // way to reach Home (see user screenshots, Oct 2026).
+    val showBar = true
 
     val factory = container.viewModelFactory
     val dashboardViewModel: DashboardViewModel = viewModel(factory = factory)
     val recordsViewModel: RecordsViewModel = viewModel(factory = factory)
     val settingsViewModel: SettingsViewModel = viewModel(factory = factory)
+
+    val strings = LocalStrings.current
+    val editorDirty by recordsViewModel.editorDirty.collectAsStateWithLifecycle()
+    var pendingRoute by remember { mutableStateOf<String?>(null) }
+    fun go(target: String) {
+        if (route.startsWith("item") && editorDirty && target != route) {
+            pendingRoute = target
+        } else {
+            navController.navigateTop(target)
+        }
+    }
+    pendingRoute?.let { target ->
+        AlertDialog(
+            onDismissRequest = { pendingRoute = null },
+            title = { Text(strings.discardTitle) },
+            text = { Text(strings.discardBody) },
+            confirmButton = {
+                TextButton(onClick = {
+                    pendingRoute = null
+                    recordsViewModel.setEditorDirty(false)
+                    navController.navigateTop(target)
+                }) { Text(strings.discardLeave) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingRoute = null }) { Text(strings.discardKeep) }
+            }
+        )
+    }
 
     Scaffold(
         bottomBar = {
@@ -171,19 +205,19 @@ private fun KutumbCareRootContent(
                 NavigationBar {
                     NavigationBarItem(
                         selected = route == Routes.HOME,
-                        onClick = { navController.navigateTop(Routes.HOME) },
+                        onClick = { go(Routes.HOME) },
                         icon = { Icon(Icons.Outlined.Home, contentDescription = LocalStrings.current.home) },
                         label = { Text(LocalStrings.current.home) }
                     )
                     NavigationBarItem(
-                        selected = route.startsWith("records"),
-                        onClick = { navController.navigateTop("records?category=") },
+                        selected = route.startsWith("records") || route.startsWith("item"),
+                        onClick = { go("records?category=") },
                         icon = { Icon(Icons.Outlined.Description, contentDescription = LocalStrings.current.recordsNav) },
                         label = { Text(LocalStrings.current.recordsNav) }
                     )
                     NavigationBarItem(
                         selected = route == Routes.SETTINGS,
-                        onClick = { navController.navigateTop(Routes.SETTINGS) },
+                        onClick = { go(Routes.SETTINGS) },
                         icon = { Icon(Icons.Outlined.Settings, contentDescription = LocalStrings.current.settingsNav) },
                         label = { Text(LocalStrings.current.settingsNav) }
                     )

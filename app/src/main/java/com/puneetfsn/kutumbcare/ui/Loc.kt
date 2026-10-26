@@ -107,6 +107,14 @@ class UiStrings(val hindi: Boolean) {
     val chooseLanguageTitle get() = pick("Choose your language", "अपनी भाषा चुनें")
     val chooseLanguageSub get() = pick("You can change this later in Settings.", "आप इसे बाद में सेटिंग में बदल सकते हैं।")
     val customRecord get() = pick("Custom family record", "अपना पारिवारिक रिकॉर्ड")
+    val discardTitle get() = pick("Discard changes?", "बदलाव छोड़ें?")
+    val discardBody get() = pick("You have unsaved changes in this record.", "इस रिकॉर्ड में बिना सहेजे बदलाव हैं।")
+    val discardKeep get() = pick("Keep editing", "संपादन जारी रखें")
+    val discardLeave get() = pick("Discard", "छोड़ें")
+    val pdfFinePrint get() = pick(
+        "Fine print: This dossier lists where things are kept so family can find them. It never contains passwords, UPI/ATM PINs, OTPs or CVVs. Keep it sealed, share it only with trusted family, and review it every year.",
+        "छोटा अक्षर: यह दस्तावेज़ बताता है कि चीज़ें कहाँ रखी हैं ताकि परिवार उन्हें खोज सके। इसमें पासवर्ड, UPI/ATM PIN, OTP या CVV कभी नहीं होते। इसे मुहरबंद रखें, केवल भरोसेमंद परिवार से साझा करें, और हर साल समीक्षा करें।"
+    )
 
     // ---- PDF dossier ----
     val pdfTitle get() = pick("FAMILY EMERGENCY DOSSIER", "पारिवारिक आपातकालीन दस्तावेज़")
@@ -151,7 +159,7 @@ class UiStrings(val hindi: Boolean) {
         AssetCategory.INVESTMENTS -> pick("Investments", "निवेश")
         AssetCategory.INSURANCE -> pick("Insurance", "बीमा")
         AssetCategory.REAL_ESTATE_LOANS -> pick("Property & loans", "संपत्ति और ऋण")
-        AssetCategory.DIGITAL_LEGACY -> pick("Digital legacy", "डिजिटल विरासत")
+        AssetCategory.DIGITAL_LEGACY -> pick("Digital online assets", "डिजिटल ऑनलाइन संपत्ति")
         AssetCategory.TRUSTED_CONTACTS -> pick("Trusted contacts", "भरोसेमंद संपर्क")
     }
 
@@ -161,7 +169,7 @@ class UiStrings(val hindi: Boolean) {
         AssetCategory.INVESTMENTS -> pick("Demat, EPF, PPF, NPS, gold", "डीमैट, EPF, PPF, NPS, सोना")
         AssetCategory.INSURANCE -> pick("Life, health, vehicle", "जीवन, स्वास्थ्य, वाहन")
         AssetCategory.REAL_ESTATE_LOANS -> pick("Deeds, khata, home loans", "काग़ज़ात, खाता, गृह ऋण")
-        AssetCategory.DIGITAL_LEGACY -> pick("Email, phone, DigiLocker", "ईमेल, फ़ोन, DigiLocker")
+        AssetCategory.DIGITAL_LEGACY -> pick("Gmail, Apple ID, ITR, password manager", "Gmail, Apple ID, ITR, पासवर्ड मैनेजर")
         AssetCategory.TRUSTED_CONTACTS -> pick("CA, lawyer, agent, family", "CA, वकील, एजेंट, परिवार")
     }
 

@@ -204,6 +204,64 @@ object DefaultChecklist {
             "LIC / बीमा एजेंट",
             "वह एजेंट या रिलेशनशिप मैनेजर जो जीवन या स्वास्थ्य दावा दाखिल कर सकता है।", NomineeStatus.NOT_APPLICABLE
         )
+
+        item(
+            AssetCategory.DIGITAL_LEGACY, 250,
+            "Primary Gmail / Google account",
+            "Email ID, registered mobile, recovery email, and whether Google's Inactive Account Manager is set with a trusted contact. Never store the password — note where it is kept.",
+            "मुख्य Gmail / Google खाता",
+            "ईमेल ID, पंजीकृत मोबाइल, रिकवरी ईमेल, और क्या Google का Inactive Account Manager भरोसेमंद संपर्क के साथ सेट है। पासवर्ड कभी न रखें — वह कहाँ रखा है, यह लिखें।",
+            NomineeStatus.NOT_APPLICABLE
+        ),
+        item(
+            AssetCategory.DIGITAL_LEGACY, 260,
+            "Apple ID",
+            "Apple ID email, registered mobile, recovery email, and whether a Legacy Contact is set. Their access key location matters — Keychain passwords are never shared by Apple.",
+            "Apple ID",
+            "Apple ID ईमेल, पंजीकृत मोबाइल, रिकवरी ईमेल, और क्या Legacy Contact सेट है। उनकी एक्सेस कुंजी का स्थान मायने रखता है — Apple Keychain पासवर्ड कभी साझा नहीं करता।",
+            NomineeStatus.NOT_APPLICABLE
+        ),
+        item(
+            AssetCategory.DIGITAL_LEGACY, 270,
+            "Other email accounts",
+            "Outlook, Yahoo, Rediff or old Gmail IDs that may guard bank and tax accounts — email ID, registered mobile and recovery email for each. Never the passwords.",
+            "अन्य ईमेल खाते",
+            "Outlook, Yahoo, Rediff या पुरानी Gmail IDs जो बैंक और कर खातों की रक्षा कर सकती हैं — हर एक का ईमेल ID, पंजीकृत मोबाइल और रिकवरी ईमेल। पासवर्ड कभी नहीं।",
+            NomineeStatus.NOT_APPLICABLE
+        ),
+        item(
+            AssetCategory.DIGITAL_LEGACY, 280,
+            "Income Tax (ITR) account",
+            "Portal username (usually PAN), registered mobile and email — needed to file the final return. Password stays in the password manager; note where.",
+            "आयकर (ITR) खाता",
+            "पोर्टल उपयोगकर्ता नाम (आमतौर पर PAN), पंजीकृत मोबाइल और ईमेल — अंतिम रिटर्न दाखिल करने के लिए चाहिए। पासवर्ड पासवर्ड मैनेजर में रहता है; कहाँ है, लिखें।",
+            NomineeStatus.NOT_APPLICABLE
+        ),
+        item(
+            AssetCategory.DIGITAL_LEGACY, 290,
+            "Password manager",
+            "Bitwarden, 1Password or KeePass — vault email, emergency-access contact, and where the master-password hint or sealed copy is kept. This is the safe way to hand over every login.",
+            "पासवर्ड मैनेजर",
+            "Bitwarden, 1Password या KeePass — वॉल्ट ईमेल, आपातकालीन पहुँच संपर्क, और मास्टर-पासवर्ड संकेत या मुहरबंद प्रति कहाँ रखी है। हर लॉगिन सौंपने का सुरक्षित तरीका यही है।",
+            NomineeStatus.NOT_APPLICABLE
+        ),
+        item(
+            AssetCategory.DIGITAL_LEGACY, 300,
+            "Govt portals & official logins",
+            "EPFO, bank, Demat and other official portals — portal name, username/client ID and registered mobile for each, so family can use official recovery and claim routes. Never the passwords.",
+            "सरकारी पोर्टल और आधिकारिक लॉगिन",
+            "EPFO, बैंक, डीमैट और अन्य आधिकारिक पोर्टल — हर एक का पोर्टल नाम, उपयोगकर्ता नाम/क्लाइंट ID और पंजीकृत मोबाइल, ताकि परिवार आधिकारिक रिकवरी और दावा मार्ग उपयोग कर सके। पासवर्ड कभी नहीं।",
+            NomineeStatus.NOT_APPLICABLE
+        ),
+        item(
+            AssetCategory.DIGITAL_LEGACY, 310,
+            "Social & messaging accounts",
+            "WhatsApp, Facebook, Instagram — username, registered mobile, and legacy/memorial contact where the platform offers one. Never the passwords.",
+            "सोशल और मैसेजिंग खाते",
+            "WhatsApp, Facebook, Instagram — उपयोगकर्ता नाम, पंजीकृत मोबाइल, और जहाँ प्लेटफ़ॉर्म देता है वहाँ विरासत/स्मारक संपर्क। पासवर्ड कभी नहीं।",
+            NomineeStatus.NOT_APPLICABLE
+        )
+    )
     )
 
     private fun item(

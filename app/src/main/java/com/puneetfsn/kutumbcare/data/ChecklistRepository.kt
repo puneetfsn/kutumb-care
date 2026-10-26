@@ -20,6 +20,17 @@ class ChecklistRepository(
         if (dao.count() == 0) {
             dao.upsertAll(DefaultChecklist.ITEMS)
             refreshWidget()
+            return
+        }
+        // Existing families keep everything they typed; only brand-new seeded
+        // records (e.g. the Digital online assets added later) are appended.
+        // Seeded records cannot be deleted in the UI, so matching by sortOrder
+        // cannot resurrect something a family removed.
+        val existingOrders = dao.getAll().map { it.sortOrder }.toSet()
+        val missing = DefaultChecklist.ITEMS.filter { it.sortOrder !in existingOrders }
+        if (missing.isNotEmpty()) {
+            dao.upsertAll(missing)
+            refreshWidget()
         }
     }
 

@@ -22,7 +22,7 @@ enum class AssetCategory(
     INVESTMENTS("Investments", "Demat, EPF, PPF, NPS, gold", true),
     INSURANCE("Insurance", "Life, health, vehicle", true),
     REAL_ESTATE_LOANS("Property & loans", "Deeds, khata, home loans", false),
-    DIGITAL_LEGACY("Digital legacy", "Email, phone, DigiLocker", false),
+    DIGITAL_LEGACY("Digital online assets", "Gmail, Apple ID, ITR, password manager", false),
     TRUSTED_CONTACTS("Trusted contacts", "CA, lawyer, agent, family", false);
 
     val icon: ImageVector
