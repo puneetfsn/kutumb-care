@@ -49,8 +49,20 @@ jobs:
       - name: Make wrapper executable
         run: chmod +x gradlew
 
+      # Compiler diagnostics are echoed as workflow annotations so a red run is
+      # readable straight from the run summary.
       - name: Build debug APK
-        run: ./gradlew :app:assembleDebug --stacktrace --no-daemon
+        run: |
+          set +e
+          ./gradlew :app:assembleDebug --no-daemon --console=plain 2>&1 | tee /tmp/build.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            echo "::error::Gradle build failed with exit code $status"
+            grep -E '^(e:|error:|> Task .* FAILED|FAILURE:)' /tmp/build.log | head -n 40 | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+            exit "$status"
+          fi
 
       # Hard privacy gate: the shipped manifest must never request network access.
       - name: Verify no network permission
