@@ -1,6 +1,7 @@
 package com.puneetfsn.kutumbcare.widget
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -39,7 +40,14 @@ class ReadinessWidget : GlanceAppWidget() {
         val snapshot = ChecklistRepository.snapshotOf(items, SettingsRepository(context).snapshot())
         provideContent {
             GlanceTheme {
-                WidgetContent(snapshot.readinessPercent, snapshot.completedCount, snapshot.totalCount, snapshot.missingNomineeItems.size)
+                WidgetContent(
+                    percent = snapshot.readinessPercent,
+                    completed = snapshot.completedCount,
+                    total = snapshot.totalCount,
+                    missingNominees = snapshot.missingNomineeItems.size,
+                    launchIntent = Intent(context, MainActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                )
             }
         }
     }
@@ -50,13 +58,14 @@ private fun WidgetContent(
     percent: Int,
     completed: Int,
     total: Int,
-    missingNominees: Int
+    missingNominees: Int,
+    launchIntent: Intent
 ) {
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(ColorProvider(Color(0xFF134E4A)))
-            .clickable(onClick = actionStartActivity<MainActivity>())
+            .clickable(onClick = actionStartActivity(launchIntent))
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

@@ -16,9 +16,9 @@ private val Context.settingsStore by preferencesDataStore(name = "kutumb_care_se
 class SettingsRepository(context: Context) {
     private val store = context.applicationContext.settingsStore
 
-    val preferences: Flow<UserPreferences> = store.data.map { it.toPreferences() }
+    val preferences: Flow<UserPreferences> = store.data.map { it.toUserPreferences() }
 
-    suspend fun snapshot(): UserPreferences = store.data.first().toPreferences()
+    suspend fun snapshot(): UserPreferences = store.data.first().toUserPreferences()
 
     suspend fun updateProfile(
         primaryUserName: String,
@@ -60,27 +60,15 @@ class SettingsRepository(context: Context) {
         return hashPin(pin) == prefs.pinHash
     }
 
-    private fun Preferences.toPreferences(): UserPreferences = UserPreferences(
-        pinHash = this[PIN_HASH].orEmpty(),
-        pinEnabled = this[PIN_ENABLED] ?: false,
-        themeMode = runCatching { ThemeMode.valueOf(this[THEME_MODE] ?: ThemeMode.SYSTEM.name) }
-            .getOrDefault(ThemeMode.SYSTEM),
-        primaryUserName = this[PRIMARY_USER].orEmpty(),
-        familyLabel = this[FAMILY_LABEL].orEmpty(),
-        emergencyContactName = this[EMERGENCY_NAME].orEmpty(),
-        emergencyContactPhone = this[EMERGENCY_PHONE].orEmpty(),
-        setupComplete = this[SETUP_COMPLETE] ?: false
-    )
-
     companion object {
-        private val PIN_HASH = stringPreferencesKey("pin_hash")
-        private val PIN_ENABLED = booleanPreferencesKey("pin_enabled")
-        private val THEME_MODE = stringPreferencesKey("theme_mode")
-        private val PRIMARY_USER = stringPreferencesKey("primary_user_name")
-        private val FAMILY_LABEL = stringPreferencesKey("family_label")
-        private val EMERGENCY_NAME = stringPreferencesKey("emergency_contact_name")
-        private val EMERGENCY_PHONE = stringPreferencesKey("emergency_contact_phone")
-        private val SETUP_COMPLETE = booleanPreferencesKey("setup_complete")
+        internal val PIN_HASH = stringPreferencesKey("pin_hash")
+        internal val PIN_ENABLED = booleanPreferencesKey("pin_enabled")
+        internal val THEME_MODE = stringPreferencesKey("theme_mode")
+        internal val PRIMARY_USER = stringPreferencesKey("primary_user_name")
+        internal val FAMILY_LABEL = stringPreferencesKey("family_label")
+        internal val EMERGENCY_NAME = stringPreferencesKey("emergency_contact_name")
+        internal val EMERGENCY_PHONE = stringPreferencesKey("emergency_contact_phone")
+        internal val SETUP_COMPLETE = booleanPreferencesKey("setup_complete")
 
         fun hashPin(pin: String): String {
             val bytes = MessageDigest.getInstance("SHA-256").digest(pin.toByteArray())
@@ -88,3 +76,22 @@ class SettingsRepository(context: Context) {
         }
     }
 }
+
+/**
+ * Maps stored DataStore keys onto the UI model.
+ *
+ * Kept as a file-level helper (not a member of [SettingsRepository]) so the
+ * name cannot be shadowed by the DataStore `toPreferences` extension.
+ */
+private fun Preferences.toUserPreferences(): UserPreferences = UserPreferences(
+    pinHash = this[SettingsRepository.PIN_HASH].orEmpty(),
+    pinEnabled = this[SettingsRepository.PIN_ENABLED] ?: false,
+    themeMode = runCatching {
+        ThemeMode.valueOf(this[SettingsRepository.THEME_MODE] ?: ThemeMode.SYSTEM.name)
+    }.getOrDefault(ThemeMode.SYSTEM),
+    primaryUserName = this[SettingsRepository.PRIMARY_USER].orEmpty(),
+    familyLabel = this[SettingsRepository.FAMILY_LABEL].orEmpty(),
+    emergencyContactName = this[SettingsRepository.EMERGENCY_NAME].orEmpty(),
+    emergencyContactPhone = this[SettingsRepository.EMERGENCY_PHONE].orEmpty(),
+    setupComplete = this[SettingsRepository.SETUP_COMPLETE] ?: false
+)
