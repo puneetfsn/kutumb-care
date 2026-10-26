@@ -86,7 +86,7 @@ object BackupFormat {
                         put("sortOrder", item.sortOrder)
                         put("specId", item.specOrder)
                         put("maturityDate", item.maturityDate)
-                        put("attachments", JSONArray(attachmentData[item.id] ?: emptyList()))
+                        put("attachments", JSONArray(attachmentData[item.id] ?: emptyList<String>()))
                         put("updatedAt", item.updatedAt)
                     })
                 }
