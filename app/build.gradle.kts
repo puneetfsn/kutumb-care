@@ -89,4 +89,6 @@ dependencies {
     implementation("androidx.glance:glance-material3:1.1.1")
 
     testImplementation("junit:junit:4.13.2")
+    // Real org.json on the unit test classpath; android.jar only ships stubs.
+    testImplementation("org.json:json:20240303")
 }
