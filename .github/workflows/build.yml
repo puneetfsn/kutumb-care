@@ -64,6 +64,9 @@ jobs:
             exit "$status"
           fi
 
+      - name: Run unit tests
+        run: ./gradlew :app:testDebugUnitTest --no-daemon --console=plain
+
       # Hard privacy gate: the shipped manifest must never request network access.
       - name: Verify no network permission
         run: |

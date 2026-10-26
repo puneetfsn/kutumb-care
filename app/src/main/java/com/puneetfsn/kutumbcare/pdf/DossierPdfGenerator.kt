@@ -30,9 +30,22 @@ class DossierPdfGenerator(private val context: Context) {
             pages += PagePainter { canvas, pageNo, pageCount -> drawCover(canvas, snapshot, pageNo, pageCount) }
             AssetCategory.entries.forEach { category ->
                 val group = snapshot.items.filter { it.categoryEnum == category }
-                if (group.isNotEmpty()) {
+                if (group.isEmpty()) return@forEach
+                // A busy category (many records, long notes) spills onto extra
+                // pages instead of silently losing the overflow.
+                val chunks = paginateCategory(group)
+                chunks.forEachIndexed { index, chunk ->
                     pages += PagePainter { canvas, pageNo, pageCount ->
-                        drawCategoryPage(canvas, snapshot, category, group, pageNo, pageCount)
+                        drawCategoryPage(
+                            canvas = canvas,
+                            snapshot = snapshot,
+                            category = category,
+                            items = chunk,
+                            chunkIndex = index,
+                            chunkCount = chunks.size,
+                            pageNo = pageNo,
+                            pageCount = pageCount
+                        )
                     }
                 }
             }
@@ -131,25 +144,53 @@ class DossierPdfGenerator(private val context: Context) {
         )
     }
 
+    private fun paginateCategory(items: List<ChecklistItem>): List<List<ChecklistItem>> {
+        val chunks = mutableListOf<List<ChecklistItem>>()
+        var current = mutableListOf<ChecklistItem>()
+        var y = CATEGORY_START_Y
+        items.forEach { item ->
+            val height = itemBlockHeight(item)
+            if (current.isNotEmpty() && y + height > PAGE_BOTTOM) {
+                chunks += current.toList()
+                current = mutableListOf()
+                y = CONTINUATION_START_Y
+            }
+            current += item
+            y += height + ITEM_GAP
+        }
+        if (current.isNotEmpty()) chunks += current.toList()
+        return chunks
+    }
+
     private fun drawCategoryPage(
         canvas: Canvas,
         snapshot: DashboardSnapshot,
         category: AssetCategory,
         items: List<ChecklistItem>,
+        chunkIndex: Int,
+        chunkCount: Int,
         pageNo: Int,
         pageCount: Int
     ) {
         drawPageChrome(canvas, pageNo, pageCount)
-        headerBand(canvas, category.displayName.uppercase(Locale.US))
-        var y = 148f
-        y = drawText(canvas, category.subtitle, MARGIN, y, bodyPaint(11f, MUTED), CONTENT_WIDTH)
-        y += 14f
+        val continued = chunkIndex > 0
+        headerBand(
+            canvas,
+            if (continued) "${category.displayName.uppercase(Locale.US)} (CONTINUED)"
+            else category.displayName.uppercase(Locale.US)
+        )
+        var y: Float
+        if (continued) {
+            y = CONTINUATION_START_Y
+        } else {
+            y = 148f
+            y = drawText(canvas, category.subtitle, MARGIN, y, bodyPaint(11f, MUTED), CONTENT_WIDTH)
+            y += 14f
+            y = y.coerceAtLeast(CATEGORY_START_Y)
+        }
 
         items.forEach { item ->
-            val blockHeight = estimateItemHeight(item)
-            if (y + blockHeight > PAGE_HEIGHT - 70f) {
-                return@forEach
-            }
+            val blockHeight = itemBlockHeight(item)
             val box = RectF(MARGIN, y, PAGE_WIDTH - MARGIN, y + blockHeight)
             fillRound(canvas, box, Color.parseColor("#FBF8F2"), 8f)
             val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -174,19 +215,10 @@ class DossierPdfGenerator(private val context: Context) {
                 bodyPaint(10f, if (item.nomineeEnum == NomineeStatus.NEEDS_NOMINEE) SAFFRON else MUTED),
                 CONTENT_WIDTH - 24f
             )
-            val lines = buildList {
-                if (item.institutionName.isNotBlank()) add("Institution: ${item.institutionName}")
-                if (item.accountRef.isNotBlank()) add("Reference: ${item.accountRef}")
-                add("Location: ${item.physicalLocation.ifBlank { "Not recorded" }}")
-                if (item.contactName.isNotBlank() || item.contactPhone.isNotBlank()) {
-                    add("Contact: ${listOf(item.contactName, item.contactPhone).filter { it.isNotBlank() }.joinToString(" · ")}")
-                }
-                if (item.additionalNotes.isNotBlank()) add("Notes: ${item.additionalNotes}")
-            }
-            lines.forEach { line ->
+            itemLines(item).forEach { line ->
                 inner = drawText(canvas, line, MARGIN + 12f, inner + 3f, bodyPaint(10.5f, INK), CONTENT_WIDTH - 24f)
             }
-            y += blockHeight + 10f
+            y += blockHeight + ITEM_GAP
         }
 
         if (snapshot.preferences.primaryUserName.isNotBlank()) {
@@ -199,16 +231,40 @@ class DossierPdfGenerator(private val context: Context) {
         }
     }
 
-    private fun estimateItemHeight(item: ChecklistItem): Float {
-        val extras = listOfNotNull(
-            item.institutionName.takeIf { it.isNotBlank() },
-            item.accountRef.takeIf { it.isNotBlank() },
-            item.physicalLocation,
-            item.contactName.takeIf { it.isNotBlank() },
-            item.additionalNotes.takeIf { it.isNotBlank() }
-        ).size
-        return (86 + extras * 14).toFloat().coerceAtLeast(92f)
+    private fun itemLines(item: ChecklistItem): List<String> = buildList {
+        if (item.institutionName.isNotBlank()) add("Institution: ${item.institutionName}")
+        if (item.accountRef.isNotBlank()) add("Reference: ${item.accountRef}")
+        add("Location: ${item.physicalLocation.ifBlank { "Not recorded" }}")
+        if (item.contactName.isNotBlank() || item.contactPhone.isNotBlank()) {
+            add(
+                "Contact: " + listOf(item.contactName, item.contactPhone)
+                    .filter { it.isNotBlank() }
+                    .joinToString("  ·  ")
+            )
+        }
+        if (item.additionalNotes.isNotBlank()) add("Notes: ${item.additionalNotes}")
     }
+
+    /** Heights are measured with the same paints and width used when drawing. */
+    private fun itemBlockHeight(item: ChecklistItem): Float {
+        val width = CONTENT_WIDTH - 24f
+        var height = 12f
+        height += textHeight(item.title, titlePaint(13f, FOREST), width)
+        height += 2f + textHeight("Nominee verified  ·  Not yet recorded", bodyPaint(10f, MUTED), width)
+        itemLines(item).forEach { line ->
+            height += 3f + textHeight(line, bodyPaint(10.5f, INK), width)
+        }
+        return height + 12f
+    }
+
+    private fun textHeight(text: String, paint: TextPaint, width: Float): Float =
+        StaticLayout.Builder.obtain(text, 0, text.length, paint, width.toInt())
+            .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+            .setLineSpacing(0f, 1.15f)
+            .setIncludePad(false)
+            .build()
+            .height
+            .toFloat()
 
     private fun headerBand(canvas: Canvas, title: String) {
         val band = RectF(0f, 0f, PAGE_WIDTH.toFloat(), 92f)
@@ -277,6 +333,10 @@ class DossierPdfGenerator(private val context: Context) {
         private const val PAGE_HEIGHT = 842
         private const val MARGIN = 42f
         private const val CONTENT_WIDTH = 595f - 84f
+        private const val CATEGORY_START_Y = 186f
+        private const val CONTINUATION_START_Y = 126f
+        private const val ITEM_GAP = 10f
+        private const val PAGE_BOTTOM = 842f - 56f
         private val FOREST = Color.parseColor("#134E4A")
         private val SAFFRON = Color.parseColor("#C45C26")
         private val INK = Color.parseColor("#1C2321")
