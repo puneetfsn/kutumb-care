@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.puneetfsn.kutumbcare.data.AssetCategory
 import com.puneetfsn.kutumbcare.data.ChecklistItem
+import com.puneetfsn.kutumbcare.ui.LocalAppLanguage
+import com.puneetfsn.kutumbcare.ui.LocalStrings
 import com.puneetfsn.kutumbcare.ui.components.EmptyHint
 import com.puneetfsn.kutumbcare.ui.components.NomineeBadge
 
@@ -50,6 +52,8 @@ fun RecordsScreen(
     onCreateItem: (AssetCategory) -> Unit
 ) {
     val items by viewModel.items.collectAsStateWithLifecycle()
+    val strings = LocalStrings.current
+    val hindi = LocalAppLanguage.current.isHindi
     var selected by rememberSaveable(initialCategory) { mutableStateOf(initialCategory.orEmpty()) }
     var query by rememberSaveable { mutableStateOf("") }
     val category = selected.takeIf { it.isNotBlank() }?.let { AssetCategory.fromRaw(it) }
@@ -60,7 +64,7 @@ fun RecordsScreen(
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             Text(
-                "Family records",
+                strings.familyRecords,
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
             )
@@ -72,14 +76,14 @@ fun RecordsScreen(
                     FilterChip(
                         selected = selected.isBlank(),
                         onClick = { selected = "" },
-                        label = { Text("All") }
+                        label = { Text(strings.all) }
                     )
                 }
                 items(AssetCategory.entries, key = { it.name }) { cat ->
                     FilterChip(
                         selected = selected == cat.name,
                         onClick = { selected = cat.name },
-                        label = { Text(cat.displayName) }
+                        label = { Text(strings.category(cat)) }
                     )
                 }
             }
@@ -88,7 +92,7 @@ fun RecordsScreen(
                 onValueChange = { query = it },
                 singleLine = true,
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-                placeholder = { Text("Search bank, UAN, locker, agent…") },
+                placeholder = { Text(strings.searchPlaceholder) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 6.dp)
@@ -101,8 +105,8 @@ fun RecordsScreen(
                 if (visible.isEmpty()) {
                     item {
                         EmptyHint(
-                            if (items.isEmpty()) "Your checklist is still being prepared."
-                            else "No records match this filter yet. Add one with the + button."
+                            if (items.isEmpty()) strings.checklistPreparing
+                            else strings.noMatch
                         )
                     }
                 }
@@ -119,7 +123,7 @@ fun RecordsScreen(
             onClick = { onCreateItem(category ?: AssetCategory.IDENTITY_GOVT) },
             modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
         ) {
-            Icon(Icons.Outlined.Add, contentDescription = "Add record")
+            Icon(Icons.Outlined.Add, contentDescription = strings.addRecord)
         }
     }
 }
@@ -142,18 +146,18 @@ private fun RecordCard(
             IconButton(onClick = onToggle) {
                 Icon(
                     imageVector = if (item.isCompleted) Icons.Outlined.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
-                    contentDescription = if (item.isCompleted) "Mark incomplete" else "Mark recorded",
+                    contentDescription = if (item.isCompleted) LocalStrings.current.markIncomplete else LocalStrings.current.markRecorded,
                     tint = if (item.isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Column(Modifier.weight(1f)) {
-                Text(item.title, style = MaterialTheme.typography.titleMedium)
+                Text(item.displayTitle(LocalAppLanguage.current.isHindi), style = MaterialTheme.typography.titleMedium)
                 Text(
-                    item.categoryEnum.displayName,
+                    LocalStrings.current.category(item.categoryEnum),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                val summary = item.physicalLocation.ifBlank { item.institutionName }.ifBlank { item.description }
+                val summary = item.physicalLocation.ifBlank { item.institutionName }.ifBlank { item.displayDescription(LocalAppLanguage.current.isHindi) }
                 Text(
                     summary,
                     style = MaterialTheme.typography.bodyMedium,
@@ -173,13 +177,16 @@ private fun ChecklistItem.matches(query: String): Boolean {
     if (needle.isEmpty()) return true
     return listOf(
         title,
+        titleHi,
         description,
+        descriptionHi,
         institutionName,
         accountRef,
         physicalLocation,
         contactName,
         contactPhone,
         additionalNotes,
-        categoryEnum.displayName
+        categoryEnum.displayName,
+        categoryEnum.name
     ).any { it.contains(needle, ignoreCase = true) }
 }

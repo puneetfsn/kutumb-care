@@ -14,6 +14,7 @@ import com.puneetfsn.kutumbcare.data.AssetCategory
 import com.puneetfsn.kutumbcare.data.ChecklistItem
 import com.puneetfsn.kutumbcare.data.DashboardSnapshot
 import com.puneetfsn.kutumbcare.data.NomineeStatus
+import com.puneetfsn.kutumbcare.ui.UiStrings
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -21,7 +22,11 @@ import java.util.Locale
 
 class DossierPdfGenerator(private val context: Context) {
 
+    /** Language of the dossier currently being generated (set in [generate]). */
+    @Volatile private var hindiPdf: Boolean = false
+
     fun generate(snapshot: DashboardSnapshot): File {
+        hindiPdf = snapshot.preferences.language.isHindi
         val dir = File(context.cacheDir, "dossier").apply { mkdirs() }
         val file = File(dir, "KutumbCare_Family_Dossier.pdf")
         val document = PdfDocument()
@@ -68,12 +73,13 @@ class DossierPdfGenerator(private val context: Context) {
         val prefs = snapshot.preferences
         val date = SimpleDateFormat("d MMMM yyyy", Locale("en", "IN")).format(Date())
 
-        headerBand(canvas, "FAMILY EMERGENCY DOSSIER")
+        val strings = UiStrings.of(snapshot.preferences.language)
+        headerBand(canvas, strings.pdfTitle)
 
         var y = 150f
         y = drawText(
             canvas,
-            prefs.displayFamilyName,
+            prefs.displayFamilyName(strings.hindi),
             MARGIN,
             y,
             titlePaint(28f, Color.parseColor("#134E4A")),
@@ -81,7 +87,7 @@ class DossierPdfGenerator(private val context: Context) {
         )
         y = drawText(
             canvas,
-            "Prepared for peaceful handover · $date",
+            "${strings.pdfPreparedFor} · $date",
             MARGIN,
             y + 6f,
             bodyPaint(11f, MUTED),
@@ -91,37 +97,32 @@ class DossierPdfGenerator(private val context: Context) {
         y += 18f
         val scoreBox = RectF(MARGIN, y, PAGE_WIDTH - MARGIN, y + 78f)
         fillRound(canvas, scoreBox, Color.parseColor("#F3EDE3"), 10f)
-        canvas.drawText("${snapshot.readinessPercent}% ready", scoreBox.left + 18f, scoreBox.top + 36f, titlePaint(22f, FOREST))
+        canvas.drawText("${snapshot.readinessPercent}% ${strings.pdfReady}", scoreBox.left + 18f, scoreBox.top + 36f, titlePaint(22f, FOREST))
         canvas.drawText(
-            "${snapshot.completedCount} of ${snapshot.totalCount} records captured  ·  ${snapshot.missingNomineeItems.size} nominee alerts",
+            "${snapshot.completedCount} / ${snapshot.totalCount} ${strings.pdfRecordsCaptured}  ·  ${snapshot.missingNomineeItems.size} ${strings.nomineeAlerts}",
             scoreBox.left + 18f,
             scoreBox.top + 58f,
             bodyPaint(11f, MUTED)
         )
         y = scoreBox.bottom + 22f
 
-        y = sectionTitle(canvas, "Emergency contact", y)
-        val contactName = prefs.emergencyContactName.ifBlank { "Not recorded yet" }
+        y = sectionTitle(canvas, strings.pdfEmergencyContact, y)
+        val contactName = prefs.emergencyContactName.ifBlank { strings.pdfNotRecorded }
         val contactPhone = prefs.emergencyContactPhone.ifBlank { "—" }
         y = drawText(canvas, "$contactName  ·  $contactPhone", MARGIN, y, bodyPaint(13f, INK), CONTENT_WIDTH)
         y += 16f
 
-        y = sectionTitle(canvas, "How to use this binder", y)
-        val howTo = listOf(
-            "Print this dossier on A4 paper. Keep one sealed copy with a trusted family member and one in a bank locker.",
-            "Each table lists where originals live, the institution, optional account or policy numbers, nominee status, and the person who can help.",
-            "This file never contains net-banking passwords, UPI PINs, ATM PINs, OTPs or CVVs. Those must stay out of this dossier.",
-            "After a death or emergency, start with identity papers, then bank nominees, then insurance claims (LIC / health), then EPF / UAN."
-        )
+        y = sectionTitle(canvas, strings.pdfHowTo, y)
+        val howTo = strings.pdfHowToLines
         howTo.forEach { line ->
             y = drawText(canvas, "•  $line", MARGIN, y, bodyPaint(11f, INK), CONTENT_WIDTH)
             y += 8f
         }
 
         y += 10f
-        y = sectionTitle(canvas, "Readiness by category", y)
+        y = sectionTitle(canvas, strings.pdfReadinessByCategory, y)
         snapshot.categoryProgress.forEach { progress ->
-            val label = "${progress.category.displayName}   ${progress.completed}/${progress.total}"
+            val label = "${strings.category(progress.category)}   ${progress.completed}/${progress.total}"
             canvas.drawText(label, MARGIN, y + 12f, bodyPaint(11f, INK))
             val barLeft = MARGIN + 220f
             val bar = RectF(barLeft, y + 2f, PAGE_WIDTH - MARGIN, y + 14f)
@@ -136,7 +137,7 @@ class DossierPdfGenerator(private val context: Context) {
         fillRound(canvas, notice, Color.parseColor("#F8EFE6"), 8f)
         drawText(
             canvas,
-            "Confidential family copy. Generated on this phone by Kutumb Care. Nothing in this PDF was uploaded anywhere — the app has no internet permission.",
+            strings.pdfConfidential,
             notice.left + 14f,
             notice.top + 12f,
             bodyPaint(10f, Color.parseColor("#7A4A28")),
@@ -174,17 +175,18 @@ class DossierPdfGenerator(private val context: Context) {
     ) {
         drawPageChrome(canvas, pageNo, pageCount)
         val continued = chunkIndex > 0
+        val strings = UiStrings.of(snapshot.preferences.language)
         headerBand(
             canvas,
-            if (continued) "${category.displayName.uppercase(Locale.US)} (CONTINUED)"
-            else category.displayName.uppercase(Locale.US)
+            if (continued) "${strings.category(category).uppercase()} ${strings.pdfContinued}"
+            else strings.category(category).uppercase()
         )
         var y: Float
         if (continued) {
             y = CONTINUATION_START_Y
         } else {
             y = 148f
-            y = drawText(canvas, category.subtitle, MARGIN, y, bodyPaint(11f, MUTED), CONTENT_WIDTH)
+            y = drawText(canvas, strings.categorySubtitle(category), MARGIN, y, bodyPaint(11f, MUTED), CONTENT_WIDTH)
             y += 14f
             y = y.coerceAtLeast(CATEGORY_START_Y)
         }
@@ -201,21 +203,17 @@ class DossierPdfGenerator(private val context: Context) {
             canvas.drawRoundRect(box, 8f, 8f, stroke)
 
             var inner = y + 12f
-            inner = drawText(canvas, item.title, MARGIN + 12f, inner, titlePaint(13f, FOREST), CONTENT_WIDTH - 24f)
-            val nominee = when (item.nomineeEnum) {
-                NomineeStatus.NOMINEE_VERIFIED -> "Nominee verified"
-                NomineeStatus.NEEDS_NOMINEE -> "Needs nominee"
-                NomineeStatus.NOT_APPLICABLE -> "Nominee n/a"
-            }
+            inner = drawText(canvas, item.displayTitle(strings.hindi), MARGIN + 12f, inner, titlePaint(13f, FOREST), CONTENT_WIDTH - 24f)
+            val nominee = strings.nominee(item.nomineeEnum)
             inner = drawText(
                 canvas,
-                nominee + if (item.isCompleted) "  ·  Recorded" else "  ·  Not yet recorded",
+                nominee + if (item.isCompleted) "  ·  ${strings.pdfRecorded}" else "  ·  ${strings.pdfNotYet}",
                 MARGIN + 12f,
                 inner + 2f,
                 bodyPaint(10f, if (item.nomineeEnum == NomineeStatus.NEEDS_NOMINEE) SAFFRON else MUTED),
                 CONTENT_WIDTH - 24f
             )
-            itemLines(item).forEach { line ->
+            itemLines(item, hindiPdf).forEach { line ->
                 inner = drawText(canvas, line, MARGIN + 12f, inner + 3f, bodyPaint(10.5f, INK), CONTENT_WIDTH - 24f)
             }
             y += blockHeight + ITEM_GAP
@@ -223,7 +221,7 @@ class DossierPdfGenerator(private val context: Context) {
 
         if (snapshot.preferences.primaryUserName.isNotBlank()) {
             canvas.drawText(
-                "Owner: ${snapshot.preferences.primaryUserName}",
+                "${strings.pdfOwner}: ${snapshot.preferences.primaryUserName}",
                 MARGIN,
                 PAGE_HEIGHT - 48f,
                 bodyPaint(9f, MUTED)
@@ -231,27 +229,30 @@ class DossierPdfGenerator(private val context: Context) {
         }
     }
 
-    private fun itemLines(item: ChecklistItem): List<String> = buildList {
-        if (item.institutionName.isNotBlank()) add("Institution: ${item.institutionName}")
-        if (item.accountRef.isNotBlank()) add("Reference: ${item.accountRef}")
-        add("Location: ${item.physicalLocation.ifBlank { "Not recorded" }}")
-        if (item.contactName.isNotBlank() || item.contactPhone.isNotBlank()) {
-            add(
-                "Contact: " + listOf(item.contactName, item.contactPhone)
-                    .filter { it.isNotBlank() }
-                    .joinToString("  ·  ")
-            )
+    private fun itemLines(item: ChecklistItem, hindi: Boolean = false): List<String> {
+        val strings = UiStrings(hindi)
+        return buildList {
+            if (item.institutionName.isNotBlank()) add("${strings.pdfInstitution}: ${item.institutionName}")
+            if (item.accountRef.isNotBlank()) add("${strings.pdfReference}: ${item.accountRef}")
+            add("${strings.pdfLocation}: ${item.physicalLocation.ifBlank { strings.pdfNotRecorded }}")
+            if (item.contactName.isNotBlank() || item.contactPhone.isNotBlank()) {
+                add(
+                    "${strings.pdfContact}: " + listOf(item.contactName, item.contactPhone)
+                        .filter { it.isNotBlank() }
+                        .joinToString("  ·  ")
+                )
+            }
+            if (item.additionalNotes.isNotBlank()) add("${strings.pdfNotes}: ${item.additionalNotes}")
         }
-        if (item.additionalNotes.isNotBlank()) add("Notes: ${item.additionalNotes}")
     }
 
     /** Heights are measured with the same paints and width used when drawing. */
     private fun itemBlockHeight(item: ChecklistItem): Float {
         val width = CONTENT_WIDTH - 24f
         var height = 12f
-        height += textHeight(item.title, titlePaint(13f, FOREST), width)
+        height += textHeight(item.displayTitle(hindiPdf), titlePaint(13f, FOREST), width)
         height += 2f + textHeight("Nominee verified  ·  Not yet recorded", bodyPaint(10f, MUTED), width)
-        itemLines(item).forEach { line ->
+        itemLines(item, hindiPdf).forEach { line ->
             height += 3f + textHeight(line, bodyPaint(10.5f, INK), width)
         }
         return height + 12f

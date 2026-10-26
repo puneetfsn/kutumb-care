@@ -23,6 +23,8 @@ class BackupFormatTest {
         description = "Bank name and branch",
         isCompleted = true,
         nomineeStatus = NomineeStatus.NEEDS_NOMINEE.name,
+        titleHi = "बचत और चालू खाते",
+        descriptionHi = "बैंक का नाम और शाखा",
         institutionName = "SBI — MG Road",
         accountRef = "XXXX9931",
         physicalLocation = "Blue folder, almirah",
@@ -68,6 +70,8 @@ class BackupFormatTest {
         assertEquals(sampleItem.nomineeStatus, restored.nomineeStatus)
         assertEquals(sampleItem.category, restored.category)
         assertEquals(sampleItem.sortOrder, restored.sortOrder)
+        assertEquals(sampleItem.titleHi, restored.titleHi)
+        assertEquals(sampleItem.descriptionHi, restored.descriptionHi)
         assertEquals(true, restored.isCompleted)
         // Ids are reassigned by Room on restore.
         assertEquals(0L, restored.id)

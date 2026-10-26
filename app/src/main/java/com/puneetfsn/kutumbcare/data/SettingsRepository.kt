@@ -39,6 +39,13 @@ class SettingsRepository(context: Context) {
         store.edit { it[THEME_MODE] = mode.name }
     }
 
+    suspend fun setLanguage(language: AppLanguage) {
+        store.edit {
+            it[LANGUAGE] = language.name
+            it[LANGUAGE_CHOSEN] = true
+        }
+    }
+
     suspend fun setPin(pin: String) {
         require(pin.matches(Regex("^\\d{4}$"))) { "PIN must be 4 digits" }
         store.edit {
@@ -69,6 +76,8 @@ class SettingsRepository(context: Context) {
         internal val EMERGENCY_NAME = stringPreferencesKey("emergency_contact_name")
         internal val EMERGENCY_PHONE = stringPreferencesKey("emergency_contact_phone")
         internal val SETUP_COMPLETE = booleanPreferencesKey("setup_complete")
+        internal val LANGUAGE = stringPreferencesKey("app_language")
+        internal val LANGUAGE_CHOSEN = booleanPreferencesKey("language_chosen")
 
         fun hashPin(pin: String): String {
             val bytes = MessageDigest.getInstance("SHA-256").digest(pin.toByteArray())
@@ -93,5 +102,7 @@ private fun Preferences.toUserPreferences(): UserPreferences = UserPreferences(
     familyLabel = this[SettingsRepository.FAMILY_LABEL].orEmpty(),
     emergencyContactName = this[SettingsRepository.EMERGENCY_NAME].orEmpty(),
     emergencyContactPhone = this[SettingsRepository.EMERGENCY_PHONE].orEmpty(),
-    setupComplete = this[SettingsRepository.SETUP_COMPLETE] ?: false
+    setupComplete = this[SettingsRepository.SETUP_COMPLETE] ?: false,
+    language = AppLanguage.fromRaw(this[SettingsRepository.LANGUAGE]),
+    languageChosen = this[SettingsRepository.LANGUAGE_CHOSEN] ?: false
 )

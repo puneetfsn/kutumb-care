@@ -54,10 +54,16 @@ class DashboardViewModel(
                     putExtra(Intent.EXTRA_SUBJECT, "Kutumb Care family emergency dossier")
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
+                val hindi = settingsRepository.snapshot().language.isHindi
                 context.startActivity(Intent.createChooser(intent, "Share family dossier"))
-                _extras.value = DashboardExtras(message = "Dossier ready to print or share")
+                _extras.value = DashboardExtras(
+                    message = if (hindi) "दस्तावेज़ छापने या साझा करने के लिए तैयार है" else "Dossier ready to print or share"
+                )
             }.onFailure { error ->
-                _extras.value = DashboardExtras(message = error.message ?: "Could not create the PDF")
+                _extras.value = DashboardExtras(
+                    message = error.message
+                        ?: if (settingsRepository.snapshot().language.isHindi) "PDF नहीं बन सकी" else "Could not create the PDF"
+                )
             }
         }
     }

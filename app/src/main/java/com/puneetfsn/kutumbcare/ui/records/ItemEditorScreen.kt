@@ -37,6 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.puneetfsn.kutumbcare.data.AssetCategory
 import com.puneetfsn.kutumbcare.data.NomineeStatus
+import com.puneetfsn.kutumbcare.ui.LocalAppLanguage
+import com.puneetfsn.kutumbcare.ui.LocalStrings
 import com.puneetfsn.kutumbcare.ui.components.PrivacyBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,6 +50,8 @@ fun ItemEditorScreen(
     onBack: () -> Unit
 ) {
     val observed by viewModel.observeItem(itemId ?: -1L).collectAsStateWithLifecycle(initialValue = null)
+    val strings = LocalStrings.current
+    val hindi = LocalAppLanguage.current.isHindi
     val blank = remember(newCategory) {
         viewModel.createBlank(AssetCategory.fromRaw(newCategory ?: AssetCategory.IDENTITY_GOVT.name))
     }
@@ -85,14 +89,14 @@ fun ItemEditorScreen(
                 title = {
                     Text(
                         when {
-                            itemId == null || itemId <= 0L -> "New record"
-                            else -> item?.title ?: "Record"
+                            itemId == null || itemId <= 0L -> strings.newRecord
+                            else -> item?.displayTitle(hindi) ?: strings.record
                         }
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Outlined.ArrowBack, contentDescription = strings.back)
                     }
                 },
                 actions = {
@@ -101,7 +105,7 @@ fun ItemEditorScreen(
                             viewModel.delete(item)
                             onBack()
                         }) {
-                            Icon(Icons.Outlined.Delete, contentDescription = "Delete")
+                            Icon(Icons.Outlined.Delete, contentDescription = strings.delete)
                         }
                     }
                 }
@@ -109,7 +113,7 @@ fun ItemEditorScreen(
         }
     ) { padding ->
         if (item == null) {
-            Text("Loading…", modifier = Modifier.padding(padding).padding(20.dp))
+            Text(strings.loading, modifier = Modifier.padding(padding).padding(20.dp))
             return@Scaffold
         }
         Column(
@@ -120,7 +124,7 @@ fun ItemEditorScreen(
                 .padding(20.dp)
         ) {
             Text(
-                item.categoryEnum.displayName,
+                strings.category(item.categoryEnum),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.secondary
             )
@@ -131,13 +135,13 @@ fun ItemEditorScreen(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Title") },
+                    label = { Text(strings.title) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(10.dp))
             } else {
                 Text(
-                    item.description,
+                    item.displayDescription(hindi),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -146,28 +150,28 @@ fun ItemEditorScreen(
             OutlinedTextField(
                 value = institution,
                 onValueChange = { institution = it },
-                label = { Text("Institution / branch") },
-                placeholder = { Text("SBI — MG Road branch") },
+                label = { Text(strings.institution) },
+                placeholder = { Text(strings.institutionPlaceholder) },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(10.dp))
             OutlinedTextField(
                 value = accountRef,
                 onValueChange = { accountRef = it },
-                label = { Text("Account / policy / UAN / folio (optional)") },
+                label = { Text(strings.refLabel) },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(10.dp))
             OutlinedTextField(
                 value = location,
                 onValueChange = { location = it },
-                label = { Text("Physical document location") },
-                placeholder = { Text("Master bedroom almirah / blue folder") },
+                label = { Text(strings.location) },
+                placeholder = { Text(strings.locationPlaceholder) },
                 minLines = 2,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(16.dp))
-            Text("Nominee status", style = MaterialTheme.typography.titleMedium)
+            Text(strings.nomineeStatus, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -177,7 +181,7 @@ fun ItemEditorScreen(
                     FilterChip(
                         selected = nominee == status,
                         onClick = { nominee = status },
-                        label = { Text(status.displayName) }
+                        label = { Text(strings.nominee(status)) }
                     )
                 }
             }
@@ -185,14 +189,14 @@ fun ItemEditorScreen(
             OutlinedTextField(
                 value = contactName,
                 onValueChange = { contactName = it },
-                label = { Text("Contact person / agent") },
+                label = { Text(strings.contactPerson) },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(10.dp))
             OutlinedTextField(
                 value = contactPhone,
                 onValueChange = { contactPhone = it },
-                label = { Text("Contact phone") },
+                label = { Text(strings.contactPhone) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -200,7 +204,7 @@ fun ItemEditorScreen(
             OutlinedTextField(
                 value = notes,
                 onValueChange = { notes = it },
-                label = { Text("Notes for the family") },
+                label = { Text(strings.notes) },
                 minLines = 3,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -224,7 +228,7 @@ fun ItemEditorScreen(
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 enabled = title.isNotBlank() || !item.isUserCreated
             ) {
-                Text("Save record")
+                Text(strings.saveRecord)
             }
             Spacer(Modifier.height(24.dp))
         }

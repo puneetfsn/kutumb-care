@@ -55,6 +55,17 @@ enum class NomineeStatus(val displayName: String) {
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
+/** App language chosen on first launch. Stored locally; never leaves the device. */
+enum class AppLanguage {
+    ENGLISH, HINDI;
+
+    val isHindi: Boolean get() = this == HINDI
+
+    companion object {
+        fun fromRaw(raw: String?): AppLanguage = entries.find { it.name == raw } ?: ENGLISH
+    }
+}
+
 @Entity(tableName = "checklist_items")
 data class ChecklistItem(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -70,12 +81,22 @@ data class ChecklistItem(
     val contactPhone: String = "",
     val additionalNotes: String = "",
     val isUserCreated: Boolean = false,
+    /** Hindi rendering of the seeded title/description. Empty for user records. */
+    val titleHi: String = "",
+    val descriptionHi: String = "",
     val sortOrder: Int = 0,
     val updatedAt: Long = System.currentTimeMillis()
 ) {
     val categoryEnum: AssetCategory get() = AssetCategory.fromRaw(category)
     val nomineeEnum: NomineeStatus get() = NomineeStatus.fromRaw(nomineeStatus)
     val hasLocation: Boolean get() = physicalLocation.isNotBlank()
+
+    /** Title to show for [hindi]; falls back to the stored (English) title. */
+    fun displayTitle(hindi: Boolean): String =
+        if (hindi && titleHi.isNotBlank()) titleHi else title
+
+    fun displayDescription(hindi: Boolean): String =
+        if (hindi && descriptionHi.isNotBlank()) descriptionHi else description
 }
 
 data class UserPreferences(
@@ -86,7 +107,10 @@ data class UserPreferences(
     val familyLabel: String = "",
     val emergencyContactName: String = "",
     val emergencyContactPhone: String = "",
-    val setupComplete: Boolean = false
+    val setupComplete: Boolean = false,
+    val language: AppLanguage = AppLanguage.ENGLISH,
+    /** False until the first-launch English / हिन्दी chooser has been answered. */
+    val languageChosen: Boolean = false
 ) {
     val displayFamilyName: String
         get() = when {

@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.puneetfsn.kutumbcare.data.NomineeStatus
+import com.puneetfsn.kutumbcare.ui.LocalStrings
 import com.puneetfsn.kutumbcare.ui.theme.AlertAmber
 import com.puneetfsn.kutumbcare.ui.theme.Saffron
 import com.puneetfsn.kutumbcare.ui.theme.Verified
@@ -71,7 +72,7 @@ fun ReadinessRing(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "prepared",
+                text = LocalStrings.current.prepared,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -81,10 +82,11 @@ fun ReadinessRing(
 
 @Composable
 fun NomineeBadge(status: NomineeStatus) {
+    val strings = LocalStrings.current
     val (label, color) = when (status) {
-        NomineeStatus.NOMINEE_VERIFIED -> "Nominee verified" to Verified
-        NomineeStatus.NEEDS_NOMINEE -> "Needs nominee" to AlertAmber
-        NomineeStatus.NOT_APPLICABLE -> "No nominee needed" to MaterialTheme.colorScheme.onSurfaceVariant
+        NomineeStatus.NOMINEE_VERIFIED -> strings.nominee(status) to Verified
+        NomineeStatus.NEEDS_NOMINEE -> strings.nominee(status) to AlertAmber
+        NomineeStatus.NOT_APPLICABLE -> strings.nominee(status) to MaterialTheme.colorScheme.onSurfaceVariant
     }
     Text(
         text = label,
@@ -113,7 +115,7 @@ fun PrivacyBanner(modifier: Modifier = Modifier) {
         )
         Spacer(Modifier.width(10.dp))
         Text(
-            text = "Record locations and metadata only. Never save net-banking passwords, UPI PINs, ATM PINs, OTPs or CVVs.",
+            text = LocalStrings.current.privacyBanner,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSecondaryContainer
         )
@@ -134,12 +136,12 @@ fun NomineeAlertCard(count: Int, modifier: Modifier = Modifier) {
         Spacer(Modifier.width(10.dp))
         Column {
             Text(
-                text = "$count ${if (count == 1) "account needs" else "accounts need"} a nominee",
+                text = LocalStrings.current.nomineeAlertTitle(count),
                 style = MaterialTheme.typography.titleMedium,
                 color = AlertAmber
             )
             Text(
-                text = "Unclaimed deposits often sit with banks because no nominee was registered.",
+                text = LocalStrings.current.nomineeAlertBody,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

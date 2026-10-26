@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.puneetfsn.kutumbcare.data.AssetCategory
 import com.puneetfsn.kutumbcare.data.CategoryProgress
+import com.puneetfsn.kutumbcare.ui.LocalAppLanguage
+import com.puneetfsn.kutumbcare.ui.LocalStrings
 import com.puneetfsn.kutumbcare.ui.components.NomineeAlertCard
 import com.puneetfsn.kutumbcare.ui.components.PrivacyBanner
 import com.puneetfsn.kutumbcare.ui.components.ReadinessRing
@@ -44,6 +46,8 @@ fun DashboardScreen(
     onOpenSettings: () -> Unit
 ) {
     val snapshot by viewModel.snapshot.collectAsStateWithLifecycle()
+    val strings = LocalStrings.current
+    val hindi = LocalAppLanguage.current.isHindi
     val extras by viewModel.extras.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
@@ -61,9 +65,9 @@ fun DashboardScreen(
             .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
         Text("Kutumb Care", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
-        Text(snapshot.preferences.displayFamilyName, style = MaterialTheme.typography.headlineMedium)
+        Text(snapshot.preferences.displayFamilyName(hindi), style = MaterialTheme.typography.headlineMedium)
         Text(
-            "A private emergency dossier that never leaves this phone.",
+            strings.tagline,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -73,8 +77,8 @@ fun DashboardScreen(
         }
         Spacer(Modifier.height(16.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatChip("Recorded", "${snapshot.completedCount}/${snapshot.totalCount}", Modifier.weight(1f))
-            StatChip("Nominee alerts", snapshot.missingNomineeItems.size.toString(), Modifier.weight(1f))
+            StatChip(strings.recorded, "${snapshot.completedCount}/${snapshot.totalCount}", Modifier.weight(1f))
+            StatChip(strings.nomineeAlerts, snapshot.missingNomineeItems.size.toString(), Modifier.weight(1f))
         }
         Spacer(Modifier.height(14.dp))
         NomineeAlertCard(snapshot.missingNomineeItems.size)
@@ -89,7 +93,7 @@ fun DashboardScreen(
         ) {
             Icon(Icons.Outlined.PictureAsPdf, contentDescription = null)
             Spacer(Modifier.padding(6.dp))
-            Text(if (extras.generating) "Preparing dossier…" else "Generate emergency dossier")
+            Text(if (extras.generating) strings.preparing else strings.generateDossier)
         }
         extras.message?.let {
             Spacer(Modifier.height(8.dp))
@@ -97,9 +101,9 @@ fun DashboardScreen(
         }
         Spacer(Modifier.height(22.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Categories", style = MaterialTheme.typography.titleLarge)
+            Text(strings.categories, style = MaterialTheme.typography.titleLarge)
             Text(
-                "Family profile",
+                strings.familyProfileLink,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable(onClick = onOpenSettings)
@@ -126,9 +130,9 @@ private fun CategoryRow(progress: CategoryProgress, onClick: () -> Unit) {
                 Icon(progress.category.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.padding(8.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(progress.category.displayName, style = MaterialTheme.typography.titleMedium)
+                    Text(LocalStrings.current.category(progress.category), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        progress.category.subtitle,
+                        LocalStrings.current.categorySubtitle(progress.category),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
