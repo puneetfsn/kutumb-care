@@ -65,7 +65,7 @@ fun DashboardScreen(
             .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
         Text("Kutumb Care", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
-        Text(snapshot.preferences.displayFamilyName(hindi), style = MaterialTheme.typography.headlineMedium)
+        Text(snapshot.preferences.familyName(hindi), style = MaterialTheme.typography.headlineMedium)
         Text(
             strings.tagline,
             style = MaterialTheme.typography.bodyMedium,

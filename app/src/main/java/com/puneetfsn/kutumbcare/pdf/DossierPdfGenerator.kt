@@ -79,7 +79,7 @@ class DossierPdfGenerator(private val context: Context) {
         var y = 150f
         y = drawText(
             canvas,
-            prefs.displayFamilyName(strings.hindi),
+            prefs.familyName(strings.hindi),
             MARGIN,
             y,
             titlePaint(28f, Color.parseColor("#134E4A")),

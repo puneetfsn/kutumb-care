@@ -113,11 +113,14 @@ data class UserPreferences(
     val languageChosen: Boolean = false
 ) {
     val displayFamilyName: String
-        get() = when {
-            familyLabel.isNotBlank() -> familyLabel
-            primaryUserName.isNotBlank() -> "${primaryUserName.trim()}'s family"
-            else -> "Your family"
-        }
+        get() = familyName(language.isHindi)
+
+    fun familyName(hindi: Boolean): String = when {
+        familyLabel.isNotBlank() -> familyLabel
+        primaryUserName.isNotBlank() ->
+            if (hindi) "${primaryUserName.trim()} का परिवार" else "${primaryUserName.trim()}'s family"
+        else -> if (hindi) "आपका परिवार" else "Your family"
+    }
 }
 
 data class CategoryProgress(
