@@ -97,15 +97,30 @@ class SettingsRepository(context: Context) {
         return maxOf(0L, (until - System.currentTimeMillis() + 999) / 1000)
     }
 
-    /** Records a failed unlock; from the 5th failure the wait doubles each time (30s → 1m → 2m…, capped at 30m). */
-    suspend fun recordFailedAttempt() {
+    /** Records a failed unlock; from the 5th failure the wait doubles each time (30s → 1m → 2m…, capped at 30m). Returns the total failure count. */
+    suspend fun recordFailedAttempt(): Int {
+        var fails = 0
         store.edit { prefs ->
-            val fails = (prefs[PIN_FAIL_COUNT] ?: 0) + 1
+            fails = (prefs[PIN_FAIL_COUNT] ?: 0) + 1
             prefs[PIN_FAIL_COUNT] = fails
             if (fails >= 5) {
                 val waitSec = minOf(1800L, 30L shl minOf(6, fails - 5))
                 prefs[PIN_LOCK_UNTIL] = System.currentTimeMillis() + waitSec * 1000
             }
+        }
+        return fails
+    }
+
+    /** Total consecutive failed unlock attempts. */
+    suspend fun failedAttempts(): Int = store.data.first()[PIN_FAIL_COUNT] ?: 0
+
+    /** Erases every preference except the chosen language (used by Erase everything / auto-wipe). */
+    suspend fun wipeAllPreservingLanguage() {
+        val current = snapshot()
+        store.edit { it.clear() }
+        store.edit {
+            it[LANGUAGE] = current.language.name
+            it[LANGUAGE_CHOSEN] = current.languageChosen
         }
     }
 

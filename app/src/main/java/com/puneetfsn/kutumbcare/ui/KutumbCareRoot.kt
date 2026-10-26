@@ -126,16 +126,12 @@ private fun KutumbCareRootContent(
 ) {
     var unlocked by rememberSaveable { mutableStateOf(!preferences.pinEnabled) }
 
-    // While the lock is enabled, block screenshots and recents-screen
-    // thumbnails so the dossier cannot leak through the app switcher.
+    // Maximum security: screenshots and recents-screen thumbnails are
+    // ALWAYS blocked, whether or not a passphrase is set, so the dossier
+    // can never leak through the app switcher or a casual screenshot.
     val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
-    DisposableEffect(activity, preferences.pinEnabled) {
-        val window = activity?.window
-        if (preferences.pinEnabled) {
-            window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
-        } else {
-            window?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
-        }
+    DisposableEffect(activity) {
+        activity?.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
         onDispose { }
     }
 

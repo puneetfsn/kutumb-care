@@ -15,6 +15,9 @@ class KutumbCareApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // The shared dossier PDF is a temp file: never let a previous
+        // session's copy linger on the device.
+        runCatching { java.io.File(cacheDir, "dossier").deleteRecursively() }
         container = AppContainer(this)
         applicationScope.launch {
             container.checklistRepository.seedIfEmpty()

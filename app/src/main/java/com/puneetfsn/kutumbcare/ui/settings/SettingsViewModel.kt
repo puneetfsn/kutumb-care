@@ -2,6 +2,7 @@ package com.puneetfsn.kutumbcare.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.puneetfsn.kutumbcare.data.ChecklistRepository
 import com.puneetfsn.kutumbcare.data.AppLanguage
 import com.puneetfsn.kutumbcare.data.NomineeProfile
 import com.puneetfsn.kutumbcare.data.SettingsRepository
@@ -15,7 +16,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val checklistRepository: ChecklistRepository
 ) : ViewModel() {
 
     val preferences: StateFlow<UserPreferences> = settingsRepository.preferences
@@ -71,6 +73,16 @@ class SettingsViewModel(
         viewModelScope.launch {
             settingsRepository.clearPin()
             _message.value = msg("App lock removed", "ऐप लॉक हटा दिया गया")
+        }
+    }
+
+    /** Erase everything: records, photos, nominees, profile and the lock itself. */
+    fun eraseEverything() {
+        viewModelScope.launch {
+            checklistRepository.wipeAll()
+            settingsRepository.wipeAllPreservingLanguage()
+            checklistRepository.seedIfEmpty()
+            _message.value = msg("Everything erased. The app is like new.", "सब कुछ मिट गया। ऐप नया जैसा हो गया।")
         }
     }
 

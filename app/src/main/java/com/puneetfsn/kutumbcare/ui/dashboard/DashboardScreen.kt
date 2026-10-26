@@ -82,6 +82,22 @@ fun DashboardScreen(
         }
         Spacer(Modifier.height(14.dp))
         NomineeAlertCard(snapshot.missingNomineeItems.size)
+        val lastUpdated = snapshot.items.filter { it.isCompleted }.maxOfOrNull { it.updatedAt } ?: 0L
+        if (snapshot.completedCount > 0 && lastUpdated > 0L &&
+            System.currentTimeMillis() - lastUpdated > 365L * 24 * 3600 * 1000
+        ) {
+            Spacer(Modifier.height(14.dp))
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(strings.reviewTitle, style = MaterialTheme.typography.titleMedium)
+                    Text(strings.reviewNote, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
         Spacer(Modifier.height(14.dp))
         PrivacyBanner()
         Spacer(Modifier.height(16.dp))

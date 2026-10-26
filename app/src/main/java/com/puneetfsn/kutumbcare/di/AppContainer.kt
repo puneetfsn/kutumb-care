@@ -37,7 +37,8 @@ class AppViewModelFactory(
                 RecordsViewModel(container.checklistRepository, container.settingsRepository) as T
             modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
                 SettingsViewModel(
-                    container.settingsRepository
+                    container.settingsRepository,
+                    container.checklistRepository
                 ) as T
             else -> throw IllegalArgumentException("Unknown ViewModel ${modelClass.name}")
         }

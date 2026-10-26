@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,6 +52,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     var phone by remember { mutableStateOf("") }
     var pin by remember { mutableStateOf("") }
     var pinConfirm by remember { mutableStateOf("") }
+    var showErase by remember { mutableStateOf(false) }
     var hydrated by remember { mutableStateOf(false) }
 
     LaunchedEffect(prefs.setupComplete, prefs.primaryUserName, prefs.familyLabel) {
@@ -260,6 +263,38 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+
+        Spacer(Modifier.height(24.dp))
+        Text(strings.eraseTitle, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.error)
+        Spacer(Modifier.height(8.dp))
+        Text(
+            strings.eraseNote,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = { showErase = true },
+            modifier = Modifier.fillMaxWidth(),
+            colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+        ) {
+            Text(strings.eraseAll)
+        }
+        if (showErase) {
+            AlertDialog(
+                onDismissRequest = { showErase = false },
+                title = { Text(strings.eraseAll) },
+                text = { Text(strings.eraseNote, style = MaterialTheme.typography.bodyMedium) },
+                confirmButton = {
+                    TextButton(
+                        onClick = { showErase = false; viewModel.eraseEverything() }
+                    ) { Text(strings.eraseAll, color = MaterialTheme.colorScheme.error) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showErase = false }) { Text(strings.cancel) }
+                }
+            )
+        }
 
         message?.let {
             Spacer(Modifier.height(12.dp))

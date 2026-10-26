@@ -48,6 +48,11 @@ object DocumentStore {
     fun loadBitmap(context: Context, name: String): Bitmap? =
         readBytes(context, name)?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
 
+    /** Deletes every stored document photo (Erase everything). */
+    fun deleteAll(context: Context) {
+        runCatching { dir(context).listFiles()?.forEach { it.delete() } }
+    }
+
     fun delete(context: Context, name: String) {
         runCatching { file(context, name).delete() }
     }

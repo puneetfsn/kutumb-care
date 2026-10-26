@@ -95,6 +95,14 @@ class UiStrings(val hindi: Boolean) {
     val useFingerprint get() = pick("Use fingerprint / face", "फ़िंगरप्रिंट / चेहरा उपयोग करें")
     val tooManyTries get() = pick("Too many wrong tries. Wait a little and try again.", "बहुत अधिक गलत प्रयास। थोड़ा प्रतीक्षा करके फिर प्रयास करें।")
     val removePin get() = pick("Remove PIN", "PIN हटाएँ")
+    val eraseTitle get() = pick("Danger zone", "ख़तरा क्षेत्र")
+    val eraseAll get() = pick("Erase everything", "सब कुछ मिटाएँ")
+    val eraseNote get() = pick("Deletes every record, nominee card and document photo on this phone, forever. There is no undo and no copy anywhere.", "इस फ़ोन पर मौजूद हर रिकॉर्ड, नॉमिनी कार्ड और दस्तावेज़ फ़ोटो हमेशा के लिए मिट जाएँगे। कोई वापसी नहीं और कोई प्रति कहीं नहीं है।")
+    val erased get() = pick("Everything erased. The app is like new.", "सब कुछ मिट गया। ऐप नया जैसा हो गया।")
+    val reviewTitle get() = pick("Time for a yearly review", "वार्षिक समीक्षा का समय")
+    val reviewNote get() = pick("It has been over a year since this dossier was last updated. Sit with your family, check nominees and numbers, and refresh anything that changed.", "इस दस्तावेज़ को अपडेट किए एक वर्ष से अधिक हो गया है। परिवार के साथ बैठें, नॉमिनी और नंबर जाँचें, और जो बदला है उसे ताज़ा करें।")
+    val showNumber get() = pick("show", "दिखाएँ")
+    val hideNumber get() = pick("hide", "छिपाएँ")
     val noBackupTitle get() = pick("No copies, by design", "कोई प्रति नहीं — यही डिज़ाइन है")
     val noBackupNote get() = pick(
         "Kutumb Care makes no backup, export or copy of your records, and there is nothing to restore from. Your dossier exists only inside this app on this phone, protected by your passphrase. If this phone is lost or the passphrase is forgotten, the dossier is gone forever — that is the price of nobody else ever being able to use it.",
