@@ -261,7 +261,6 @@ object DefaultChecklist {
             NomineeStatus.NOT_APPLICABLE
         )
     )
-    )
 
     private fun item(
         category: AssetCategory,
