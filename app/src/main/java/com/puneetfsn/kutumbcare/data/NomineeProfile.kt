@@ -41,7 +41,10 @@ data class NomineeProfile(
     }.joinToString(" · ")
 
     companion object {
-        private val DOB_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        // STRICT so 31/02/1985 is rejected instead of rolled to 28/02; uuuu (proleptic
+        // year) is required for strict parsing without an era field.
+        private val DOB_FORMAT: DateTimeFormatter =
+            DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT)
 
         fun parseDob(raw: String): LocalDate? =
             runCatching { LocalDate.parse(raw.trim(), DOB_FORMAT) }.getOrNull()
