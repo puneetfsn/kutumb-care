@@ -25,7 +25,7 @@ When the time comes, print the **Family Emergency Dossier** PDF, seal it, and ke
 | Reference | Policy, account, folio or UAN number |
 | Contact | LIC agent name and phone |
 
-## India-specific checklist (auto-seeded, English + हिन्दी)
+## India-specific checklist — 31 records (auto-seeded, English + हिन्दी)
 
 Identity & civil · Banking & funds · Investments (Demat, EPF/UAN, PPF, NPS, gold) · Insurance · Property & loans · Digital legacy · Trusted contacts (CA, lawyer, agent).
 
@@ -71,6 +71,29 @@ cd web && python3 -m http.server 8080   # then open http://localhost:8080
 - Installable as a PWA (“Add to Home Screen”) with the shielded-home icon; the service
   worker caches only the app shell so it keeps working with no connection.
 
+## Per-entry fields (not one generic form)
+
+Every record asks only for what that record needs, in the language chosen — an
+Aadhaar card never asks for a "branch". Labels follow official guidance:
+
+- **Aadhaar (UIDAI/PIB):** only the last 4 digits (masked Aadhaar) are ever written.
+- **Demat/MF (SEBI 2026 nomination framework):** nominee name + relationship is the
+  mandatory core; share % and contacts are optional.
+- **EPF (EPFO):** e-nomination covers PF + EPS pension + EDLI; shares total 100%,
+  a minor nominee needs a guardian.
+- **Insurance (IRDAI 2024):** nominee name, relationship, contact; appointee for minors.
+- **Digital online assets:** Gmail (Google Inactive Account Manager — 3–18 months,
+  up to 10 phone-verified trusted contacts), Apple ID (Legacy Contact needs the
+  access key + death certificate; Keychain passwords are never shared), other email,
+  Income Tax account, password manager (emergency access), govt portals, social.
+  The app stores **the map, never the keys**: account IDs, registered mobile,
+  recovery email and *where the password is kept*.
+- Navigation: the bottom bar now stays visible inside a record, with a
+  discard-changes prompt for unsaved edits.
+- The printed dossier turns blank fields into writing lines with extra space,
+  so it can be completed by hand, and carries a fine-print privacy note on
+  every page.
+
 ## Languages
 
 Both apps ask **English / हिन्दी** on first launch and remember the choice (changeable in
@@ -115,6 +138,29 @@ cd web && python3 -m http.server 8080   # then open http://localhost:8080
   **“Download blank form to fill by hand”** (an empty A4 booklet to print and complete with a pen).
 - Installable as a PWA (“Add to Home Screen”) with the shielded-home icon; the service
   worker caches only the app shell so it keeps working with no connection.
+
+## Per-entry fields (not one generic form)
+
+Every record asks only for what that record needs, in the language chosen — an
+Aadhaar card never asks for a "branch". Labels follow official guidance:
+
+- **Aadhaar (UIDAI/PIB):** only the last 4 digits (masked Aadhaar) are ever written.
+- **Demat/MF (SEBI 2026 nomination framework):** nominee name + relationship is the
+  mandatory core; share % and contacts are optional.
+- **EPF (EPFO):** e-nomination covers PF + EPS pension + EDLI; shares total 100%,
+  a minor nominee needs a guardian.
+- **Insurance (IRDAI 2024):** nominee name, relationship, contact; appointee for minors.
+- **Digital online assets:** Gmail (Google Inactive Account Manager — 3–18 months,
+  up to 10 phone-verified trusted contacts), Apple ID (Legacy Contact needs the
+  access key + death certificate; Keychain passwords are never shared), other email,
+  Income Tax account, password manager (emergency access), govt portals, social.
+  The app stores **the map, never the keys**: account IDs, registered mobile,
+  recovery email and *where the password is kept*.
+- Navigation: the bottom bar now stays visible inside a record, with a
+  discard-changes prompt for unsaved edits.
+- The printed dossier turns blank fields into writing lines with extra space,
+  so it can be completed by hand, and carries a fine-print privacy note on
+  every page.
 
 ## Languages
 
