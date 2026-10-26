@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [ChecklistItem::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -36,6 +36,16 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** 2 → 3 adds the two nominee-card slots (id + share %) per record. */
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE checklist_items ADD COLUMN nominee1Id TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE checklist_items ADD COLUMN nominee1Share INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE checklist_items ADD COLUMN nominee2Id TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE checklist_items ADD COLUMN nominee2Share INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
@@ -46,7 +56,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "kutumb_care.db"
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .fallbackToDestructiveMigration()
                     .build()
                     .also { INSTANCE = it }

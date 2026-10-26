@@ -33,7 +33,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.puneetfsn.kutumbcare.data.AppLanguage
 import com.puneetfsn.kutumbcare.data.ThemeMode
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import com.puneetfsn.kutumbcare.data.NomineeProfile
 import com.puneetfsn.kutumbcare.ui.LocalStrings
+import com.puneetfsn.kutumbcare.ui.records.NomineeProfileDialog
 import com.puneetfsn.kutumbcare.ui.components.PrivacyBanner
 import kotlinx.coroutines.delay
 
@@ -112,6 +116,77 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         Spacer(Modifier.height(12.dp))
         Button(onClick = { viewModel.saveProfile(name, family, contact, phone) }, modifier = Modifier.fillMaxWidth()) {
             Text(strings.saveProfile)
+        }
+
+        Spacer(Modifier.height(24.dp))
+        Text(strings.savedNominees, style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.height(6.dp))
+        Text(
+            strings.nomineesNote,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(8.dp))
+        var nomineeDialogFor by remember { mutableStateOf<NomineeProfile?>(null) }
+        var showNewNominee by remember { mutableStateOf(false) }
+        if (prefs.nominees.isEmpty()) {
+            Text(
+                strings.noNomineesYet,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+        prefs.nominees.forEach { profile ->
+            Card(
+                onClick = { nomineeDialogFor = profile },
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+            ) {
+                Column(Modifier.padding(14.dp)) {
+                    Text(profile.fullName, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        profile.summaryLine(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (profile.mobile.isNotBlank()) {
+                        Text(
+                            profile.mobile,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+        Spacer(Modifier.height(6.dp))
+        OutlinedButton(onClick = { showNewNominee = true }, modifier = Modifier.fillMaxWidth()) {
+            Text(strings.addNominee)
+        }
+        if (showNewNominee) {
+            NomineeProfileDialog(
+                initial = null,
+                onDismiss = { showNewNominee = false },
+                onSave = { profile ->
+                    viewModel.saveNominee(profile)
+                    showNewNominee = false
+                }
+            )
+        }
+        nomineeDialogFor?.let { profile ->
+            NomineeProfileDialog(
+                initial = profile,
+                onDismiss = { nomineeDialogFor = null },
+                onSave = { updated ->
+                    viewModel.saveNominee(updated)
+                    nomineeDialogFor = null
+                },
+                onDelete = { doomed ->
+                    viewModel.deleteNominee(doomed.id)
+                    nomineeDialogFor = null
+                }
+            )
         }
 
         Spacer(Modifier.height(24.dp))

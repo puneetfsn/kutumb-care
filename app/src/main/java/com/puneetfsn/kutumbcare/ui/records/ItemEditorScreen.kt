@@ -21,6 +21,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -42,6 +43,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.puneetfsn.kutumbcare.data.AssetCategory
 import com.puneetfsn.kutumbcare.data.EntryFieldLabel
 import com.puneetfsn.kutumbcare.data.EntryFieldsCatalog
+import com.puneetfsn.kutumbcare.data.NomineeAssignment
+import com.puneetfsn.kutumbcare.data.NomineeProfile
+import com.puneetfsn.kutumbcare.data.NomineeShares
 import com.puneetfsn.kutumbcare.data.NomineeStatus
 import com.puneetfsn.kutumbcare.ui.LocalAppLanguage
 import com.puneetfsn.kutumbcare.ui.LocalStrings
@@ -71,14 +75,21 @@ fun ItemEditorScreen(
     var contactPhone by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var nominee by remember { mutableStateOf(NomineeStatus.NOT_APPLICABLE) }
+    var nom1Id by remember { mutableStateOf("") }
+    var nom1Share by remember { mutableStateOf("") }
+    var nom2Id by remember { mutableStateOf("") }
+    var nom2Share by remember { mutableStateOf("") }
+    var showNomineeDialog by remember { mutableStateOf(false) }
+    val prefs by viewModel.preferences.collectAsStateWithLifecycle()
     var loadedKey by remember { mutableStateOf<String?>(null) }
     var initial by remember { mutableStateOf<List<String>?>(null) }
 
     fun currentValues() = listOf(
-        title, institution, accountRef, location, contactName, contactPhone, notes, nominee.name
+        title, institution, accountRef, location, contactName, contactPhone, notes, nominee.name,
+        nom1Id, nom1Share, nom2Id, nom2Share
     )
 
-    LaunchedEffect(title, institution, accountRef, location, contactName, contactPhone, notes, nominee) {
+    LaunchedEffect(title, institution, accountRef, location, contactName, contactPhone, notes, nominee, nom1Id, nom1Share, nom2Id, nom2Share) {
         val snapshot = initial
         if (snapshot != null) viewModel.setEditorDirty(currentValues() != snapshot)
     }
@@ -119,9 +130,15 @@ fun ItemEditorScreen(
             contactPhone = current.contactPhone
             notes = current.additionalNotes
             nominee = current.nomineeEnum
+            nom1Id = current.nominee1Id
+            nom1Share = if (current.nominee1Share > 0) current.nominee1Share.toString() else ""
+            nom2Id = current.nominee2Id
+            nom2Share = if (current.nominee2Share > 0) current.nominee2Share.toString() else ""
             initial = listOf(
                 current.title, current.institutionName, current.accountRef, current.physicalLocation,
-                current.contactName, current.contactPhone, current.additionalNotes, current.nomineeStatus
+                current.contactName, current.contactPhone, current.additionalNotes, current.nomineeStatus,
+                current.nominee1Id, if (current.nominee1Share > 0) current.nominee1Share.toString() else "",
+                current.nominee2Id, if (current.nominee2Share > 0) current.nominee2Share.toString() else ""
             )
             viewModel.setEditorDirty(false)
             loadedKey = key
@@ -231,6 +248,93 @@ fun ItemEditorScreen(
                     }
                 }
                 Spacer(Modifier.height(16.dp))
+                Text(strings.nomineesTitle, style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(6.dp))
+                if (prefs.nominees.isEmpty()) {
+                    Text(
+                        strings.noNomineesYet,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
+                NomineeSlot(
+                    title = strings.nomineeOne,
+                    profiles = prefs.nominees,
+                    selectedId = nom1Id,
+                    shareText = nom1Share,
+                    onSelect = { profile ->
+                        nom1Id = profile?.id.orEmpty()
+                        if (profile != null) {
+                            if (nom1Share.isBlank()) nom1Share = "100"
+                            if (contactName.isBlank()) contactName = profile.fullName
+                            if (contactPhone.isBlank()) contactPhone = profile.mobile
+                        }
+                    },
+                    onShareChange = { nom1Share = it }
+                )
+                Spacer(Modifier.height(12.dp))
+                NomineeSlot(
+                    title = strings.nomineeTwo,
+                    profiles = prefs.nominees,
+                    selectedId = nom2Id,
+                    shareText = nom2Share,
+                    onSelect = { profile ->
+                        nom2Id = profile?.id.orEmpty()
+                        if (profile != null && nom2Share.isBlank()) nom2Share = "0"
+                    },
+                    onShareChange = { nom2Share = it }
+                )
+                Spacer(Modifier.height(10.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        enabled = nom1Id.isNotBlank(),
+                        onClick = {
+                            nom1Share = "100"
+                            nom2Id = ""
+                            nom2Share = ""
+                        }
+                    ) { Text(strings.quickSingle) }
+                    OutlinedButton(
+                        enabled = nom1Id.isNotBlank() && nom2Id.isNotBlank() && nom1Id != nom2Id,
+                        onClick = {
+                            nom1Share = "50"
+                            nom2Share = "50"
+                        }
+                    ) { Text(strings.quickFifty) }
+                }
+                val assignments = listOf(
+                    NomineeAssignment(nom1Id, nom1Share.toIntOrNull() ?: 0),
+                    NomineeAssignment(nom2Id, nom2Share.toIntOrNull() ?: 0)
+                ).filter { it.profileId.isNotBlank() }
+                if (assignments.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    val complete = NomineeShares.isComplete(assignments)
+                    Text(
+                        if (complete) strings.shareComplete else strings.shareTotal(NomineeShares.total(assignments)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (complete) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                    )
+                }
+                Spacer(Modifier.height(10.dp))
+                NomineeManageButton { showNomineeDialog = true }
+                if (showNomineeDialog) {
+                    NomineeProfileDialog(
+                        initial = null,
+                        onDismiss = { showNomineeDialog = false },
+                        onSave = { profile ->
+                            viewModel.saveNominee(profile)
+                            showNomineeDialog = false
+                            if (nom1Id.isBlank()) {
+                                nom1Id = profile.id
+                                if (nom1Share.isBlank()) nom1Share = "100"
+                            } else if (nom2Id.isBlank() && nom1Id != profile.id) {
+                                nom2Id = profile.id
+                            }
+                        }
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
             }
             fields.contact?.let { label ->
                 EntryField(value = contactName, onChange = { contactName = it }, label = label, hindi = hindi)
@@ -261,7 +365,11 @@ fun ItemEditorScreen(
                             contactPhone = contactPhone.trim(),
                             additionalNotes = notes.trim(),
                             nomineeStatus = if (fields.nomineeRelevant) nominee.name
-                            else NomineeStatus.NOT_APPLICABLE.name
+                            else NomineeStatus.NOT_APPLICABLE.name,
+                            nominee1Id = if (fields.nomineeRelevant) nom1Id else "",
+                            nominee1Share = if (fields.nomineeRelevant) (nom1Share.toIntOrNull() ?: 0) else 0,
+                            nominee2Id = if (fields.nomineeRelevant) nom2Id else "",
+                            nominee2Share = if (fields.nomineeRelevant) (nom2Share.toIntOrNull() ?: 0) else 0
                         )
                     )
                     viewModel.setEditorDirty(false)

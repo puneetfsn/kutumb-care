@@ -38,6 +38,7 @@ class BackupManager(
             profile.themeMode?.let { settingsRepository.setThemeMode(it) }
         }
 
+        payload.nominees?.let { settingsRepository.setNominees(it) }
         checklistRepository.replaceAll(payload.items)
     }
 }

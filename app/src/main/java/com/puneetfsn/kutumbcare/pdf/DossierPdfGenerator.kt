@@ -26,8 +26,11 @@ class DossierPdfGenerator(private val context: Context) {
     /** Language of the dossier currently being generated (set in [generate]). */
     @Volatile private var hindiPdf: Boolean = false
 
+    @Volatile private var currentNominees: List<com.puneetfsn.kutumbcare.data.NomineeProfile> = emptyList()
+
     fun generate(snapshot: DashboardSnapshot): File {
         hindiPdf = snapshot.preferences.language.isHindi
+        currentNominees = snapshot.preferences.nominees
         val dir = File(context.cacheDir, "dossier").apply { mkdirs() }
         val file = File(dir, "KutumbCare_Family_Dossier.pdf")
         val document = PdfDocument()
@@ -260,6 +263,14 @@ class DossierPdfGenerator(private val context: Context) {
                 .takeIf { fields.contact != null || fields.phone != null }
                 ?.joinToString(" / ")
             line(contactLabel, contact)?.let { add(it) }
+            item.nomineeAssignments.forEach { assignment ->
+                val profile = currentNominees.find { it.id == assignment.profileId }
+                if (profile != null) {
+                    val rel = if (profile.relationship.isNotBlank()) " (${profile.relationship})" else ""
+                    val mob = if (profile.mobile.isNotBlank()) " · ${profile.mobile}" else ""
+                    add("${strings.pdfNominee}: ${profile.fullName}$rel — ${assignment.sharePercent}%$mob")
+                }
+            }
             line(fields.notes?.label(hindi), item.additionalNotes)?.let { add(it) }
             add("__________________________________________________________")
         }

@@ -30,7 +30,9 @@ object BackupFormat {
 
     data class Payload(
         val items: List<ChecklistItem>,
-        val profile: Profile?
+        val profile: Profile?,
+        /** Null when the backup predates nominee cards (keep what the family has). */
+        val nominees: List<NomineeProfile>? = null
     )
 
     fun encode(items: List<ChecklistItem>, preferences: UserPreferences): String {
@@ -45,6 +47,11 @@ object BackupFormat {
                 put("emergencyContactName", preferences.emergencyContactName)
                 put("emergencyContactPhone", preferences.emergencyContactPhone)
                 put("themeMode", preferences.themeMode.name)
+            })
+            put("nominees", JSONArray().also { array ->
+                preferences.nominees.forEach { profile ->
+                    with(NomineesCodec) { array.put(profile.toJson()) }
+                }
             })
             put("items", JSONArray().also { array ->
                 items.forEach { item ->
@@ -62,6 +69,10 @@ object BackupFormat {
                         put("contactName", item.contactName)
                         put("contactPhone", item.contactPhone)
                         put("additionalNotes", item.additionalNotes)
+                        put("nominee1Id", item.nominee1Id)
+                        put("nominee1Share", item.nominee1Share)
+                        put("nominee2Id", item.nominee2Id)
+                        put("nominee2Share", item.nominee2Share)
                         put("isUserCreated", item.isUserCreated)
                         put("sortOrder", item.sortOrder)
                         put("updatedAt", item.updatedAt)
@@ -112,6 +123,10 @@ object BackupFormat {
                         contactName = obj.optString("contactName"),
                         contactPhone = obj.optString("contactPhone"),
                         additionalNotes = obj.optString("additionalNotes"),
+                        nominee1Id = obj.optString("nominee1Id"),
+                        nominee1Share = obj.optInt("nominee1Share"),
+                        nominee2Id = obj.optString("nominee2Id"),
+                        nominee2Share = obj.optInt("nominee2Share"),
                         isUserCreated = obj.optBoolean("isUserCreated"),
                         sortOrder = obj.optInt("sortOrder", i * 10),
                         updatedAt = obj.optLong("updatedAt", System.currentTimeMillis())
@@ -120,7 +135,18 @@ object BackupFormat {
             }
         }
         require(items.isNotEmpty()) { "This backup has no records to restore." }
-        return Payload(items = items, profile = root.optJSONObject("profile")?.toProfile())
+        val nominees = root.optJSONArray("nominees")?.let { nomineeArray ->
+            buildList {
+                for (i in 0 until nomineeArray.length()) {
+                    NomineesCodec.fromJson(nomineeArray.getJSONObject(i))?.let { add(it) }
+                }
+            }
+        }
+        return Payload(
+            items = items,
+            profile = root.optJSONObject("profile")?.toProfile(),
+            nominees = nominees
+        )
     }
 
     private fun JSONObject.toProfile(): Profile = Profile(

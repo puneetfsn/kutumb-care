@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.puneetfsn.kutumbcare.data.AssetCategory
 import com.puneetfsn.kutumbcare.data.ChecklistItem
 import com.puneetfsn.kutumbcare.data.ChecklistRepository
+import com.puneetfsn.kutumbcare.data.NomineeProfile
+import com.puneetfsn.kutumbcare.data.SettingsRepository
+import com.puneetfsn.kutumbcare.data.UserPreferences
 import com.puneetfsn.kutumbcare.data.NomineeStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,8 +16,23 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class RecordsViewModel(
-    private val checklistRepository: ChecklistRepository
+    private val checklistRepository: ChecklistRepository,
+    private val settingsRepository: SettingsRepository? = null
 ) : ViewModel() {
+
+    val preferences: StateFlow<UserPreferences> = (settingsRepository?.preferences
+        ?: kotlinx.coroutines.flow.MutableStateFlow(UserPreferences()))
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UserPreferences())
+
+    fun saveNominee(profile: NomineeProfile) {
+        val repo = settingsRepository ?: return
+        viewModelScope.launch { repo.upsertNominee(profile) }
+    }
+
+    fun deleteNominee(id: String) {
+        val repo = settingsRepository ?: return
+        viewModelScope.launch { repo.deleteNominee(id) }
+    }
 
     val items: StateFlow<List<ChecklistItem>> = checklistRepository.items
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())

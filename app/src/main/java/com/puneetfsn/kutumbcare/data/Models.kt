@@ -80,6 +80,11 @@ data class ChecklistItem(
     val contactName: String = "",
     val contactPhone: String = "",
     val additionalNotes: String = "",
+    /** Reusable nominee cards attached to this record, with shares totalling 100. */
+    val nominee1Id: String = "",
+    val nominee1Share: Int = 0,
+    val nominee2Id: String = "",
+    val nominee2Share: Int = 0,
     val isUserCreated: Boolean = false,
     /** Hindi rendering of the seeded title/description. Empty for user records. */
     val titleHi: String = "",
@@ -97,6 +102,12 @@ data class ChecklistItem(
 
     fun displayDescription(hindi: Boolean): String =
         if (hindi && descriptionHi.isNotBlank()) descriptionHi else description
+
+    val nomineeAssignments: List<NomineeAssignment>
+        get() = listOf(
+            NomineeAssignment(nominee1Id, nominee1Share),
+            NomineeAssignment(nominee2Id, nominee2Share)
+        ).filter { it.profileId.isNotBlank() }
 }
 
 data class UserPreferences(
@@ -110,7 +121,9 @@ data class UserPreferences(
     val setupComplete: Boolean = false,
     val language: AppLanguage = AppLanguage.ENGLISH,
     /** False until the first-launch English / हिन्दी chooser has been answered. */
-    val languageChosen: Boolean = false
+    val languageChosen: Boolean = false,
+    /** Saved nominee cards, shared by every record (stored in DataStore). */
+    val nominees: List<NomineeProfile> = emptyList()
 ) {
     val displayFamilyName: String
         get() = familyName(language.isHindi)

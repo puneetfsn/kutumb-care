@@ -111,6 +111,35 @@ class UiStrings(val hindi: Boolean) {
     val discardBody get() = pick("You have unsaved changes in this record.", "इस रिकॉर्ड में बिना सहेजे बदलाव हैं।")
     val discardKeep get() = pick("Keep editing", "संपादन जारी रखें")
     val discardLeave get() = pick("Discard", "छोड़ें")
+    // ---- Nominee cards ----
+    val nomineesTitle get() = pick("Nominees on this record", "इस रिकॉर्ड पर नॉमिनी")
+    val savedNominees get() = pick("Saved nominee cards", "सहेजे गए नॉमिनी कार्ड")
+    val nomineesNote get() = pick(
+        "Save a person once, then attach them to any bank, investment or insurance record. Shares of all nominees on a record should total 100%.",
+        "एक व्यक्ति को एक बार सहेजें, फिर किसी भी बैंक, निवेश या बीमा रिकॉर्ड से जोड़ें। किसी रिकॉर्ड पर सभी नॉमिनियों के हिस्सों का योग 100% होना चाहिए।"
+    )
+    val addNominee get() = pick("Add nominee card", "नॉमिनी कार्ड जोड़ें")
+    val editNominee get() = pick("Edit nominee", "नॉमिनी संपादित करें")
+    val noNomineesYet get() = pick("No nominee cards yet. Add your spouse, children or parents once — then just pick them here.", "अभी कोई नॉमिनी कार्ड नहीं। अपने जीवनसाथी, बच्चों या माता-पिता को एक बार जोड़ें — फिर बस यहाँ चुनें।")
+    val nomineeFullName get() = pick("Full name", "पूरा नाम")
+    val nomineeRelationship get() = pick("Relationship", "रिश्ता", )
+    val nomineeDob get() = pick("Date of birth (DD/MM/YYYY)", "जन्म तिथि (DD/MM/YYYY)")
+    val nomineeAddress get() = pick("Address", "पता")
+    val nomineeMobile get() = pick("Mobile number", "मोबाइल नंबर")
+    val nomineeEmail get() = pick("Email (optional)", "ईमेल (वैकल्पिक)")
+    val nomineeIdLast4 get() = pick("PAN / Aadhaar last 4 (optional)", "PAN / आधार अंतिम 4 (वैकल्पिक)")
+    val saveNominee get() = pick("Save nominee card", "नॉमिनी कार्ड सहेजें")
+    val deleteNominee get() = pick("Delete card", "कार्ड हटाएँ")
+    val nomineeOne get() = pick("Nominee 1", "नॉमिनी 1")
+    val nomineeTwo get() = pick("Nominee 2 (optional)", "नॉमिनी 2 (वैकल्पिक)")
+    val sharePercent get() = pick("Share %", "हिस्सा %")
+    val noneSelected get() = pick("None", "कोई नहीं")
+    val quickSingle get() = pick("One nominee · 100%", "एक नॉमिनी · 100%")
+    val quickFifty get() = pick("Two nominees · 50 / 50", "दो नॉमिनी · 50 / 50")
+    fun shareTotal(total: Int): String =
+        if (hindi) "कुल हिस्सा: $total% (100% होना चाहिए)" else "Total share: $total% (must be 100%)"
+    val shareComplete get() = pick("Shares total 100% ✓", "हिस्सों का योग 100% ✓")
+    val pdfNominee get() = pick("Nominee", "नॉमिनी")
     val pdfFinePrint get() = pick(
         "Fine print: This dossier lists where things are kept so family can find them. It never contains passwords, UPI/ATM PINs, OTPs or CVVs. Keep it sealed, share it only with trusted family, and review it every year.",
         "छोटा अक्षर: यह दस्तावेज़ बताता है कि चीज़ें कहाँ रखी हैं ताकि परिवार उन्हें खोज सके। इसमें पासवर्ड, UPI/ATM PIN, OTP या CVV कभी नहीं होते। इसे मुहरबंद रखें, केवल भरोसेमंद परिवार से साझा करें, और हर साल समीक्षा करें।"
