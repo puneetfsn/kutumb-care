@@ -17,8 +17,9 @@ class AppContainer(context: Context) {
     val database: AppDatabase = AppDatabase.getInstance(appContext)
     val settingsRepository = SettingsRepository(appContext)
     val checklistRepository = ChecklistRepository(database.checklistDao(), appContext)
-    val backupManager = BackupManager(appContext, checklistRepository, settingsRepository)
+    val backupManager = BackupManager(checklistRepository, settingsRepository)
     val pdfGenerator = DossierPdfGenerator(appContext)
+    val backgroundClock = BackgroundClock()
     val viewModelFactory = AppViewModelFactory(this)
 }
 

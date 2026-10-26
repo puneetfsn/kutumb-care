@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
@@ -25,6 +26,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.puneetfsn.kutumbcare.data.AssetCategory
 import com.puneetfsn.kutumbcare.data.ChecklistItem
+import com.puneetfsn.kutumbcare.ui.components.EmptyHint
 import com.puneetfsn.kutumbcare.ui.components.NomineeBadge
 
 @Composable
@@ -48,8 +51,11 @@ fun RecordsScreen(
 ) {
     val items by viewModel.items.collectAsStateWithLifecycle()
     var selected by rememberSaveable(initialCategory) { mutableStateOf(initialCategory.orEmpty()) }
+    var query by rememberSaveable { mutableStateOf("") }
     val category = selected.takeIf { it.isNotBlank() }?.let { AssetCategory.fromRaw(it) }
-    val visible = if (category == null) items else items.filter { it.category == category.name }
+    val visible = items
+        .filter { category == null || it.category == category.name }
+        .filter { item -> query.isBlank() || item.matches(query) }
 
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
@@ -77,11 +83,29 @@ fun RecordsScreen(
                     )
                 }
             }
-            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                singleLine = true,
+                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                placeholder = { Text("Search bank, UAN, locker, agent…") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
+            )
+            Spacer(Modifier.height(4.dp))
             LazyColumn(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp, top = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                if (visible.isEmpty()) {
+                    item {
+                        EmptyHint(
+                            if (items.isEmpty()) "Your checklist is still being prepared."
+                            else "No records match this filter yet. Add one with the + button."
+                        )
+                    }
+                }
                 items(visible, key = { it.id }) { item ->
                     RecordCard(
                         item = item,
@@ -141,4 +165,21 @@ private fun RecordCard(
             }
         }
     }
+}
+
+/** Free-text match across the fields a relative would search for. */
+private fun ChecklistItem.matches(query: String): Boolean {
+    val needle = query.trim()
+    if (needle.isEmpty()) return true
+    return listOf(
+        title,
+        description,
+        institutionName,
+        accountRef,
+        physicalLocation,
+        contactName,
+        contactPhone,
+        additionalNotes,
+        categoryEnum.displayName
+    ).any { it.contains(needle, ignoreCase = true) }
 }

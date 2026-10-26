@@ -50,6 +50,10 @@ android {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
 
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -83,4 +87,8 @@ dependencies {
 
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation("androidx.glance:glance-material3:1.1.1")
+
+    testImplementation("junit:junit:4.13.2")
+    // Real org.json on the unit test classpath; android.jar only ships stubs.
+    testImplementation("org.json:json:20240303")
 }

@@ -11,11 +11,16 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -50,6 +55,26 @@ fun KutumbCareRoot(
     preferences: UserPreferences
 ) {
     var unlocked by rememberSaveable { mutableStateOf(!preferences.pinEnabled) }
+
+    // Re-lock after the app has been in the background for a while, so a phone
+    // handed to someone else does not expose the dossier. Short interruptions
+    // (calls, rotation, the file picker) stay inside the grace window.
+    val lockClock = remember { container.backgroundClock }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, preferences.pinEnabled) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_STOP -> lockClock.onBackground()
+                Lifecycle.Event.ON_START -> {
+                    if (preferences.pinEnabled && lockClock.shouldRelock()) unlocked = false
+                }
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     if (preferences.pinEnabled && !unlocked) {
         PinLockScreen(
             settingsRepository = container.settingsRepository,
