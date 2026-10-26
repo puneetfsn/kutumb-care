@@ -4,12 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.puneetfsn.kutumbcare.data.AppLanguage
 import com.puneetfsn.kutumbcare.data.NomineeProfile
-import com.puneetfsn.kutumbcare.data.BackupManager
 import com.puneetfsn.kutumbcare.data.SettingsRepository
 import com.puneetfsn.kutumbcare.data.ThemeMode
 import com.puneetfsn.kutumbcare.data.UserPreferences
-import java.io.InputStream
-import java.io.OutputStream
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
-    private val settingsRepository: SettingsRepository,
-    private val backupManager: BackupManager
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     val preferences: StateFlow<UserPreferences> = settingsRepository.preferences
@@ -75,22 +71,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             settingsRepository.clearPin()
             _message.value = msg("App lock removed", "ऐप लॉक हटा दिया गया")
-        }
-    }
-
-    fun exportBackup(stream: OutputStream, passphrase: String? = null) {
-        viewModelScope.launch {
-            runCatching { stream.use { backupManager.exportTo(it, passphrase) } }
-                .onSuccess { _message.value = msg("Backup written. Keep this file private.", "बैकअप लिखा गया। इस फ़ाइल को निजी रखें।") }
-                .onFailure { _message.value = it.message ?: msg("Backup failed", "बैकअप विफल") }
-        }
-    }
-
-    fun importBackup(stream: InputStream, passphrase: String? = null) {
-        viewModelScope.launch {
-            runCatching { stream.use { backupManager.importFrom(it, passphrase) } }
-                .onSuccess { _message.value = msg("Backup restored on this phone", "बैकअप इस फ़ोन पर बहाल हो गया") }
-                .onFailure { _message.value = it.message ?: msg("Restore failed", "बहाली विफल") }
         }
     }
 
