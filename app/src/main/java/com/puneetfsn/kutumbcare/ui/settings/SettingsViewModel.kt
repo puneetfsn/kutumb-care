@@ -66,7 +66,7 @@ class SettingsViewModel(
                 return@launch
             }
             runCatching { settingsRepository.setPin(pin) }
-                .onSuccess { _message.value = msg("App PIN enabled", "ऐप PIN चालू हो गया") }
+                .onSuccess { _message.value = msg("App lock enabled — records stay encrypted on this device", "ऐप लॉक चालू — रिकॉर्ड इस डिवाइस पर एन्क्रिप्ट रहते हैं") }
                 .onFailure { _message.value = it.message }
         }
     }
@@ -74,21 +74,21 @@ class SettingsViewModel(
     fun clearPin() {
         viewModelScope.launch {
             settingsRepository.clearPin()
-            _message.value = msg("App PIN removed", "ऐप PIN हटा दिया गया")
+            _message.value = msg("App lock removed", "ऐप लॉक हटा दिया गया")
         }
     }
 
-    fun exportBackup(stream: OutputStream) {
+    fun exportBackup(stream: OutputStream, passphrase: String? = null) {
         viewModelScope.launch {
-            runCatching { stream.use { backupManager.exportTo(it) } }
+            runCatching { stream.use { backupManager.exportTo(it, passphrase) } }
                 .onSuccess { _message.value = msg("Backup written. Keep this file private.", "बैकअप लिखा गया। इस फ़ाइल को निजी रखें।") }
                 .onFailure { _message.value = it.message ?: msg("Backup failed", "बैकअप विफल") }
         }
     }
 
-    fun importBackup(stream: InputStream) {
+    fun importBackup(stream: InputStream, passphrase: String? = null) {
         viewModelScope.launch {
-            runCatching { stream.use { backupManager.importFrom(it) } }
+            runCatching { stream.use { backupManager.importFrom(it, passphrase) } }
                 .onSuccess { _message.value = msg("Backup restored on this phone", "बैकअप इस फ़ोन पर बहाल हो गया") }
                 .onFailure { _message.value = it.message ?: msg("Restore failed", "बहाली विफल") }
         }

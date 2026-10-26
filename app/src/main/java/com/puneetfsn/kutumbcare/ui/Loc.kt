@@ -83,12 +83,19 @@ class UiStrings(val hindi: Boolean) {
     val languageNote get() = pick("Changes every screen, including the seeded records.", "इससे हर स्क्रीन और सहेजे गए रिकॉर्ड की भाषा बदल जाती है।")
     val english get() = "English"
     val hindiName get() = "हिन्दी"
-    val pinSection get() = pick("4-digit app PIN", "4 अंकों का ऐप PIN")
-    val pinOn get() = pick("PIN lock is on. The PIN is hashed on this device only.", "PIN लॉक चालू है। PIN केवल इस डिवाइस पर हैश करके रखा जाता है।")
-    val pinOff get() = pick("Optional lock so a roommate cannot open the dossier.", "वैकल्पिक लॉक ताकि कोई और दस्तावेज़ न खोल सके।")
-    val newPin get() = pick("New PIN", "नया PIN")
-    val confirmPin get() = pick("Confirm PIN", "PIN की पुष्टि करें")
-    val setPin get() = pick("Set PIN", "PIN सेट करें")
+    val pinSection get() = pick("App lock & encryption", "ऐप लॉक और एन्क्रिप्शन")
+    val pinOn get() = pick("Lock is on. Your records are also encrypted on this device; the unlock secret is stored only as a hash.", "लॉक चालू है। आपके रिकॉर्ड इस डिवाइस पर एन्क्रिप्ट भी होते हैं; अनलॉक रहस्य केवल हैश के रूप में रहता है।")
+    val pinOff get() = pick("Set a 6+ digit PIN or a passphrase. It locks the app and your records stay encrypted on the device, so someone using this phone cannot read the dossier.", "6+ अंकों का PIN या पासफ़्रेज़ बनाएँ। यह ऐप को लॉक करता है और रिकॉर्ड डिवाइस पर एन्क्रिप्ट रहते हैं, ताकि इस फ़ोन का उपयोग करने वाला कोई और दस्तावेज़ न पढ़ सके।")
+    val newPin get() = pick("New PIN / passphrase (min 6)", "नया PIN / पासफ़्रेज़ (कम से कम 6)")
+    val confirmPin get() = pick("Confirm it again", "फिर से लिखकर पुष्टि करें")
+    val setPin get() = pick("Set lock", "लॉक बनाएँ")
+    val pinRecovery get() = pick("Write this passphrase on paper and seal it with your will. If it is forgotten, nobody — not even we — can open the encrypted data; only a backup file can restore it.", "इस पासफ़्रेज़ को काग़ज़ पर लिखकर अपनी वसीयत के साथ मुहरबंद रखें। यदि यह भूल जाए, तो कोई भी — हम भी नहीं — एन्क्रिप्ट डेटा नहीं खोल सकता; केवल बैकअप फ़ाइल से बहाली होगी।")
+    val unlockButton get() = pick("Unlock", "खोलें")
+    val cancel get() = pick("Cancel", "रद्द करें")
+    val useFingerprint get() = pick("Use fingerprint / face", "फ़िंगरप्रिंट / चेहरा उपयोग करें")
+    val tooManyTries get() = pick("Too many wrong tries. Wait a little and try again.", "बहुत अधिक गलत प्रयास। थोड़ा प्रतीक्षा करके फिर प्रयास करें।")
+    val backupPassword get() = pick("Backup password (for encrypted backup)", "बैकअप पासवर्ड (एन्क्रिप्ट बैकअप के लिए)")
+    val exportEncrypted get() = pick("Export encrypted backup", "एन्क्रिप्ट बैकअप निर्यात करें")
     val removePin get() = pick("Remove PIN", "PIN हटाएँ")
     val offlineBackup get() = pick("Offline backup", "ऑफ़लाइन बैकअप")
     val backupNote get() = pick(
@@ -102,8 +109,8 @@ class UiStrings(val hindi: Boolean) {
         "Kutumb Care is a 100% offline family emergency checklist for India. It helps your people find Aadhaar, bank nominees, LIC policies, EPF / UAN, property deeds and trusted contacts — without ever storing passwords.",
         "कुटुम्ब केयर भारत के लिए 100% ऑफ़लाइन पारिवारिक आपातकालीन सूची है। यह आपके लोगों को आधार, बैंक नॉमिनी, LIC पॉलिसी, EPF / UAN, संपत्ति के काग़ज़ात और भरोसेमंद संपर्क खोजने में मदद करता है — बिना कभी पासवर्ड रखे।"
     )
-    val pinPrompt get() = pick("Enter your 4-digit PIN to open the family dossier.", "पारिवारिक दस्तावेज़ खोलने के लिए अपना 4 अंकों का PIN डालें।")
-    val pinWrong get() = pick("That PIN does not match", "यह PIN मेल नहीं खाता")
+    val pinPrompt get() = pick("Enter your PIN / passphrase to open the family dossier.", "पारिवारिक दस्तावेज़ खोलने के लिए अपना PIN / पासफ़्रेज़ डालें।")
+    val pinWrong get() = pick("That does not match. Check and try again.", "यह मेल नहीं खाता। जाँचकर फिर प्रयास करें।")
     val chooseLanguageTitle get() = pick("Choose your language", "अपनी भाषा चुनें")
     val chooseLanguageSub get() = pick("You can change this later in Settings.", "आप इसे बाद में सेटिंग में बदल सकते हैं।")
     val customRecord get() = pick("Custom family record", "अपना पारिवारिक रिकॉर्ड")

@@ -28,18 +28,25 @@ object DocumentStore {
             Bitmap.createScaledBitmap(source, (source.width * scale).toInt(), (source.height * scale).toInt(), true)
         } else source
         val name = "doc_${UUID.randomUUID().toString().take(12)}.jpg"
-        FileOutputStream(file(context, name)).use { out -> bitmap.compress(Bitmap.CompressFormat.JPEG, 78, out) }
+        val buffer = java.io.ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 78, buffer)
+        file(context, name).writeBytes(VaultCrypto.encryptBytes(buffer.toByteArray()))
         name
     }.getOrNull()
 
     fun writeBytes(context: Context, bytes: ByteArray): String {
         val name = "doc_${UUID.randomUUID().toString().take(12)}.jpg"
-        file(context, name).writeBytes(bytes)
+        file(context, name).writeBytes(VaultCrypto.encryptBytes(bytes))
         return name
     }
 
+    /** Decrypted JPEG bytes (for backups and PDF rendering). */
     fun readBytes(context: Context, name: String): ByteArray? =
-        runCatching { file(context, name).readBytes() }.getOrNull()
+        runCatching { VaultCrypto.decryptBytes(file(context, name).readBytes()) }.getOrNull()
+
+    /** Decrypted bitmap for previews and the dossier PDF. */
+    fun loadBitmap(context: Context, name: String): Bitmap? =
+        readBytes(context, name)?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
 
     fun delete(context: Context, name: String) {
         runCatching { file(context, name).delete() }
@@ -47,11 +54,11 @@ object DocumentStore {
 
     /** Small preview bitmap for the editor thumbnails. */
     fun preview(context: Context, name: String, maxPx: Int = 240): Bitmap? = runCatching {
-        val f = file(context, name)
+        val bytes = readBytes(context, name) ?: return null
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(f.path, bounds)
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
         var sample = 1
         while (bounds.outWidth / sample > maxPx || bounds.outHeight / sample > maxPx) sample *= 2
-        BitmapFactory.decodeFile(f.path, BitmapFactory.Options().apply { inSampleSize = sample })
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })
     }.getOrNull()
 }

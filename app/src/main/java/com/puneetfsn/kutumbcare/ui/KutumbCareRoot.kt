@@ -126,6 +126,19 @@ private fun KutumbCareRootContent(
 ) {
     var unlocked by rememberSaveable { mutableStateOf(!preferences.pinEnabled) }
 
+    // While the lock is enabled, block screenshots and recents-screen
+    // thumbnails so the dossier cannot leak through the app switcher.
+    val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
+    DisposableEffect(activity, preferences.pinEnabled) {
+        val window = activity?.window
+        if (preferences.pinEnabled) {
+            window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+        }
+        onDispose { }
+    }
+
     // Re-lock after the app has been in the background for a while, so a phone
     // handed to someone else does not expose the dossier. Short interruptions
     // (calls, rotation, the file picker) stay inside the grace window.

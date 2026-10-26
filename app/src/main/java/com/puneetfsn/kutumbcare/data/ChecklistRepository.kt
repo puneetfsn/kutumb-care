@@ -4,21 +4,32 @@ import android.content.Context
 import com.puneetfsn.kutumbcare.widget.ReadinessWidget
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import androidx.glance.appwidget.updateAll
 
 class ChecklistRepository(
     private val dao: ChecklistDao,
     private val appContext: Context
 ) {
-    val items: Flow<List<ChecklistItem>> = dao.observeAll()
+    val items: Flow<List<ChecklistItem>> = dao.observeAll().map { list -> list.map(::decryptItem) }
 
-    fun observeItem(id: Long): Flow<ChecklistItem?> = dao.observeById(id)
+    fun observeItem(id: Long): Flow<ChecklistItem?> = dao.observeById(id).map { it?.let(::decryptItem) }
 
-    suspend fun getAll(): List<ChecklistItem> = dao.getAll()
+    suspend fun getAll(): List<ChecklistItem> = dao.getAll().map(::decryptItem)
+
+    /** One-time upgrade: encrypt any legacy plaintext rows in place. */
+    suspend fun encryptExistingIfNeeded() {
+        val raw = dao.getAll()
+        val dirty = raw.any { item ->
+            listOf(item.title, item.institutionName, item.accountRef, item.additionalNotes)
+                .any { it.isNotBlank() && !FieldCrypto.isEncrypted(it) }
+        }
+        if (dirty) dao.upsertAll(raw.map(::encryptItem))
+    }
 
     suspend fun seedIfEmpty() {
         if (dao.count() == 0) {
-            dao.upsertAll(DefaultChecklist.ITEMS)
+            dao.upsertAll(DefaultChecklist.ITEMS.map(::encryptItem))
             refreshWidget()
             return
         }
@@ -29,7 +40,7 @@ class ChecklistRepository(
         val existingOrders = dao.getAll().map { it.sortOrder }.toSet()
         val missing = DefaultChecklist.ITEMS.filter { it.sortOrder !in existingOrders }
         if (missing.isNotEmpty()) {
-            dao.upsertAll(missing)
+            dao.upsertAll(missing.map(::encryptItem))
             refreshWidget()
         }
     }
@@ -38,12 +49,12 @@ class ChecklistRepository(
         val completed = item.isCompleted || item.physicalLocation.isNotBlank() ||
             item.institutionName.isNotBlank() || item.accountRef.isNotBlank() ||
             item.contactName.isNotBlank()
-        dao.upsert(item.copy(isCompleted = completed, updatedAt = System.currentTimeMillis()))
+        dao.upsert(encryptItem(item.copy(isCompleted = completed, updatedAt = System.currentTimeMillis())))
         refreshWidget()
     }
 
     suspend fun toggleCompleted(item: ChecklistItem) {
-        dao.upsert(item.copy(isCompleted = !item.isCompleted, updatedAt = System.currentTimeMillis()))
+        dao.upsert(encryptItem(item.copy(isCompleted = !item.isCompleted, updatedAt = System.currentTimeMillis())))
         refreshWidget()
     }
 
@@ -79,7 +90,7 @@ class ChecklistRepository(
 
     suspend fun replaceAll(items: List<ChecklistItem>) {
         dao.deleteAll()
-        dao.upsertAll(items)
+        dao.upsertAll(items.map(::encryptItem))
         refreshWidget()
     }
 
@@ -128,4 +139,43 @@ private fun combineDashboard(
     preferences: Flow<UserPreferences>
 ): Flow<DashboardSnapshot> = combine(items, preferences) { list, prefs ->
     ChecklistRepository.snapshotOf(list, prefs)
+}
+
+/**
+ * Content fields are AES-GCM encrypted at rest with the Keystore vault key.
+ * Ids, category, status flags and sort order stay readable so counts, the
+ * widget and ordering never need the key.
+ */
+internal fun encryptItem(item: ChecklistItem): ChecklistItem = with(VaultCrypto) {
+    item.copy(
+        title = encryptField(item.title),
+        description = encryptField(item.description),
+        titleHi = encryptField(item.titleHi),
+        descriptionHi = encryptField(item.descriptionHi),
+        institutionName = encryptField(item.institutionName),
+        accountRef = encryptField(item.accountRef),
+        physicalLocation = encryptField(item.physicalLocation),
+        contactName = encryptField(item.contactName),
+        contactPhone = encryptField(item.contactPhone),
+        additionalNotes = encryptField(item.additionalNotes),
+        maturityDate = encryptField(item.maturityDate),
+        attachmentsJson = if (item.attachmentsJson == "[]") item.attachmentsJson else encryptField(item.attachmentsJson)
+    )
+}
+
+internal fun decryptItem(item: ChecklistItem): ChecklistItem = with(VaultCrypto) {
+    item.copy(
+        title = decryptField(item.title),
+        description = decryptField(item.description),
+        titleHi = decryptField(item.titleHi),
+        descriptionHi = decryptField(item.descriptionHi),
+        institutionName = decryptField(item.institutionName),
+        accountRef = decryptField(item.accountRef),
+        physicalLocation = decryptField(item.physicalLocation),
+        contactName = decryptField(item.contactName),
+        contactPhone = decryptField(item.contactPhone),
+        additionalNotes = decryptField(item.additionalNotes),
+        maturityDate = decryptField(item.maturityDate),
+        attachmentsJson = decryptField(item.attachmentsJson)
+    )
 }
