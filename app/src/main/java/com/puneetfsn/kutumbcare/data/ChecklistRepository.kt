@@ -62,9 +62,10 @@ class ChecklistRepository(
             val completed = items.count { it.isCompleted }
             val total = items.size
             val percent = if (total == 0) 0 else (completed * 100) / total
-            val missing = items.filter {
-                it.nomineeEnum == NomineeStatus.NEEDS_NOMINEE && it.categoryEnum.requiresNominee
-            }
+            // Trust what the family recorded. An earlier version also required the
+            // category to have a nominee by design, which hid genuine alerts such as
+            // a home-loan credit-shield cover sitting under "Property & loans".
+            val missing = items.filter { it.nomineeEnum == NomineeStatus.NEEDS_NOMINEE }
             val progress = AssetCategory.entries.map { category ->
                 val group = items.filter { it.categoryEnum == category }
                 CategoryProgress(

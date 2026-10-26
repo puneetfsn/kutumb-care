@@ -57,17 +57,19 @@ class ReadinessTest {
     }
 
     @Test
-    fun `nominee alerts only count categories that need a nominee`() {
+    fun `nominee alerts follow the recorded status`() {
         val items = listOf(
             item(AssetCategory.BANKING_FUNDS, nominee = NomineeStatus.NEEDS_NOMINEE),
             item(AssetCategory.INSURANCE, nominee = NomineeStatus.NEEDS_NOMINEE),
             item(AssetCategory.INSURANCE, nominee = NomineeStatus.NOMINEE_VERIFIED),
-            // Identity and digital categories never raise a nominee alert.
+            // A user may flag anything that carries a nominee, so an identity or
+            // digital record must not have its alert swallowed.
             item(AssetCategory.IDENTITY_GOVT, nominee = NomineeStatus.NEEDS_NOMINEE),
-            item(AssetCategory.DIGITAL_LEGACY, nominee = NomineeStatus.NEEDS_NOMINEE)
+            item(AssetCategory.DIGITAL_LEGACY, nominee = NomineeStatus.NEEDS_NOMINEE),
+            item(AssetCategory.TRUSTED_CONTACTS)
         )
         val snapshot = ChecklistRepository.snapshotOf(items, UserPreferences())
-        assertEquals(2, snapshot.missingNomineeItems.size)
+        assertEquals(4, snapshot.missingNomineeItems.size)
     }
 
     @Test
@@ -97,13 +99,15 @@ class ReadinessTest {
     }
 
     @Test
-    fun `every nominee-bearing seeded record starts as an alert`() {
-        DefaultChecklist.ITEMS
-            .filter { it.categoryEnum.requiresNominee }
-            .forEach { assertEquals(NomineeStatus.NEEDS_NOMINEE.name, it.nomineeStatus) }
-        DefaultChecklist.ITEMS
-            .filterNot { it.categoryEnum.requiresNominee }
-            .forEach { assertEquals(NomineeStatus.NOT_APPLICABLE.name, it.nomineeStatus) }
+    fun `seeded nominee flags all surface on the dashboard`() {
+        val items = DefaultChecklist.ITEMS
+        val snapshot = ChecklistRepository.snapshotOf(items, UserPreferences())
+        val flagged = items.filter { it.nomineeEnum == NomineeStatus.NEEDS_NOMINEE }
+        assertEquals(flagged.size, snapshot.missingNomineeItems.size)
+        assertTrue(flagged.size >= 12)
+        // The credit-shield override under "Property & loans" must not be lost.
+        assertTrue(flagged.any { it.title.startsWith("Home loan") })
+        assertTrue(DefaultChecklist.ITEMS.none { it.title.startsWith("Property deeds") && it.nomineeEnum == NomineeStatus.NEEDS_NOMINEE })
     }
 
     @Test
