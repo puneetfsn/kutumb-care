@@ -3,6 +3,7 @@ package com.puneetfsn.kutumbcare.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.puneetfsn.kutumbcare.data.AppLanguage
+import com.puneetfsn.kutumbcare.data.NomineeProfile
 import com.puneetfsn.kutumbcare.data.BackupManager
 import com.puneetfsn.kutumbcare.data.SettingsRepository
 import com.puneetfsn.kutumbcare.data.ThemeMode
@@ -37,6 +38,14 @@ class SettingsViewModel(
             settingsRepository.updateProfile(name, family, contact, phone)
             _message.value = msg("Family profile saved on this phone", "पारिवारिक प्रोफ़ाइल इस फ़ोन पर सहेजी गई")
         }
+    }
+
+    fun saveNominee(profile: NomineeProfile) {
+        viewModelScope.launch { settingsRepository.upsertNominee(profile) }
+    }
+
+    fun deleteNominee(id: String) {
+        viewModelScope.launch { settingsRepository.deleteNominee(id) }
     }
 
     fun setLanguage(language: AppLanguage) {

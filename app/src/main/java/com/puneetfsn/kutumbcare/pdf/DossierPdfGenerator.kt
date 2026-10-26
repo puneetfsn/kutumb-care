@@ -13,6 +13,7 @@ import android.text.TextPaint
 import com.puneetfsn.kutumbcare.data.AssetCategory
 import com.puneetfsn.kutumbcare.data.ChecklistItem
 import com.puneetfsn.kutumbcare.data.DashboardSnapshot
+import com.puneetfsn.kutumbcare.data.EntryFieldsCatalog
 import com.puneetfsn.kutumbcare.data.NomineeStatus
 import com.puneetfsn.kutumbcare.ui.UiStrings
 import java.io.File
@@ -25,14 +26,28 @@ class DossierPdfGenerator(private val context: Context) {
     /** Language of the dossier currently being generated (set in [generate]). */
     @Volatile private var hindiPdf: Boolean = false
 
+    @Volatile private var currentNominees: List<com.puneetfsn.kutumbcare.data.NomineeProfile> = emptyList()
+
     fun generate(snapshot: DashboardSnapshot): File {
         hindiPdf = snapshot.preferences.language.isHindi
+        currentNominees = snapshot.preferences.nominees
         val dir = File(context.cacheDir, "dossier").apply { mkdirs() }
         val file = File(dir, "KutumbCare_Family_Dossier.pdf")
         val document = PdfDocument()
         try {
             val pages = mutableListOf<PagePainter>()
-            pages += PagePainter { canvas, pageNo, pageCount -> drawCover(canvas, snapshot, pageNo, pageCount) }
+            // The cover has no item-level pagination: if its sections cannot
+            // fit above the footer zone, readiness spills onto a second cover
+            // page instead of printing over the footer.
+            val coverSpills = coverNeedsSecondPage(snapshot)
+            pages += PagePainter { canvas, pageNo, pageCount ->
+                drawCover(canvas, snapshot, pageNo, pageCount, includeReadiness = !coverSpills)
+            }
+            if (coverSpills) {
+                pages += PagePainter { canvas, pageNo, pageCount ->
+                    drawCoverReadinessPage(canvas, snapshot, pageNo, pageCount)
+                }
+            }
             AssetCategory.entries.forEach { category ->
                 val group = snapshot.items.filter { it.categoryEnum == category }
                 if (group.isEmpty()) return@forEach
@@ -54,6 +69,15 @@ class DossierPdfGenerator(private val context: Context) {
                     }
                 }
             }
+            // Document photos print at the end, one A4 page each, so the
+            // family can bind the dossier and the documents in one go.
+            snapshot.items.forEach { item ->
+                item.attachmentNames.forEach { name ->
+                    pages += PagePainter { canvas, pageNo, pageCount ->
+                        drawDocumentPage(canvas, item, name, pageNo, pageCount)
+                    }
+                }
+            }
             pages.forEachIndexed { index, painter ->
                 val pageNumber = index + 1
                 val info = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, pageNumber).create()
@@ -68,7 +92,7 @@ class DossierPdfGenerator(private val context: Context) {
         return file
     }
 
-    private fun drawCover(canvas: Canvas, snapshot: DashboardSnapshot, pageNo: Int, pageCount: Int) {
+    private fun drawCover(canvas: Canvas, snapshot: DashboardSnapshot, pageNo: Int, pageCount: Int, includeReadiness: Boolean = true) {
         drawPageChrome(canvas, pageNo, pageCount)
         val prefs = snapshot.preferences
         val date = SimpleDateFormat("d MMMM yyyy", Locale("en", "IN")).format(Date())
@@ -119,8 +143,22 @@ class DossierPdfGenerator(private val context: Context) {
             y += 8f
         }
 
-        y += 10f
-        y = sectionTitle(canvas, strings.pdfReadinessByCategory, y)
+        if (includeReadiness) {
+            y += 10f
+            drawReadinessSection(canvas, snapshot, strings, y)
+        }
+    }
+
+    /** Second cover page used only when the readiness block cannot fit on page 1. */
+    private fun drawCoverReadinessPage(canvas: Canvas, snapshot: DashboardSnapshot, pageNo: Int, pageCount: Int) {
+        drawPageChrome(canvas, pageNo, pageCount)
+        val strings = UiStrings.of(snapshot.preferences.language)
+        headerBand(canvas, "${strings.pdfTitle} ${strings.pdfContinued}")
+        drawReadinessSection(canvas, snapshot, strings, 150f)
+    }
+
+    private fun drawReadinessSection(canvas: Canvas, snapshot: DashboardSnapshot, strings: UiStrings, startY: Float) {
+        var y = sectionTitle(canvas, strings.pdfReadinessByCategory, startY)
         snapshot.categoryProgress.forEach { progress ->
             val label = "${strings.category(progress.category)}   ${progress.completed}/${progress.total}"
             canvas.drawText(label, MARGIN, y + 12f, bodyPaint(11f, INK))
@@ -143,6 +181,51 @@ class DossierPdfGenerator(private val context: Context) {
             bodyPaint(10f, Color.parseColor("#7A4A28")),
             CONTENT_WIDTH - 28f
         )
+    }
+
+    /** Mirrors [drawCover]'s measurements to decide whether readiness fits on page 1. */
+    private fun coverNeedsSecondPage(snapshot: DashboardSnapshot): Boolean {
+        val strings = UiStrings.of(snapshot.preferences.language)
+        val prefs = snapshot.preferences
+        var y = 150f
+        y += textHeight(prefs.familyName(strings.hindi), titlePaint(28f, FOREST), CONTENT_WIDTH)
+        y += 6f + textHeight("${strings.pdfPreparedFor} · 1 January 2026", bodyPaint(11f, MUTED), CONTENT_WIDTH)
+        y += 18f + 78f + 22f
+        y += 22f
+        val contactName = prefs.emergencyContactName.ifBlank { strings.pdfNotRecorded }
+        val contactPhone = prefs.emergencyContactPhone.ifBlank { "—" }
+        y += textHeight("$contactName  ·  $contactPhone", bodyPaint(13f, INK), CONTENT_WIDTH) + 16f
+        y += 22f
+        strings.pdfHowToLines.forEach { line ->
+            y += textHeight("•  $line", bodyPaint(11f, INK), CONTENT_WIDTH) + 8f
+        }
+        y += 10f
+        val readinessHeight = 22f + snapshot.categoryProgress.size * 20f + 16f + 56f
+        return y + readinessHeight > PAGE_BOTTOM
+    }
+
+    private fun drawDocumentPage(canvas: Canvas, item: ChecklistItem, name: String, pageNo: Int, pageCount: Int) {
+        drawPageChrome(canvas, pageNo, pageCount)
+        val strings = UiStrings(hindiPdf)
+        headerBand(canvas, item.displayTitle(hindiPdf).uppercase().take(38))
+        var y = 120f
+        y = drawText(
+            canvas,
+            "${strings.category(item.categoryEnum)} · ${strings.documentCopy}",
+            MARGIN, y, bodyPaint(11f, MUTED), CONTENT_WIDTH
+        )
+        val bitmap = android.graphics.BitmapFactory.decodeFile(
+            com.puneetfsn.kutumbcare.data.DocumentStore.file(context, name).path
+        ) ?: return
+        val area = RectF(MARGIN, y + 10f, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 84f)
+        val scale = minOf(area.width() / bitmap.width, area.height() / bitmap.height)
+        val w = bitmap.width * scale
+        val h = bitmap.height * scale
+        val dest = RectF(
+            area.left + (area.width() - w) / 2f, area.top + (area.height() - h) / 2f,
+            area.left + (area.width() + w) / 2f, area.top + (area.height() + h) / 2f
+        )
+        canvas.drawBitmap(bitmap, null, dest, null)
     }
 
     private fun paginateCategory(items: List<ChecklistItem>): List<List<ChecklistItem>> {
@@ -204,15 +287,26 @@ class DossierPdfGenerator(private val context: Context) {
 
             var inner = y + 12f
             inner = drawText(canvas, item.displayTitle(strings.hindi), MARGIN + 12f, inner, titlePaint(13f, FOREST), CONTENT_WIDTH - 24f)
-            val nominee = strings.nominee(item.nomineeEnum)
-            inner = drawText(
-                canvas,
-                nominee + if (item.isCompleted) "  ·  ${strings.pdfRecorded}" else "  ·  ${strings.pdfNotYet}",
-                MARGIN + 12f,
-                inner + 2f,
-                bodyPaint(10f, if (item.nomineeEnum == NomineeStatus.NEEDS_NOMINEE) SAFFRON else MUTED),
-                CONTENT_WIDTH - 24f
-            )
+            if (EntryFieldsCatalog.forItem(item).nomineeRelevant) {
+                val nominee = strings.nominee(item.nomineeEnum)
+                inner = drawText(
+                    canvas,
+                    nominee + if (item.isCompleted) "  ·  ${strings.pdfRecorded}" else "  ·  ${strings.pdfNotYet}",
+                    MARGIN + 12f,
+                    inner + 2f,
+                    bodyPaint(10f, if (item.nomineeEnum == NomineeStatus.NEEDS_NOMINEE) SAFFRON else MUTED),
+                    CONTENT_WIDTH - 24f
+                )
+            } else {
+                inner = drawText(
+                    canvas,
+                    if (item.isCompleted) strings.pdfRecorded else strings.pdfNotYet,
+                    MARGIN + 12f,
+                    inner + 2f,
+                    bodyPaint(10f, MUTED),
+                    CONTENT_WIDTH - 24f
+                )
+            }
             itemLines(item, hindiPdf).forEach { line ->
                 inner = drawText(canvas, line, MARGIN + 12f, inner + 3f, bodyPaint(10.5f, INK), CONTENT_WIDTH - 24f)
             }
@@ -223,7 +317,7 @@ class DossierPdfGenerator(private val context: Context) {
             canvas.drawText(
                 "${strings.pdfOwner}: ${snapshot.preferences.primaryUserName}",
                 MARGIN,
-                PAGE_HEIGHT - 48f,
+                PAGE_HEIGHT - 64f,
                 bodyPaint(9f, MUTED)
             )
         }
@@ -231,18 +325,34 @@ class DossierPdfGenerator(private val context: Context) {
 
     private fun itemLines(item: ChecklistItem, hindi: Boolean = false): List<String> {
         val strings = UiStrings(hindi)
+        val fields = EntryFieldsCatalog.forItem(item)
+        // Blank values become writing lines, so a printed dossier (filled or
+        // blank) can still be completed by hand with room to write.
+        fun line(label: String?, value: String): String? = when {
+            label == null -> null
+            value.isNotBlank() -> "$label: $value"
+            else -> "$label: ________________________________________"
+        }
         return buildList {
-            if (item.institutionName.isNotBlank()) add("${strings.pdfInstitution}: ${item.institutionName}")
-            if (item.accountRef.isNotBlank()) add("${strings.pdfReference}: ${item.accountRef}")
-            add("${strings.pdfLocation}: ${item.physicalLocation.ifBlank { strings.pdfNotRecorded }}")
-            if (item.contactName.isNotBlank() || item.contactPhone.isNotBlank()) {
-                add(
-                    "${strings.pdfContact}: " + listOf(item.contactName, item.contactPhone)
-                        .filter { it.isNotBlank() }
-                        .joinToString("  ·  ")
-                )
+            line(fields.primary?.label(hindi), item.institutionName)?.let { add(it) }
+            line(fields.ref?.label(hindi), item.accountRef)?.let { add(it) }
+            fields.maturity?.let { label -> line(label.label(hindi), item.maturityDate)?.let { add(it) } }
+            line(fields.location?.label(hindi), item.physicalLocation)?.let { add(it) }
+            val contact = listOf(item.contactName, item.contactPhone).filter { it.isNotBlank() }.joinToString("  ·  ")
+            val contactLabel = listOfNotNull(fields.contact?.label(hindi), fields.phone?.label(hindi))
+                .takeIf { fields.contact != null || fields.phone != null }
+                ?.joinToString(" / ")
+            line(contactLabel, contact)?.let { add(it) }
+            item.nomineeAssignments.forEach { assignment ->
+                val profile = currentNominees.find { it.id == assignment.profileId }
+                if (profile != null) {
+                    val rel = if (profile.relationship.isNotBlank()) " (${profile.relationship})" else ""
+                    val mob = if (profile.mobile.isNotBlank()) " · ${profile.mobile}" else ""
+                    add("${strings.pdfNominee}: ${profile.fullName}$rel — ${assignment.sharePercent}%$mob")
+                }
             }
-            if (item.additionalNotes.isNotBlank()) add("${strings.pdfNotes}: ${item.additionalNotes}")
+            line(fields.notes?.label(hindi), item.additionalNotes)?.let { add(it) }
+            add("__________________________________________________________")
         }
     }
 
@@ -278,10 +388,18 @@ class DossierPdfGenerator(private val context: Context) {
 
     private fun drawPageChrome(canvas: Canvas, pageNo: Int, pageCount: Int) {
         canvas.drawColor(Color.WHITE)
-        canvas.drawText(
-            "Kutumb Care  ·  Family copy  ·  Page $pageNo of $pageCount",
+        drawText(
+            canvas,
+            UiStrings(hindiPdf).pdfFinePrint,
             MARGIN,
-            PAGE_HEIGHT - 28f,
+            PAGE_HEIGHT - 46f,
+            bodyPaint(7.5f, MUTED),
+            CONTENT_WIDTH
+        )
+        canvas.drawText(
+            "Kutumb Care  ·  Family copy  ·  ${UiStrings(hindiPdf).pdfPage} $pageNo ${UiStrings(hindiPdf).pdfOf} $pageCount",
+            MARGIN,
+            PAGE_HEIGHT - 22f,
             bodyPaint(9f, MUTED)
         )
     }
@@ -337,7 +455,7 @@ class DossierPdfGenerator(private val context: Context) {
         private const val CATEGORY_START_Y = 186f
         private const val CONTINUATION_START_Y = 126f
         private const val ITEM_GAP = 10f
-        private const val PAGE_BOTTOM = 842f - 56f
+        private const val PAGE_BOTTOM = 842f - 76f
         private val FOREST = Color.parseColor("#134E4A")
         private val SAFFRON = Color.parseColor("#C45C26")
         private val INK = Color.parseColor("#1C2321")

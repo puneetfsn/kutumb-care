@@ -104,6 +104,12 @@
     </div>
   </div>
 </header>
+<nav class="no-print" style="background:#fff;border-bottom:1px solid var(--line)"><div style="max-width:1060px;margin:0 auto;padding:8px 16px;display:flex;gap:10px">
+  <a href="#top" class="chip" style="text-decoration:none">🏠 <span data-i="homeBtn">Home</span></a>
+  <a href="#recordsSection" class="chip" style="text-decoration:none">📄 <span data-i="records">Family records</span></a>
+  <a href="#settingsSection" class="chip" style="text-decoration:none">⚙ <span data-i="settings">Privacy &amp; family settings</span></a>
+</div></nav>
+<div id="top"></div>
 
 <!-- First-launch language chooser -->
 <div id="langGate" class="overlay hidden">
@@ -159,18 +165,28 @@
   <div id="alertBox" class="alert hidden" style="margin-top:14px"></div>
   <div class="privacy" style="margin-top:14px">🔒 <span data-i="privacy">Record locations and metadata only. Never save net-banking passwords, UPI PINs, ATM PINs, OTPs or CVVs.</span></div>
 
+  <section class="card no-print" style="margin-top:14px">
+    <h3 style="margin-top:0">📱 <span data-i="installTitle">Put Kutumb Care on your Home Screen</span></h3>
+    <p class="small muted" data-i="installNote">Works like an app — opens full-screen, works offline, your data stays on this device.</p>
+    <div class="rowbtns">
+      <button class="btn hidden" id="btnInstall" type="button">⬇ <span data-i="installBtn">Install app on Home Screen</span></button>
+    </div>
+    <p class="small muted" data-i="installSteps">If the button does not appear: Chrome (Android) ⋮ menu → Add to Home screen. Safari (iPhone): Share → Add to Home Screen.</p>
+  </section>
+
   <h2 data-i="categories">Categories</h2>
   <div class="grid cats" id="catGrid"></div>
 
-  <h2><span data-i="records">Family records</span>
+  <h2 id="recordsSection"><span data-i="records">Family records</span>
     <button class="btn small" id="btnAdd" type="button" style="float:right">＋ <span data-i="addRecord">Add record</span></button>
   </h2>
   <input class="search" id="search" type="search" data-i-ph="searchPh" placeholder="Search bank, UAN, locker, agent…">
   <div class="chips" id="catChips"></div>
+    <div id="quickAdd" class="rowbtns" style="margin:10px 0 2px"></div>
   <div class="grid" id="recList"></div>
   <p id="emptyHint" class="muted hidden" style="text-align:center;padding:22px"></p>
 
-  <h2 data-i="settings">Privacy &amp; family settings</h2>
+  <h2 id="settingsSection" data-i="settings">Privacy &amp; family settings</h2>
   <div class="grid two">
     <section class="card">
       <h3 data-i="familyProfile">Family profile</h3>
@@ -207,6 +223,13 @@
   </div>
 
   <section class="card" style="margin-top:14px">
+    <h3 style="margin-top:0" data-i="nomProfiles">Saved nominee cards</h3>
+    <p class="small muted" data-i="nomNote">Save a person once, then attach them to any bank, investment or insurance record. Shares on a record should total 100%.</p>
+    <div id="nomList" class="grid"></div>
+    <div class="rowbtns"><button class="btn" id="btnAddNominee" type="button" data-i="addNomCard">Add nominee card</button></div>
+  </section>
+
+  <section class="card" style="margin-top:14px">
     <h3 data-i="about">About</h3>
     <p class="small muted" data-i="aboutText">Kutumb Care is a 100% offline family emergency checklist for India. It helps your people find Aadhaar, bank nominees, LIC policies, EPF / UAN, property deeds and trusted contacts — without ever storing passwords. This web version stores everything only in this browser on this device; clearing browser data erases it, so keep a JSON backup or printed dossier.</p>
   </section>
@@ -219,23 +242,66 @@
   <form method="dialog" class="dlg-in" id="editorForm">
     <h2 id="edTitle" style="margin-top:0">Record</h2>
     <p class="small muted" id="edDesc"></p>
+    <p class="small" id="edGuide" style="color:var(--forest-2);background:#E3EFE9;border-radius:10px;padding:10px 12px"></p>
     <div id="edTitleWrap"><label class="f"><span data-i="fTitle">Title</span><input class="i" id="fTitle"></label></div>
-    <label class="f"><span data-i="fInstitution">Institution / branch</span><input class="i" id="fInstitution" placeholder="SBI — MG Road branch"></label>
-    <label class="f"><span data-i="fRef">Account / policy / UAN / folio (optional)</span><input class="i" id="fRef"></label>
-    <label class="f"><span data-i="fLocation">Physical document location</span><textarea class="i" id="fLocation" placeholder="Master bedroom almirah / blue folder"></textarea></label>
-    <label class="f"><span data-i="fNominee">Nominee status</span>
+    <label class="f" id="wInstitution"><span id="lblInstitution">Institution / branch</span><input class="i" id="fInstitution"></label>
+    <label class="f" id="wRef"><span id="lblRef">Reference</span><input class="i" id="fRef"></label>
+    <label class="f" id="wMat"><span id="lblMat">Maturity date</span><input class="i" id="fMat" placeholder="31/03/2031"></label>
+    <label class="f" id="wLocation"><span id="lblLocation">Location</span><textarea class="i" id="fLocation"></textarea></label>
+    <label class="f" id="wNominee"><span data-i="fNominee">Nominee status</span>
       <select class="i" id="fNominee">
         <option value="NOMINEE_VERIFIED" data-i="nomOk">Nominee verified</option>
         <option value="NEEDS_NOMINEE" data-i="nomNeed">Needs nominee</option>
         <option value="NOT_APPLICABLE" data-i="nomNa">Not applicable</option>
       </select></label>
-    <label class="f"><span data-i="fContact">Contact person / agent</span><input class="i" id="fContact"></label>
-    <label class="f"><span data-i="fPhone">Contact phone</span><input class="i" id="fPhone" inputmode="tel"></label>
-    <label class="f"><span data-i="fNotes">Notes for the family</span><textarea class="i" id="fNotes"></textarea></label>
+    <div id="wAssign" style="margin-top:14px">
+      <h3 style="margin:0 0 4px" data-i="nomProfiles">Saved nominee cards</h3>
+      <p class="small muted" id="nomEmptyHint"></p>
+      <label class="f"><span data-i="nom1">Nominee 1</span><select class="i" id="fNom1"></select></label>
+      <label class="f"><span data-i="sharePct">Share %</span><input class="i" id="fNom1Share" type="number" min="0" max="100" inputmode="numeric"></label>
+      <label class="f"><span data-i="nom2">Nominee 2 (optional)</span><select class="i" id="fNom2"></select></label>
+      <label class="f"><span data-i="sharePct">Share %</span><input class="i" id="fNom2Share" type="number" min="0" max="100" inputmode="numeric"></label>
+      <div class="rowbtns">
+        <button class="btn alt small" id="btnNom100" type="button" data-i="quick100">One nominee · 100%</button>
+        <button class="btn alt small" id="btnNom5050" type="button" data-i="quick5050">Two nominees · 50 / 50</button>
+        <button class="btn alt small" id="btnNomAdd" type="button" data-i="addNomCard">Add nominee card</button>
+      </div>
+      <p class="small" id="nomTotal"></p>
+    </div>
+    <label class="f" id="wContact"><span id="lblContact">Contact</span><input class="i" id="fContact"></label>
+    <label class="f" id="wPhone"><span id="lblPhone">Phone</span><input class="i" id="fPhone" inputmode="tel"></label>
+    <label class="f" id="wNotes"><span id="lblNotes">Notes</span><textarea class="i" id="fNotes"></textarea></label>
+    <div id="wDocs" style="margin-top:14px">
+      <h3 style="margin:0 0 4px" data-i="docsTitle">Document photos</h3>
+      <p class="small muted" data-i="docsNote">Attach photos of the document. Photos stay only on this device and are printed at the end of the dossier.</p>
+      <div id="docThumbs" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      <label class="btn alt small" style="display:inline-block;margin-top:8px;cursor:pointer"><span data-i="addPhoto">＋ Add document photo</span><input type="file" id="fDocFile" accept="image/*" multiple hidden></label>
+    </div>
     <div class="rowbtns">
       <button class="btn" id="btnSave" type="button" data-i="saveRecord">Save record</button>
       <button class="btn alt" id="btnCancel" type="button" data-i="cancel">Cancel</button>
+      <button class="btn alt" id="btnEdHome" type="button">🏠 <span data-i="homeBtn">Home</span></button>
+      <button class="btn alt hidden" id="btnAnother" type="button" data-i="addAnother">＋ Add another like this</button>
       <button class="btn alt hidden" id="btnDelete" type="button" style="color:#B42318;border-color:#B42318" data-i="delete">Delete</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Nominee card editor -->
+<dialog id="nomineeEditor">
+  <form method="dialog" class="dlg-in" id="nomineeForm">
+    <h2 id="nomEdTitle" style="margin-top:0">Add nominee card</h2>
+    <label class="f"><span data-i="fullName">Full name</span><input class="i" id="nName"></label>
+    <label class="f"><span data-i="relationship">Relationship</span><input class="i" id="nRel" placeholder="Wife / Son / Daughter / Mother"></label>
+    <label class="f"><span data-i="dob">Date of birth (DD/MM/YYYY)</span><input class="i" id="nDob" placeholder="14/02/1985" inputmode="numeric"></label>
+    <label class="f"><span data-i="address">Address</span><textarea class="i" id="nAddress"></textarea></label>
+    <label class="f"><span data-i="mobile">Mobile number</span><input class="i" id="nMobile" inputmode="tel"></label>
+    <label class="f"><span data-i="emailOpt">Email (optional)</span><input class="i" id="nEmail" inputmode="email"></label>
+    <label class="f"><span data-i="idFull">PAN / Aadhaar number (optional)</span><input class="i" id="nId"></label>
+    <div class="rowbtns">
+      <button class="btn" id="btnNomSave" type="button" data-i="saveNomCard">Save nominee card</button>
+      <button class="btn alt" id="btnNomCancel" type="button" data-i="cancel">Cancel</button>
+      <button class="btn alt hidden" id="btnNomDelete" type="button" style="color:#B42318;border-color:#B42318" data-i="deleteCard">Delete card</button>
     </div>
   </form>
 </dialog>
@@ -246,8 +312,8 @@
 "use strict";
 /* ============================== i18n ============================== */
 const STR = {
-en:{tagline:"Private family emergency dossier · Offline",subtitle:"A private emergency dossier that never leaves this device.",prepared:"prepared",recorded:"Recorded",nomineeAlerts:"Nominee alerts",pdfFilled:"Download my dossier (PDF)",pdfBlank:"Download blank form to fill by hand (PDF)",pdfHint:"The blank form is an empty A4 booklet — print it, fill it with a pen, and keep it with a trusted family member.",privacy:"Record locations and metadata only. Never save net-banking passwords, UPI PINs, ATM PINs, OTPs or CVVs.",categories:"Categories",records:"Family records",addRecord:"Add record",searchPh:"Search bank, UAN, locker, agent…",settings:"Privacy & family settings",familyProfile:"Family profile",primaryPerson:"Primary person",familyLabel:"Family label",emgName:"Emergency contact name",emgPhone:"Emergency contact phone",saveProfile:"Save profile",language:"Language",pinTitle:"4-digit app PIN",pinNote:"Optional. The PIN is hashed on this device only and is never included in a backup.",newPin:"New PIN",confirmPin:"Confirm PIN",setPin:"Set PIN",removePin:"Remove PIN",backup:"Offline backup",backupNote:"Export a JSON file you can keep on a USB drive, or restore one made by the Android app. The PIN is never exported.",exportBtn:"Export JSON backup",importBtn:"Restore JSON backup",about:"About",aboutText:"Kutumb Care is a 100% offline family emergency checklist for India. It helps your people find Aadhaar, bank nominees, LIC policies, EPF / UAN, property deeds and trusted contacts — without ever storing passwords. This web version stores everything only in this browser on this device; clearing browser data erases it, so keep a JSON backup or printed dossier.",footer:"No internet · No account · No cloud · No passwords stored",all:"All",yourFamily:"Your family",familySuffix:"'s family",alertsText:(n)=>`${n} ${n===1?"account needs":"accounts need"} a nominee — unclaimed deposits often sit with banks because no nominee was registered.`,noMatch:"No records match yet. Add one with the Add record button.",checklistPrep:"Your checklist is still being prepared.",fTitle:"Title",fInstitution:"Institution / branch",fRef:"Account / policy / UAN / folio (optional)",fLocation:"Physical document location",fNominee:"Nominee status",fContact:"Contact person / agent",fPhone:"Contact phone",fNotes:"Notes for the family",saveRecord:"Save record",cancel:"Cancel",delete:"Delete",nomOk:"Nominee verified",nomNeed:"Needs nominee",nomNa:"Not applicable",newRecord:"New record",pinPrompt:"Enter your 4-digit PIN to open the family dossier.",pinWrong:"That PIN does not match",pinMismatch:"The two PINs do not match",pinSet:"App PIN enabled",pinRemoved:"App PIN removed",profileSaved:"Family profile saved on this device",backupDone:"Backup downloaded. Keep this file private.",restoreDone:"Backup restored on this device",restoreFail:"Restore failed: ",saved:"Record saved",deleted:"Record deleted",makingPdf:"Preparing PDF…",pdfReady:"PDF downloaded",notRecorded:"Not recorded yet",recordedWord:"Recorded",notYet:"Not yet recorded",institution:"Institution",reference:"Reference",location:"Location",contact:"Contact",notes:"Notes",owner:"Owner",emgContact:"Emergency contact",howTo:"How to use this binder",howToLines:["Print this dossier on A4 paper. Keep one sealed copy with a trusted family member and one in a bank locker.","Each section lists where originals live, the institution, optional account or policy numbers, nominee status, and the person who can help.","This file never contains net-banking passwords, UPI PINs, ATM PINs, OTPs or CVVs.","After a death or emergency: identity papers first, then bank nominees, then insurance claims (LIC / health), then EPF / UAN."],readinessByCat:"Readiness by category",confidential:"Confidential family copy. Generated on this device by Kutumb Care. Nothing was uploaded — this app never uses the internet.",dossierTitle:"FAMILY EMERGENCY DOSSIER",blankTitle:"FAMILY EMERGENCY FORM — FILL BY HAND",preparedFor:"Prepared for peaceful handover",readyWord:"ready",ofWord:"of",recordsCaptured:"records captured",nomineeAlertsWord:"nominee alerts",pageWord:"Page",continued:"(continued)",writeHere:"Write here"},
-hi:{tagline:"निजी पारिवारिक आपातकालीन दस्तावेज़ · ऑफ़लाइन",subtitle:"एक निजी आपातकालीन दस्तावेज़ जो इस डिवाइस से बाहर कभी नहीं जाता।",prepared:"तैयार",recorded:"दर्ज किए गए",nomineeAlerts:"नॉमिनी अलर्ट",pdfFilled:"मेरा दस्तावेज़ डाउनलोड करें (PDF)",pdfBlank:"हाथ से भरने के लिए खाली फ़ॉर्म डाउनलोड करें (PDF)",pdfHint:"खाली फ़ॉर्म एक खाली A4 पुस्तिका है — इसे छापें, कलम से भरें और किसी भरोसेमंद पारिवारिक सदस्य के पास रखें।",privacy:"केवल स्थान और जानकारी दर्ज करें। नेट-बैंकिंग पासवर्ड, UPI PIN, ATM PIN, OTP या CVV कभी न सहेजें।",categories:"श्रेणियाँ",records:"पारिवारिक रिकॉर्ड",addRecord:"रिकॉर्ड जोड़ें",searchPh:"बैंक, UAN, लॉकर, एजेंट खोजें…",settings:"गोपनीयता और परिवार सेटिंग",familyProfile:"पारिवारिक प्रोफ़ाइल",primaryPerson:"मुख्य व्यक्ति",familyLabel:"परिवार का नाम",emgName:"आपातकालीन संपर्क का नाम",emgPhone:"आपातकालीन संपर्क फ़ोन",saveProfile:"प्रोफ़ाइल सहेजें",language:"भाषा · Language",pinTitle:"4 अंकों का ऐप PIN",pinNote:"वैकल्पिक। PIN केवल इस डिवाइस पर हैश करके रखा जाता है और बैकअप में कभी शामिल नहीं होता।",newPin:"नया PIN",confirmPin:"PIN की पुष्टि करें",setPin:"PIN सेट करें",removePin:"PIN हटाएँ",backup:"ऑफ़लाइन बैकअप",backupNote:"JSON फ़ाइल निर्यात करें जिसे आप USB ड्राइव पर रख सकते हैं, या Android ऐप का बैकअप बहाल करें। PIN कभी निर्यात नहीं होता।",exportBtn:"JSON बैकअप निर्यात करें",importBtn:"JSON बैकअप बहाल करें",about:"परिचय",aboutText:"कुटुम्ब केयर भारत के लिए 100% ऑफ़लाइन पारिवारिक आपातकालीन सूची है। यह आपके लोगों को आधार, बैंक नॉमिनी, LIC पॉलिसी, EPF / UAN, संपत्ति के काग़ज़ात और भरोसेमंद संपर्क खोजने में मदद करता है — बिना कभी पासवर्ड रखे। यह वेब संस्करण सब कुछ केवल इस डिवाइस के इस ब्राउज़र में रखता है; ब्राउज़र डेटा साफ़ करने से यह मिट जाएगा, इसलिए JSON बैकअप या छपा हुआ दस्तावेज़ ज़रूर रखें।",footer:"कोई इंटरनेट नहीं · कोई खाता नहीं · कोई क्लाउड नहीं · कोई पासवर्ड नहीं रखा जाता",all:"सभी",yourFamily:"आपका परिवार",familySuffix:" का परिवार",alertsText:(n)=>`${n} ${n===1?"खाते में":"खातों में"} नॉमिनी चाहिए — बिना नॉमिनी के बैंक में पैसा अक्सर बिना दावे के पड़ा रहता है।`,noMatch:"अभी कोई रिकॉर्ड मेल नहीं खाता। 'रिकॉर्ड जोड़ें' बटन से एक जोड़ें।",checklistPrep:"आपकी सूची अभी तैयार हो रही है।",fTitle:"शीर्षक",fInstitution:"संस्था / शाखा",fRef:"खाता / पॉलिसी / UAN / फोलियो (वैकल्पिक)",fLocation:"दस्तावेज़ रखने का स्थान",fNominee:"नॉमिनी की स्थिति",fContact:"संपर्क व्यक्ति / एजेंट",fPhone:"संपर्क फ़ोन",fNotes:"परिवार के लिए नोट",saveRecord:"रिकॉर्ड सहेजें",cancel:"रद्द करें",delete:"हटाएँ",nomOk:"नॉमिनी सत्यापित",nomNeed:"नॉमिनी चाहिए",nomNa:"लागू नहीं",newRecord:"नया रिकॉर्ड",pinPrompt:"पारिवारिक दस्तावेज़ खोलने के लिए अपना 4 अंकों का PIN डालें।",pinWrong:"यह PIN मेल नहीं खाता",pinMismatch:"दोनों PIN मेल नहीं खाते",pinSet:"ऐप PIN चालू हो गया",pinRemoved:"ऐप PIN हटा दिया गया",profileSaved:"पारिवारिक प्रोफ़ाइल इस डिवाइस पर सहेजी गई",backupDone:"बैकअप डाउनलोड हो गया। इस फ़ाइल को निजी रखें।",restoreDone:"बैकअप इस डिवाइस पर बहाल हो गया",restoreFail:"बहाली विफल: ",saved:"रिकॉर्ड सहेजा गया",deleted:"रिकॉर्ड हटाया गया",makingPdf:"PDF तैयार हो रही है…",pdfReady:"PDF डाउनलोड हो गई",notRecorded:"अभी दर्ज नहीं",recordedWord:"दर्ज किया गया",notYet:"अभी दर्ज नहीं किया",institution:"संस्था",reference:"संदर्भ",location:"स्थान",contact:"संपर्क",notes:"नोट",owner:"मालिक",emgContact:"आपातकालीन संपर्क",howTo:"इस बाइंडर का उपयोग कैसे करें",howToLines:["इस दस्तावेज़ को A4 काग़ज़ पर छापें। एक मुहरबंद प्रति किसी भरोसेमंद पारिवारिक सदस्य के पास और एक बैंक लॉकर में रखें।","हर भाग में बताया गया है कि मूल काग़ज़ कहाँ हैं, संस्था कौन-सी है, खाता या पॉलिसी नंबर (वैकल्पिक), नॉमिनी की स्थिति और मदद करने वाला व्यक्ति।","इस फ़ाइल में नेट-बैंकिंग पासवर्ड, UPI PIN, ATM PIN, OTP या CVV कभी नहीं होते।","मृत्यु या आपातकाल के बाद: पहले पहचान के काग़ज़, फिर बैंक नॉमिनी, फिर बीमा दावे (LIC / स्वास्थ्य), फिर EPF / UAN।"],readinessByCat:"श्रेणी के अनुसार तैयारी",confidential:"गोपनीय पारिवारिक प्रति। कुटुम्ब केयर द्वारा इस डिवाइस पर बनाई गई। कुछ भी अपलोड नहीं हुआ — यह ऐप इंटरनेट का उपयोग कभी नहीं करता।",dossierTitle:"पारिवारिक आपातकालीन दस्तावेज़",blankTitle:"पारिवारिक आपातकालीन फ़ॉर्म — हाथ से भरें",preparedFor:"शांतिपूर्ण सौंपने के लिए तैयार",readyWord:"तैयार",ofWord:"में से",recordsCaptured:"रिकॉर्ड दर्ज",nomineeAlertsWord:"नॉमिनी अलर्ट",pageWord:"पृष्ठ",continued:"(आगे जारी)",writeHere:"यहाँ लिखें"}
+en:{tagline:"Private family emergency dossier · Offline",subtitle:"A private emergency dossier that never leaves this device.",prepared:"prepared",recorded:"Recorded",nomineeAlerts:"Nominee alerts",pdfFilled:"Download my dossier (PDF)",pdfBlank:"Download blank form to fill by hand (PDF)",pdfHint:"The blank form is an empty A4 booklet — print it, fill it with a pen, and keep it with a trusted family member.",privacy:"Record locations and metadata only. Never save net-banking passwords, UPI PINs, ATM PINs, OTPs or CVVs.",categories:"Categories",records:"Family records",addRecord:"Add record",searchPh:"Search bank, UAN, locker, agent…",settings:"Privacy & family settings",familyProfile:"Family profile",primaryPerson:"Primary person",familyLabel:"Family label",emgName:"Emergency contact name",emgPhone:"Emergency contact phone",saveProfile:"Save profile",language:"Language",pinTitle:"4-digit app PIN",pinNote:"Optional. The PIN is hashed on this device only and is never included in a backup.",newPin:"New PIN",confirmPin:"Confirm PIN",setPin:"Set PIN",removePin:"Remove PIN",backup:"Offline backup",backupNote:"Export a JSON file you can keep on a USB drive, or restore one made by the Android app. The PIN is never exported.",exportBtn:"Export JSON backup",importBtn:"Restore JSON backup",about:"About",aboutText:"Kutumb Care is a 100% offline family emergency checklist for India. It helps your people find Aadhaar, bank nominees, LIC policies, EPF / UAN, property deeds and trusted contacts — without ever storing passwords. This web version stores everything only in this browser on this device; clearing browser data erases it, so keep a JSON backup or printed dossier.",footer:"No internet · No account · No cloud · No passwords stored",all:"All",yourFamily:"Your family",familySuffix:"'s family",alertsText:(n)=>`${n} ${n===1?"account needs":"accounts need"} a nominee — unclaimed deposits often sit with banks because no nominee was registered.`,noMatch:"No records match yet. Add one with the Add record button.",checklistPrep:"Your checklist is still being prepared.",fTitle:"Title",fInstitution:"Institution / branch",fRef:"Account / policy / UAN / folio (optional)",fLocation:"Physical document location",fNominee:"Nominee status",fContact:"Contact person / agent",fPhone:"Contact phone",fNotes:"Notes for the family",saveRecord:"Save record",cancel:"Cancel",delete:"Delete",nomOk:"Nominee verified",nomNeed:"Needs nominee",nomNa:"Not applicable",newRecord:"New record",pinPrompt:"Enter your 4-digit PIN to open the family dossier.",pinWrong:"That PIN does not match",pinMismatch:"The two PINs do not match",pinSet:"App PIN enabled",pinRemoved:"App PIN removed",profileSaved:"Family profile saved on this device",backupDone:"Backup downloaded. Keep this file private.",restoreDone:"Backup restored on this device",restoreFail:"Restore failed: ",saved:"Record saved",deleted:"Record deleted",makingPdf:"Preparing PDF…",pdfReady:"PDF downloaded",notRecorded:"Not recorded yet",recordedWord:"Recorded",notYet:"Not yet recorded",institution:"Institution",reference:"Reference",location:"Location",contact:"Contact",notes:"Notes",owner:"Owner",emgContact:"Emergency contact",howTo:"How to use this binder",howToLines:["Print this dossier on A4 paper. Keep one sealed copy with a trusted family member and one in a bank locker.","Each section lists where originals live, the institution, optional account or policy numbers, nominee status, and the person who can help.","This file never contains net-banking passwords, UPI PINs, ATM PINs, OTPs or CVVs.","After a death or emergency: identity papers first, then bank nominees, then insurance claims (LIC / health), then EPF / UAN."],readinessByCat:"Readiness by category",confidential:"Confidential family copy. Generated on this device by Kutumb Care. Nothing was uploaded — this app never uses the internet.",dossierTitle:"FAMILY EMERGENCY DOSSIER",blankTitle:"FAMILY EMERGENCY FORM — FILL BY HAND",preparedFor:"Prepared for peaceful handover",readyWord:"ready",ofWord:"of",recordsCaptured:"records captured",nomineeAlertsWord:"nominee alerts",pageWord:"Page",continued:"(continued)",writeHere:"Write here",finePrint:"Fine print: This dossier lists where things are kept so family can find them. It never contains passwords, UPI/ATM PINs, OTPs or CVVs. Keep it sealed, share only with trusted family, review yearly.",discardQ:"Discard unsaved changes in this record?",homeBtn:"Home",installTitle:"Put Kutumb Care on your Home Screen",installBtn:"Install app on Home Screen",installNote:"Works like an app — opens full-screen, works offline, your data stays on this device.",installSteps:"If the button does not appear: Chrome (Android) ⋮ menu → Add to Home screen. Safari (iPhone): Share → Add to Home Screen.",installed:"Kutumb Care is on your Home Screen.",nomProfiles:"Saved nominee cards",nomNote:"Save a person once, then attach them to any bank, investment or insurance record. Shares on a record should total 100%.",addNomCard:"Add nominee card",noNomCards:"No nominee cards yet. Add your spouse, children or parents once — then just pick them here.",nom1:"Nominee 1",nom2:"Nominee 2 (optional)",sharePct:"Share %",nomNone:"None",quick100:"One nominee · 100%",quick5050:"Two nominees · 50 / 50",totalShare:"Total share",must100:"must be 100%",shareOk:"Shares total 100% ✓",fullName:"Full name",relationship:"Relationship",dob:"Date of birth (DD/MM/YYYY)",address:"Address",mobile:"Mobile number",emailOpt:"Email (optional)",idFull:"PAN / Aadhaar number (optional)",docsTitle:"Document photos",docsNote:"Attach photos of the document (Aadhaar, PAN, passbook, FD receipt…). Photos stay only on this device and are printed at the end of the dossier.",addPhoto:"＋ Add document photo",addAnother:"＋ Add another like this",addedAnother:"Added a blank one — tap ✎ to fill it",quickAdd:"Add another:",docCopy:"document copy",saveNomCard:"Save nominee card",deleteCard:"Delete card",editNom:"Edit nominee",pdfNominee:"Nominee"},
+hi:{tagline:"निजी पारिवारिक आपातकालीन दस्तावेज़ · ऑफ़लाइन",subtitle:"एक निजी आपातकालीन दस्तावेज़ जो इस डिवाइस से बाहर कभी नहीं जाता।",prepared:"तैयार",recorded:"दर्ज किए गए",nomineeAlerts:"नॉमिनी अलर्ट",pdfFilled:"मेरा दस्तावेज़ डाउनलोड करें (PDF)",pdfBlank:"हाथ से भरने के लिए खाली फ़ॉर्म डाउनलोड करें (PDF)",pdfHint:"खाली फ़ॉर्म एक खाली A4 पुस्तिका है — इसे छापें, कलम से भरें और किसी भरोसेमंद पारिवारिक सदस्य के पास रखें।",privacy:"केवल स्थान और जानकारी दर्ज करें। नेट-बैंकिंग पासवर्ड, UPI PIN, ATM PIN, OTP या CVV कभी न सहेजें।",categories:"श्रेणियाँ",records:"पारिवारिक रिकॉर्ड",addRecord:"रिकॉर्ड जोड़ें",searchPh:"बैंक, UAN, लॉकर, एजेंट खोजें…",settings:"गोपनीयता और परिवार सेटिंग",familyProfile:"पारिवारिक प्रोफ़ाइल",primaryPerson:"मुख्य व्यक्ति",familyLabel:"परिवार का नाम",emgName:"आपातकालीन संपर्क का नाम",emgPhone:"आपातकालीन संपर्क फ़ोन",saveProfile:"प्रोफ़ाइल सहेजें",language:"भाषा · Language",pinTitle:"4 अंकों का ऐप PIN",pinNote:"वैकल्पिक। PIN केवल इस डिवाइस पर हैश करके रखा जाता है और बैकअप में कभी शामिल नहीं होता।",newPin:"नया PIN",confirmPin:"PIN की पुष्टि करें",setPin:"PIN सेट करें",removePin:"PIN हटाएँ",backup:"ऑफ़लाइन बैकअप",backupNote:"JSON फ़ाइल निर्यात करें जिसे आप USB ड्राइव पर रख सकते हैं, या Android ऐप का बैकअप बहाल करें। PIN कभी निर्यात नहीं होता।",exportBtn:"JSON बैकअप निर्यात करें",importBtn:"JSON बैकअप बहाल करें",about:"परिचय",aboutText:"कुटुम्ब केयर भारत के लिए 100% ऑफ़लाइन पारिवारिक आपातकालीन सूची है। यह आपके लोगों को आधार, बैंक नॉमिनी, LIC पॉलिसी, EPF / UAN, संपत्ति के काग़ज़ात और भरोसेमंद संपर्क खोजने में मदद करता है — बिना कभी पासवर्ड रखे। यह वेब संस्करण सब कुछ केवल इस डिवाइस के इस ब्राउज़र में रखता है; ब्राउज़र डेटा साफ़ करने से यह मिट जाएगा, इसलिए JSON बैकअप या छपा हुआ दस्तावेज़ ज़रूर रखें।",footer:"कोई इंटरनेट नहीं · कोई खाता नहीं · कोई क्लाउड नहीं · कोई पासवर्ड नहीं रखा जाता",all:"सभी",yourFamily:"आपका परिवार",familySuffix:" का परिवार",alertsText:(n)=>`${n} ${n===1?"खाते में":"खातों में"} नॉमिनी चाहिए — बिना नॉमिनी के बैंक में पैसा अक्सर बिना दावे के पड़ा रहता है।`,noMatch:"अभी कोई रिकॉर्ड मेल नहीं खाता। 'रिकॉर्ड जोड़ें' बटन से एक जोड़ें।",checklistPrep:"आपकी सूची अभी तैयार हो रही है।",fTitle:"शीर्षक",fInstitution:"संस्था / शाखा",fRef:"खाता / पॉलिसी / UAN / फोलियो (वैकल्पिक)",fLocation:"दस्तावेज़ रखने का स्थान",fNominee:"नॉमिनी की स्थिति",fContact:"संपर्क व्यक्ति / एजेंट",fPhone:"संपर्क फ़ोन",fNotes:"परिवार के लिए नोट",saveRecord:"रिकॉर्ड सहेजें",cancel:"रद्द करें",delete:"हटाएँ",nomOk:"नॉमिनी सत्यापित",nomNeed:"नॉमिनी चाहिए",nomNa:"लागू नहीं",newRecord:"नया रिकॉर्ड",pinPrompt:"पारिवारिक दस्तावेज़ खोलने के लिए अपना 4 अंकों का PIN डालें।",pinWrong:"यह PIN मेल नहीं खाता",pinMismatch:"दोनों PIN मेल नहीं खाते",pinSet:"ऐप PIN चालू हो गया",pinRemoved:"ऐप PIN हटा दिया गया",profileSaved:"पारिवारिक प्रोफ़ाइल इस डिवाइस पर सहेजी गई",backupDone:"बैकअप डाउनलोड हो गया। इस फ़ाइल को निजी रखें।",restoreDone:"बैकअप इस डिवाइस पर बहाल हो गया",restoreFail:"बहाली विफल: ",saved:"रिकॉर्ड सहेजा गया",deleted:"रिकॉर्ड हटाया गया",makingPdf:"PDF तैयार हो रही है…",pdfReady:"PDF डाउनलोड हो गई",notRecorded:"अभी दर्ज नहीं",recordedWord:"दर्ज किया गया",notYet:"अभी दर्ज नहीं किया",institution:"संस्था",reference:"संदर्भ",location:"स्थान",contact:"संपर्क",notes:"नोट",owner:"मालिक",emgContact:"आपातकालीन संपर्क",howTo:"इस बाइंडर का उपयोग कैसे करें",howToLines:["इस दस्तावेज़ को A4 काग़ज़ पर छापें। एक मुहरबंद प्रति किसी भरोसेमंद पारिवारिक सदस्य के पास और एक बैंक लॉकर में रखें।","हर भाग में बताया गया है कि मूल काग़ज़ कहाँ हैं, संस्था कौन-सी है, खाता या पॉलिसी नंबर (वैकल्पिक), नॉमिनी की स्थिति और मदद करने वाला व्यक्ति।","इस फ़ाइल में नेट-बैंकिंग पासवर्ड, UPI PIN, ATM PIN, OTP या CVV कभी नहीं होते।","मृत्यु या आपातकाल के बाद: पहले पहचान के काग़ज़, फिर बैंक नॉमिनी, फिर बीमा दावे (LIC / स्वास्थ्य), फिर EPF / UAN।"],readinessByCat:"श्रेणी के अनुसार तैयारी",confidential:"गोपनीय पारिवारिक प्रति। कुटुम्ब केयर द्वारा इस डिवाइस पर बनाई गई। कुछ भी अपलोड नहीं हुआ — यह ऐप इंटरनेट का उपयोग कभी नहीं करता।",dossierTitle:"पारिवारिक आपातकालीन दस्तावेज़",blankTitle:"पारिवारिक आपातकालीन फ़ॉर्म — हाथ से भरें",preparedFor:"शांतिपूर्ण सौंपने के लिए तैयार",readyWord:"तैयार",ofWord:"में से",recordsCaptured:"रिकॉर्ड दर्ज",nomineeAlertsWord:"नॉमिनी अलर्ट",pageWord:"पृष्ठ",continued:"(आगे जारी)",writeHere:"यहाँ लिखें",finePrint:"छोटा अक्षर: यह दस्तावेज़ बताता है कि चीज़ें कहाँ रखी हैं ताकि परिवार उन्हें खोज सके। इसमें पासवर्ड, UPI/ATM PIN, OTP या CVV कभी नहीं होते। इसे मुहरबंद रखें, केवल भरोसेमंद परिवार से साझा करें, हर साल समीक्षा करें।",discardQ:"इस रिकॉर्ड के बिना सहेजे बदलाव छोड़ें?",homeBtn:"मुख्य पृष्ठ",installTitle:"कुटुम्ब केयर को होम स्क्रीन पर लगाएँ",installBtn:"होम स्क्रीन पर ऐप लगाएँ",installNote:"ऐप की तरह काम करता है — पूरी स्क्रीन खुलता है, ऑफ़लाइन चलता है, डेटा इस डिवाइस पर ही रहता है।",installSteps:"बटन न दिखे तो: Chrome (Android) ⋮ मेनू → होम स्क्रीन पर जोड़ें। Safari (iPhone): साझा करें → होम स्क्रीन पर जोड़ें।",installed:"कुटुम्ब केयर आपकी होम स्क्रीन पर है।",nomProfiles:"सहेजे गए नॉमिनी कार्ड",nomNote:"एक व्यक्ति को एक बार सहेजें, फिर किसी भी बैंक, निवेश या बीमा रिकॉर्ड से जोड़ें। किसी रिकॉर्ड पर हिस्सों का योग 100% होना चाहिए।",addNomCard:"नॉमिनी कार्ड जोड़ें",noNomCards:"अभी कोई नॉमिनी कार्ड नहीं। जीवनसाथी, बच्चों या माता-पिता को एक बार जोड़ें — फिर बस यहाँ चुनें।",nom1:"नॉमिनी 1",nom2:"नॉमिनी 2 (वैकल्पिक)",sharePct:"हिस्सा %",nomNone:"कोई नहीं",quick100:"एक नॉमिनी · 100%",quick5050:"दो नॉमिनी · 50 / 50",totalShare:"कुल हिस्सा",must100:"100% होना चाहिए",shareOk:"हिस्सों का योग 100% ✓",fullName:"पूरा नाम",relationship:"रिश्ता",dob:"जन्म तिथि (DD/MM/YYYY)",address:"पता",mobile:"मोबाइल नंबर",emailOpt:"ईमेल (वैकल्पिक)",idFull:"PAN / आधार नंबर (वैकल्पिक)",docsTitle:"दस्तावेज़ की फ़ोटो",docsNote:"दस्तावेज़ की फ़ोटो लगाएँ (आधार, PAN, पासबुक, FD रसीद…)। फ़ोटो केवल इस डिवाइस पर रहती हैं और दस्तावेज़ के अंत में छपती हैं।",addPhoto:"＋ दस्तावेज़ फ़ोटो जोड़ें",addAnother:"＋ इसी तरह एक और जोड़ें",addedAnother:"एक खाली जोड़ा गया — भरने के लिए ✎ दबाएँ",quickAdd:"और जोड़ें:",docCopy:"दस्तावेज़ प्रति",saveNomCard:"नॉमिनी कार्ड सहेजें",deleteCard:"कार्ड हटाएँ",editNom:"नॉमिनी संपादित करें",pdfNominee:"नॉमिनी"}
 };
 const CATS = {
   IDENTITY_GOVT:{en:"Identity & civil",hi:"पहचान और नागरिक दस्तावेज़",subEn:"Aadhaar, PAN, passport, will",subHi:"आधार, PAN, पासपोर्ट, वसीयत"},
@@ -255,24 +321,29 @@ const CATS = {
   INVESTMENTS:{en:"Investments",hi:"निवेश",subEn:"Demat, EPF, PPF, NPS, gold",subHi:"डीमैट, EPF, PPF, NPS, सोना"},
   INSURANCE:{en:"Insurance",hi:"बीमा",subEn:"Life, health, vehicle",subHi:"जीवन, स्वास्थ्य, वाहन"},
   REAL_ESTATE_LOANS:{en:"Property & loans",hi:"संपत्ति और ऋण",subEn:"Deeds, khata, home loans",subHi:"काग़ज़ात, खाता, गृह ऋण"},
-  DIGITAL_LEGACY:{en:"Digital legacy",hi:"डिजिटल विरासत",subEn:"Email, phone, DigiLocker",subHi:"ईमेल, फ़ोन, DigiLocker"},
+  DIGITAL_LEGACY:{en:"Digital online assets",hi:"डिजिटल ऑनलाइन संपत्ति",subEn:"Gmail, Apple ID, ITR, password manager",subHi:"Gmail, Apple ID, ITR, पासवर्ड मैनेजर"},
   TRUSTED_CONTACTS:{en:"Trusted contacts",hi:"भरोसेमंद संपर्क",subEn:"CA, lawyer, agent, family",subHi:"CA, वकील, एजेंट, परिवार"}
 };
 const CAT_ORDER = Object.keys(CATS);
 const NOM = {NOMINEE_VERIFIED:"ok",NEEDS_NOMINEE:"need",NOT_APPLICABLE:"na"};
 
 /* 24 seeded records — identical scope to the Android app, in both languages. */
-function seed(){ const R=(c,o,t,d,th,dh,n)=>({id:"s"+o,category:c,sortOrder:o,title:t,description:d,titleHi:th,descriptionHi:dh,nomineeStatus:n||((c==="BANKING_FUNDS"||c==="INVESTMENTS"||c==="INSURANCE")?"NEEDS_NOMINEE":"NOT_APPLICABLE"),isCompleted:false,institutionName:"",accountRef:"",physicalLocation:"",contactName:"",contactPhone:"",additionalNotes:"",isUserCreated:false,updatedAt:Date.now()});
+function seed(){ const R=(c,o,t,d,th,dh,n)=>({id:"s"+o,category:c,sortOrder:o,specId:o,maturityDate:"",attachments:[],title:t,description:d,titleHi:th,descriptionHi:dh,nomineeStatus:n||((c==="BANKING_FUNDS"||c==="INVESTMENTS"||c==="INSURANCE")?"NEEDS_NOMINEE":"NOT_APPLICABLE"),isCompleted:false,institutionName:"",accountRef:"",physicalLocation:"",contactName:"",contactPhone:"",additionalNotes:"",isUserCreated:false,updatedAt:Date.now()});
  return [
  R("IDENTITY_GOVT",10,"Aadhaar card","Physical Aadhaar copies, linked mobile number note, and DigiLocker availability. Do not write OTP or Aadhaar OTP PIN here.","आधार कार्ड","आधार की प्रतियाँ, जुड़ा मोबाइल नंबर और DigiLocker की जानकारी। यहाँ OTP या आधार PIN न लिखें।"),
  R("IDENTITY_GOVT",20,"PAN card","PAN number location and whether a scanned copy sits with the Aadhaar file.","PAN कार्ड","PAN नंबर का स्थान और क्या स्कैन की गई प्रति आधार फ़ाइल के साथ है।"),
- R("IDENTITY_GOVT",30,"Passport, voter ID & driving licence","Passport number booklet, voter ID and DL — where the originals and photocopies are kept.","पासपोर्ट, मतदाता पहचान पत्र और ड्राइविंग लाइसेंस","पासपोर्ट, मतदाता पहचान पत्र और DL — मूल और प्रतियाँ कहाँ रखी हैं।"),
+ R("IDENTITY_GOVT",31,"Passport","Passport number, issue/expiry dates, and where the original and photocopies are kept.","पासपोर्ट","पासपोर्ट नंबर, जारी/समाप्ति तारीखें, और मूल व प्रतियाँ कहाँ रखी हैं।"),
+ R("IDENTITY_GOVT",32,"Voter ID card","Voter ID (EPIC) number and where the original and photocopies are kept.","मतदाता पहचान पत्र","मतदाता पहचान पत्र (EPIC) नंबर और मूल व प्रतियाँ कहाँ रखी हैं।"),
+ R("IDENTITY_GOVT",33,"Driving licence","Driving licence number, validity, and where the original and copies are kept.","ड्राइविंग लाइसेंस","ड्राइविंग लाइसेंस नंबर, वैधता, और मूल व प्रतियाँ कहाँ रखी हैं।"),
  R("IDENTITY_GOVT",40,"Will & executor","Registered or unregistered will, executor name, and the advocate or custodian who holds a copy.","वसीयत और निष्पादक","पंजीकृत या अपंजीकृत वसीयत, निष्पादक का नाम, और वह वकील या संरक्षक जिसके पास प्रति है।","NOT_APPLICABLE"),
- R("BANKING_FUNDS",50,"Savings & current accounts","Bank name, branch, account type and whether a nominee is registered. Record account numbers only if useful — never net-banking passwords or UPI PINs.","बचत और चालू खाते","बैंक का नाम, शाखा, खाते का प्रकार और नॉमिनी दर्ज है या नहीं। खाता नंबर केवल ज़रूरत पर लिखें — नेट-बैंकिंग पासवर्ड या UPI PIN कभी नहीं।"),
- R("BANKING_FUNDS",60,"Fixed deposits & recurring deposits","FD / RD receipts, issuing bank, maturity notes and nominee status.","स्थायी जमा और आवर्ती जमा","FD / RD रसीदें, जारी करने वाला बैंक, परिपक्वता नोट और नॉमिनी की स्थिति।"),
+ R("BANKING_FUNDS",50,"Savings account","Bank name, branch, full savings account number and whether a nominee is registered. Never net-banking passwords or UPI PINs.","बचत खाता","बैंक का नाम, शाखा, पूरा बचत खाता नंबर और नॉमिनी दर्ज है या नहीं। नेट-बैंकिंग पासवर्ड या UPI PIN कभी नहीं।"),
+ R("BANKING_FUNDS",51,"Current account","Bank name, branch, full current account number and nominee status — for business / HUF accounts.","चालू खाता","बैंक का नाम, शाखा, पूरा चालू खाता नंबर और नॉमिनी स्थिति — व्यवसाय / HUF खातों के लिए।"),
+ R("BANKING_FUNDS",60,"Fixed deposit (FD)","FD receipt, issuing bank, maturity date and nominee status.","स्थायी जमा (FD)","FD रसीद, जारी करने वाला बैंक, परिपक्वता तारीख और नॉमिनी स्थिति।"),
+ R("BANKING_FUNDS",61,"Recurring deposit (RD)","RD account, issuing bank, monthly instalment, maturity date and nominee status.","आवर्ती जमा (RD)","RD खाता, जारी करने वाला बैंक, मासिक किस्त, परिपक्वता तारीख और नॉमिनी स्थिति।"),
  R("BANKING_FUNDS",70,"Bank locker","Locker number, branch, joint holder, and the physical location of the locker key.","बैंक लॉकर","लॉकर नंबर, शाखा, संयुक्त धारक और लॉकर की चाबी कहाँ रखी है।"),
  R("BANKING_FUNDS",80,"Credit cards","Issuing bank and a reminder to check outstanding balances. Never store CVV, ATM PIN or OTP.","क्रेडिट कार्ड","जारी करने वाला बैंक और बकाया राशि जाँचने की याद। CVV, ATM PIN या OTP कभी न रखें।"),
- R("INVESTMENTS",90,"Demat & mutual funds","Zerodha, Groww, Angel One, CAMS or KFintech folios. Note DP ID / client ID and nominee status — never broker passwords.","डीमैट और म्यूचुअल फंड","Zerodha, Groww, Angel One, CAMS या KFintech फोलियो। DP ID / क्लाइंट ID और नॉमिनी स्थिति लिखें — ब्रोकर पासवर्ड कभी नहीं।"),
+ R("INVESTMENTS",90,"Demat account","Zerodha, Groww, Angel One — DP ID / client ID and nominee status. Never broker passwords.","डीमैट खाता","Zerodha, Groww, Angel One — DP ID / क्लाइंट ID और नॉमिनी स्थिति। ब्रोकर पासवर्ड कभी नहीं।"),
+ R("INVESTMENTS",91,"Mutual funds","AMC / platform (CAMS, KFintech, Zerodha, Groww), folio numbers, maturity date if any (ELSS / close-ended) and nominee status.","म्यूचुअल फंड","AMC / प्लेटफ़ॉर्म (CAMS, KFintech, Zerodha, Groww), फोलियो नंबर, परिपक्वता तारीख यदि कोई हो (ELSS / क्लोज़-एंडेड) और नॉमिनी स्थिति।"),
  R("INVESTMENTS",100,"EPF / UAN","Universal Account Number for EPF withdrawal and the EDLI life cover. Confirm nominee on the EPFO portal is current.","EPF / UAN","EPF निकासी और EDLI जीवन बीमा के लिए यूनिवर्सल खाता नंबर। EPFO पोर्टल पर नॉमिनी अद्यतन है, यह सुनिश्चित करें।"),
  R("INVESTMENTS",110,"PPF passbook","Public Provident Fund account, bank or post office branch, passbook location and nominee.","PPF पासबुक","सार्वजनिक भविष्य निधि खाता, बैंक या डाकघर शाखा, पासबुक का स्थान और नॉमिनी।"),
  R("INVESTMENTS",120,"NPS / PRAN","Permanent Retirement Account Number, POP or employer NPS, and nominee / family pension details.","NPS / PRAN","स्थायी सेवानिवृत्ति खाता नंबर, POP या नियोक्ता NPS, और नॉमिनी / पारिवारिक पेंशन विवरण।"),
@@ -287,7 +358,14 @@ function seed(){ const R=(c,o,t,d,th,dh,n)=>({id:"s"+o,category:c,sortOrder:o,ti
  R("DIGITAL_LEGACY",210,"DigiLocker note location","Where the DigiLocker mobile / security note is kept — not the PIN or Aadhaar OTP.","DigiLocker नोट का स्थान","DigiLocker मोबाइल / सुरक्षा नोट कहाँ रखा है — PIN या आधार OTP नहीं।","NOT_APPLICABLE"),
  R("TRUSTED_CONTACTS",220,"Family CA / tax consultant","Chartered accountant who knows the ITRs, Form 16s and investment proofs.","पारिवारिक CA / कर सलाहकार","वह चार्टर्ड अकाउंटेंट जो ITR, फ़ॉर्म 16 और निवेश प्रमाण जानता है।","NOT_APPLICABLE"),
  R("TRUSTED_CONTACTS",230,"Family lawyer / advocate","Advocate who drafted the will, power of attorney or property papers.","पारिवारिक वकील / अधिवक्ता","वह अधिवक्ता जिसने वसीयत, मुख्तारनामा या संपत्ति के काग़ज़ बनाए।","NOT_APPLICABLE"),
- R("TRUSTED_CONTACTS",240,"LIC / insurance agent","The agent or relationship manager who can file a life or health claim.","LIC / बीमा एजेंट","वह एजेंट या रिलेशनशिप मैनेजर जो जीवन या स्वास्थ्य दावा दाखिल कर सकता है।","NOT_APPLICABLE")
+ R("TRUSTED_CONTACTS",240,"LIC / insurance agent","The agent or relationship manager who can file a life or health claim.","LIC / बीमा एजेंट","वह एजेंट या रिलेशनशिप मैनेजर जो जीवन या स्वास्थ्य दावा दाखिल कर सकता है।","NOT_APPLICABLE"),
+ R("DIGITAL_LEGACY",250,"Primary Gmail / Google account","Email ID, registered mobile, recovery email, and whether Google's Inactive Account Manager is set with a trusted contact. Never store the password — note where it is kept.","मुख्य Gmail / Google खाता","ईमेल ID, पंजीकृत मोबाइल, रिकवरी ईमेल, और क्या Google का Inactive Account Manager भरोसेमंद संपर्क के साथ सेट है। पासवर्ड कभी न रखें — वह कहाँ रखा है, यह लिखें।","NOT_APPLICABLE"),
+ R("DIGITAL_LEGACY",260,"Apple ID","Apple ID email, registered mobile, recovery email, and whether a Legacy Contact is set. Their access key location matters — Keychain passwords are never shared by Apple.","Apple ID","Apple ID ईमेल, पंजीकृत मोबाइल, रिकवरी ईमेल, और क्या Legacy Contact सेट है। उनकी एक्सेस कुंजी का स्थान मायने रखता है — Apple Keychain पासवर्ड कभी साझा नहीं करता।","NOT_APPLICABLE"),
+ R("DIGITAL_LEGACY",270,"Other email accounts","Outlook, Yahoo, Rediff or old Gmail IDs that may guard bank and tax accounts — email ID, registered mobile and recovery email for each. Never the passwords.","अन्य ईमेल खाते","Outlook, Yahoo, Rediff या पुरानी Gmail IDs जो बैंक और कर खातों की रक्षा कर सकती हैं — हर एक का ईमेल ID, पंजीकृत मोबाइल और रिकवरी ईमेल। पासवर्ड कभी नहीं।","NOT_APPLICABLE"),
+ R("DIGITAL_LEGACY",280,"Income Tax (ITR) account","Portal username (usually PAN), registered mobile and email — needed to file the final return. Password stays in the password manager; note where.","आयकर (ITR) खाता","पोर्टल उपयोगकर्ता नाम (आमतौर पर PAN), पंजीकृत मोबाइल और ईमेल — अंतिम रिटर्न दाखिल करने के लिए चाहिए। पासवर्ड पासवर्ड मैनेजर में रहता है; कहाँ है, लिखें।","NOT_APPLICABLE"),
+ R("DIGITAL_LEGACY",290,"Password manager","Bitwarden, 1Password or KeePass — vault email, emergency-access contact, and where the master-password hint or sealed copy is kept. This is the safe way to hand over every login.","पासवर्ड मैनेजर","Bitwarden, 1Password या KeePass — वॉल्ट ईमेल, आपातकालीन पहुँच संपर्क, और मास्टर-पासवर्ड संकेत या मुहरबंद प्रति कहाँ रखी है। हर लॉगिन सौंपने का सुरक्षित तरीका यही है।","NOT_APPLICABLE"),
+ R("DIGITAL_LEGACY",300,"Govt portals & official logins","EPFO, bank, Demat and other official portals — portal name, username/client ID and registered mobile for each, so family can use official recovery and claim routes. Never the passwords.","सरकारी पोर्टल और आधिकारिक लॉगिन","EPFO, बैंक, डीमैट और अन्य आधिकारिक पोर्टल — हर एक का पोर्टल नाम, उपयोगकर्ता नाम/क्लाइंट ID और पंजीकृत मोबाइल, ताकि परिवार आधिकारिक रिकवरी और दावा मार्ग उपयोग कर सके। पासवर्ड कभी नहीं।","NOT_APPLICABLE"),
+ R("DIGITAL_LEGACY",310,"Social & messaging accounts","WhatsApp, Facebook, Instagram — username, registered mobile, and legacy/memorial contact where the platform offers one. Never the passwords.","सोशल और मैसेजिंग खाते","WhatsApp, Facebook, Instagram — उपयोगकर्ता नाम, पंजीकृत मोबाइल, और जहाँ प्लेटफ़ॉर्म देता है वहाँ विरासत/स्मारक संपर्क। पासवर्ड कभी नहीं।","NOT_APPLICABLE")
  ];}
 
 /* ============================== SHA-256 (works on file:// too) ============================== */
@@ -298,8 +376,18 @@ async function hashPin(pin){ try{ if(window.crypto&&crypto.subtle&&window.isSecu
 /* ============================== State ============================== */
 const KEY="kutumbcare.web.v1";
 let S=null;
-function blankState(){return{language:null,pinHash:"",pinEnabled:false,profile:{primaryUserName:"",familyLabel:"",emergencyContactName:"",emergencyContactPhone:"",themeMode:"SYSTEM"},items:seed()};}
-function load(){ try{ const raw=localStorage.getItem(KEY); if(raw){ S=JSON.parse(raw); if(!Array.isArray(S.items)||!S.items.length) S.items=seed(); return; } }catch(e){} S=blankState(); save(); }
+function blankState(){return{language:null,pinHash:"",pinEnabled:false,nominees:[],profile:{primaryUserName:"",familyLabel:"",emergencyContactName:"",emergencyContactPhone:"",themeMode:"SYSTEM"},items:seed()};}
+function load(){ try{ const raw=localStorage.getItem(KEY); if(raw){ S=JSON.parse(raw); if(!Array.isArray(S.items)||!S.items.length) S.items=seed();
+    /* Existing users keep everything they typed; brand-new seeded records
+       (e.g. Digital online assets) are appended by sortOrder. */
+    if(!Array.isArray(S.nominees)) S.nominees=[];
+    const have=new Set(S.items.map(i=>i.sortOrder)); const missing=seed().filter(f=>!have.has(f.sortOrder));
+    if(missing.length){ S.items=S.items.concat(missing); save(); }
+    S.items.forEach(it=>{ it.nominee1Id=it.nominee1Id||""; it.nominee1Share=it.nominee1Share||0; it.nominee2Id=it.nominee2Id||""; it.nominee2Share=it.nominee2Share||0;
+      it.specId=it.specId||(it.isUserCreated?0:it.sortOrder); it.maturityDate=it.maturityDate||"";
+      it.attachments=(Array.isArray(it.attachments)?it.attachments:[]).filter(a=>typeof a==="string"&&a.length>20)
+        .map(a=>a.startsWith("data:")?a:("data:image/jpeg;base64,"+a)); });
+    return; } }catch(e){} S=blankState(); save(); }
 function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }
 const $=id=>document.getElementById(id);
 const lang=()=> (S&&S.language==="hi")?"hi":"en";
@@ -340,7 +428,7 @@ function render(){
   $("catChips").innerHTML = [`<button type="button" class="chip ${filterCat===""?"on":""}" data-c="">${t().all}</button>`]
     .concat(CAT_ORDER.map(c=>`<button type="button" class="chip ${filterCat===c?"on":""}" data-c="${c}">${catName(c)}</button>`)).join("");
   document.querySelectorAll("#catChips .chip").forEach(b=>b.addEventListener("click",()=>{ filterCat=b.getAttribute("data-c"); render(); }));
-  renderProfile(); renderRecords();
+  renderProfile(); renderRecords(); renderNominees();
   $("btnRemovePin").classList.toggle("hidden", !S.pinEnabled);
 }
 function renderProfile(){ const p=S.profile; const set=(id,v)=>{ if(document.activeElement!==$(id)) $(id).value=v||""; }; set("pName",p.primaryUserName); set("pFamily",p.familyLabel); set("pEmgName",p.emergencyContactName); set("pEmgPhone",p.emergencyContactPhone); }
@@ -357,12 +445,133 @@ function renderRecords(){
       <div class="muted">${esc(it.physicalLocation||it.institutionName||itemDesc(it))}</div>
       <div style="margin-top:7px"><span class="badge ${NOM[it.nomineeStatus]||"na"}">${nomineeLabel(it.nomineeStatus)}</span></div>
     </div>
+    ${(it.specId&&REPEATABLE.includes(it.specId))?`<button type="button" class="btn alt small" data-dup="${it.id}" title="${t().addAnother}">＋</button>`:""}
     <button type="button" class="btn alt small" data-edit="${it.id}">✎</button>
   </article>`).join("");
   document.querySelectorAll("[data-tick]").forEach(b=>b.addEventListener("click",()=>{ const it=S.items.find(x=>String(x.id)===b.getAttribute("data-tick")); if(it){ it.isCompleted=!it.isCompleted; it.updatedAt=Date.now(); save(); render(); }}));
   document.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>openEditor(b.getAttribute("data-edit"))));
+  document.querySelectorAll("[data-dup]").forEach(b=>b.addEventListener("click",()=>{ const src=S.items.find(x=>String(x.id)===b.getAttribute("data-dup")); if(src){ duplicateOf(src); toast(t().addedAnother); } }));
+  renderQuickAdd();
 }
+function duplicateOf(src){ const it={id:"u"+Date.now().toString(36)+Math.floor(Math.random()*999),category:src.category,sortOrder:src.specId,specId:src.specId,
+    title:src.title,description:src.description,titleHi:src.titleHi,descriptionHi:src.descriptionHi,
+    nomineeStatus:src.nomineeStatus,isCompleted:false,institutionName:"",accountRef:"",physicalLocation:"",contactName:"",contactPhone:"",additionalNotes:"",
+    maturityDate:"",attachments:[],nominee1Id:"",nominee1Share:0,nominee2Id:"",nominee2Share:0,isUserCreated:false,updatedAt:Date.now()};
+  S.items.push(it); save(); render(); return it; }
+function renderQuickAdd(){ const box=$("quickAdd"); if(!box) return;
+  const protos=seed().filter(pr=>REPEATABLE.includes(pr.specId)&&(!filterCat||pr.category===filterCat));
+  if(!protos.length){ box.innerHTML=""; return; }
+  box.innerHTML=`<span class="small muted" style="align-self:center">${t().quickAdd}</span>`+protos.map(pr=>`<button type="button" class="btn alt small" data-quick="${pr.specId}">＋ ${esc(lang()==="hi"?pr.titleHi:pr.title)}</button>`).join("");
+  box.querySelectorAll("[data-quick]").forEach(b=>b.addEventListener("click",()=>{ const pr=seed().find(x=>x.specId===+b.getAttribute("data-quick")); if(pr){ const it=duplicateOf(pr); openEditor(it.id); } })); }
 function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+
+/* Per-entry field labels (mirrors EntryFields.kt in the Android app).
+   Storage stays generic; each record gives its own meaning to the fields. */
+const NOTES_L=["Notes for the family","परिवार के लिए नोट"], LOC_L=["Where are the documents kept?","दस्तावेज़ कहाँ रखे हैं?"],
+PW_L=["Password kept at (never write the password)","पासवर्ड कहाँ रखा है (पासवर्ड कभी न लिखें)"],
+MOB_L=["Registered mobile number","पंजीकृत मोबाइल नंबर"], NOM_L=["Nominee name","नॉमिनी का नाम"], NOMPH_L=["Nominee / contact phone","नॉमिनी / संपर्क फ़ोन"];
+const F=(en,hi,ph)=>ph?[en,hi,ph,ph]:[en,hi];
+const SPECS={
+10:{p:null,r:F("Full Aadhaar number (12 digits)","पूरा आधार नंबर (12 अंक)","1234 5678 9012"),l:LOC_L,c:null,ph:MOB_L,n:NOTES_L,nom:false,g:["This is your family's own sealed copy, so write the full 12-digit Aadhaar number — banks and government offices ask for it. Keep the printed dossier sealed and locked. Never write an OTP or PIN.","यह आपके परिवार की अपनी मुहरबंद प्रति है, इसलिए पूरा 12 अंकों का आधार नंबर लिखें — बैंक और सरकारी दफ़्तर यही माँगते हैं। छपी प्रति मुहरबंद और ताले में रखें। OTP या PIN कभी न लिखें।"]},
+20:{p:null,r:F("Full PAN number","पूरा PAN नंबर","ABCDE1234F"),l:LOC_L,c:null,ph:MOB_L,n:NOTES_L,nom:false,g:["Write the full PAN — it is the username for the Income Tax portal and is asked on bank and Demat forms. Keep this dossier sealed; never write any password or PIN.","पूरा PAN लिखें — यह आयकर पोर्टल का उपयोगकर्ता नाम है और बैंक व डीमैट फ़ॉर्म पर माँगा जाता है। यह दस्तावेज़ मुहरबंद रखें; कोई पासवर्ड या PIN कभी न लिखें।"]},
+30:{p:null,r:F("Passport / Voter ID no. (optional)","पासपोर्ट / मतदाता पहचान संख्या (वैकल्पिक)"),l:LOC_L,c:null,ph:null,n:NOTES_L,nom:false,g:["Note where originals and photocopies live; numbers are optional.","मूल और प्रतियाँ कहाँ हैं लिखें; नंबर वैकल्पिक हैं।"]},
+31:{p:F("Name as on passport","पासपोर्ट पर लिखा नाम"),r:F("Passport number","पासपोर्ट नंबर"),l:LOC_L,c:null,ph:null,n:F("Issue date & renewal notes","जारी तारीख और नवीनीकरण नोट"),m:F("Expiry date (valid till)","समाप्ति तारीख (कब तक वैध)"),nom:false,g:["Note the expiry date — passports are renewed before they expire, and the old booklet holds visas.","समाप्ति तारीख लिखें — पासपोर्ट समाप्ति से पहले नवीनीकृत होता है, और पुरानी पुस्तिका में वीज़ा होते हैं।"]},
+32:{p:F("Constituency / part no. (optional)","निर्वाचन क्षेत्र / भाग सं. (वैकल्पिक)"),r:F("Voter ID (EPIC) number","मतदाता पहचान (EPIC) नंबर"),l:LOC_L,c:null,ph:null,n:NOTES_L,nom:false,g:["The EPIC number is asked on many forms; the original card is proof of address and identity.","EPIC नंबर कई फ़ॉर्मों पर माँगा जाता है; मूल कार्ड पता और पहचान का प्रमाण है।"]},
+33:{p:F("Name as on licence","लाइसेंस पर लिखा नाम"),r:F("Driving licence number","ड्राइविंग लाइसेंस नंबर"),l:LOC_L,c:null,ph:null,n:F("Vehicle class & renewal notes","वाहन श्रेणी और नवीनीकरण नोट"),m:F("Valid till (expiry date)","कब तक वैध (समाप्ति तारीख)"),nom:false,g:["A licence is renewed around its expiry date; note which vehicle classes it covers.","लाइसेंस समाप्ति तारीख के आसपास नवीनीकृत होता है; कौन-सी वाहन श्रेणियाँ शामिल हैं लिखें।"]},
+40:{p:null,r:F("Will date / where registered (optional)","वसीयत की तारीख / कहाँ पंजीकृत (वैकल्पिक)"),l:F("Where is the will kept?","वसीयत कहाँ रखी है?"),c:F("Executor name","निष्पादक का नाम"),ph:F("Executor phone","निष्पादक का फ़ोन"),n:F("Alternate executor & notes","वैकल्पिक निष्पादक और नोट"),nom:false,g:["What is an executor? The executor is the trusted person you name in your will to carry out your wishes after you: they collect your assets, pay off loans and taxes, and distribute everything exactly as the will says, usually with your advocate's help for probate. Pick someone trustworthy, organised and likely to be available — and name an alternate executor in the notes in case the first person cannot act.","निष्पादक कौन होता है? निष्पादक वह भरोसेमंद व्यक्ति है जिसे आप अपनी वसीयत में नामित करते हैं ताकि आपके बाद आपकी इच्छाएँ पूरी हों: वे आपकी संपत्ति इकट्ठा करते हैं, ऋण और कर चुकाते हैं, और वसीयत के अनुसार सब वितरित करते हैं — आमतौर पर वकील की मदद से। कोई भरोसेमंद, व्यवस्थित और उपलब्ध व्यक्ति चुनें — और नोट में एक वैकल्पिक निष्पादक भी लिखें, यदि पहला व्यक्ति काम न कर सके।"]},
+50:{p:F("Bank & branch","बैंक और शाखा","SBI — MG Road"),r:F("Savings account number (full)","बचत खाता नंबर (पूरा)"),l:F("Passbook / cheque book location","पासबुक / चेक बुक का स्थान"),c:NOM_L,ph:NOMPH_L,n:NOTES_L,nom:true,g:["Nomination needs nominee name + relationship. Never net-banking passwords or UPI PINs.","नॉमिनेशन के लिए नॉमिनी नाम + रिश्ता चाहिए। पासवर्ड/UPI PIN कभी नहीं।"]},
+51:{p:F("Bank & branch","बैंक और शाखा"),r:F("Current account number (full)","चालू खाता नंबर (पूरा)"),l:F("Passbook / cheque book location","पासबुक / चेक बुक का स्थान"),c:NOM_L,ph:NOMPH_L,n:NOTES_L,nom:true,g:["Current accounts serve business / HUF activity. Never net-banking passwords or UPI PINs.","चालू खाते व्यवसाय / HUF के लिए होते हैं। नेट-बैंकिंग पासवर्ड या UPI PIN कभी नहीं।"]},
+60:{p:F("Bank / post office","बैंक / डाकघर"),r:F("FD receipt / account number","FD रसीद / खाता नंबर"),l:F("Where is the receipt kept?","रसीद कहाँ रखी है?"),c:NOM_L,ph:NOMPH_L,n:F("Amount & notes","राशि और नोट"),m:F("Maturity date","परिपक्वता तारीख"),nom:true,g:["Note the maturity date — on maturity the bank needs the nominee or account holder to claim or renew.","परिपक्वता तारीख लिखें — परिपक्वता पर बैंक को दावा या नवीनीकरण के लिए नॉमिनी या खाताधारक चाहिए।"]},
+61:{p:F("Bank / post office","बैंक / डाकघर"),r:F("RD account number","RD खाता नंबर"),l:F("Where is the receipt kept?","रसीद कहाँ रखी है?"),c:NOM_L,ph:NOMPH_L,n:F("Monthly instalment & notes","मासिक किस्त और नोट"),m:F("Maturity date","परिपक्वता तारीख"),nom:true,g:["Note the monthly instalment and maturity date so no instalment is missed.","मासिक किस्त और परिपक्वता तारीख लिखें ताकि कोई किस्त न छूटे।"]},
+70:{p:F("Bank & branch","बैंक और शाखा"),r:F("Locker number","लॉकर नंबर"),l:F("Where is the locker key kept?","लॉकर की चाबी कहाँ रखी है?"),c:F("Joint holder name","संयुक्त धारक का नाम"),ph:F("Joint holder phone","संयुक्त धारक का फ़ोन"),n:NOTES_L,nom:true,g:["Banks ask for locker nominee/joint holder first.","बैंक पहले लॉकर नॉमिनी/संयुक्त धारक पूछता है।"]},
+80:{p:F("Issuing bank","जारी करने वाला बैंक"),r:F("Card last 4 digits","कार्ड के अंतिम 4 अंक","···· 1234"),l:F("Where are the cards kept?","कार्ड कहाँ रखे हैं?"),c:null,ph:null,n:NOTES_L,nom:false,g:["Only last 4 digits identify a card. Never CVV, ATM PIN, OTP or full number.","केवल अंतिम 4 अंक पहचान देते हैं। CVV/ATM PIN/OTP कभी नहीं।"]},
+90:{p:F("Broker / DP","ब्रोकर / DP","Zerodha / Groww"),r:F("DP ID / Client ID","DP ID / क्लाइंट ID"),l:F("Statements location","स्टेटमेंट का स्थान"),c:NOM_L,ph:NOMPH_L,n:NOTES_L,nom:true,g:["SEBI nomination: nominee name + relationship (share % optional). Never broker passwords.","SEBI नॉमिनेशन: नाम + रिश्ता (हिस्सा वैकल्पिक)। ब्रोकर पासवर्ड कभी नहीं।"]},
+91:{p:F("AMC / platform","AMC / प्लेटफ़ॉर्म","CAMS / KFintech / Zerodha"),r:F("Folio number","फोलियो नंबर"),l:F("Statements location","स्टेटमेंट का स्थान"),c:NOM_L,ph:NOMPH_L,n:F("Schemes & notes","योजनाएँ और नोट"),m:F("Maturity date (if any)","परिपक्वता तारीख (यदि कोई हो)"),nom:true,g:["One folio per AMC — add one record per folio with ＋. ELSS and close-ended funds have a maturity / lock-in date; open-ended funds have none.","हर AMC का एक फोलियो — ＋ से हर फोलियो का अलग रिकॉर्ड जोड़ें। ELSS और क्लोज़-एंडेड फंड की परिपक्वता / लॉक-इन तारीख होती है; ओपन-एंडेड की नहीं।"]},
+100:{p:F("Employer / EPFO","नियोक्ता / EPFO"),r:F("UAN (Universal Account Number)","UAN (यूनिवर्सल खाता नंबर)"),l:LOC_L,c:NOM_L,ph:NOMPH_L,n:NOTES_L,m:F("Retirement / maturity date (if known)","सेवानिवृत्ति / परिपक्वता तारीख (यदि ज्ञात हो)"),nom:true,g:["EPFO e-nomination covers PF, pension and EDLI. Nominees are family; shares total 100%; a minor needs a guardian.","EPFO ई-नॉमिनेशन PF, पेंशन, EDLI कवर करता है। हिस्सों का योग 100%; नाबालिग के लिए संरक्षक।"]},
+110:{p:F("Bank / post office branch","बैंक / डाकघर शाखा"),r:F("PPF account number","PPF खाता नंबर"),m:F("Maturity date (15 years from opening)","परिपक्वता तारीख (खोलने से 15 वर्ष)"),l:F("Passbook location","पासबुक का स्थान"),c:NOM_L,ph:NOMPH_L,n:NOTES_L,nom:true,g:["Nominee name + relationship is what a claim needs first.","दावे के लिए नॉमिनी नाम + रिश्ता पहले चाहिए।"]},
+120:{p:F("POP / employer NPS","POP / नियोक्ता NPS"),r:F("PRAN","PRAN"),l:LOC_L,c:NOM_L,ph:NOMPH_L,n:NOTES_L,nom:true,g:["Keep NPS nominee and family-pension details current.","NPS नॉमिनी व पारिवारिक पेंशन विवरण अद्यतन रखें।"]},
+130:{p:F("Bank / jeweller","बैंक / जौहरी"),r:F("SGB certificate / receipt no.","SGB प्रमाणपत्र / रसीद नंबर"),l:F("Where is the gold stored?","सोना कहाँ रखा है?"),c:NOM_L,ph:NOMPH_L,n:NOTES_L,nom:true,g:["SGB can carry a nominee like a bank deposit.","SGB में बैंक जमा की तरह नॉमिनी हो सकता है।"]},
+140:{p:F("Insurer","बीमाकर्ता","LIC of India"),r:F("Policy number","पॉलिसी नंबर"),l:F("Where is the policy bond kept?","पॉलिसी बॉन्ड कहाँ रखा है?"),c:NOM_L,ph:F("Agent phone","एजेंट का फ़ोन"),n:F("Sum assured, premium & notes","बीमित राशि, प्रीमियम और नोट"),nom:true,g:["IRDAI expects nominee name, relationship and contact on the policy (appointee for a minor nominee).","IRDAI: पॉलिसी पर नॉमिनी नाम, रिश्ता, संपर्क (नाबालिग के लिए नियुक्त व्यक्ति)।"]},
+150:{p:F("Insurer / TPA","बीमाकर्ता / TPA"),r:F("Policy number","पॉलिसी नंबर"),l:F("Where are the health cards kept?","स्वास्थ्य कार्ड कहाँ रखे हैं?"),c:NOM_L,ph:F("Agent / TPA helpline","एजेंट / TPA हेल्पलाइन"),n:F("Sum insured, cashless hospitals & notes","बीमित राशि, कैशलेस अस्पताल और नोट"),nom:true,g:["In an emergency, policy number + TPA helpline come first.","आपात स्थिति में पॉलिसी नंबर + TPA हेल्पलाइन पहले चाहिए।"]},
+160:{p:F("Insurer","बीमाकर्ता"),r:F("Vehicle registration (RC) no.","वाहन पंजीकरण (RC) नंबर"),l:F("Where are the RC & papers kept?","RC और काग़ज़ कहाँ रखे हैं?"),c:null,ph:F("Insurer helpline","बीमाकर्ता हेल्पलाइन"),n:NOTES_L,nom:false,g:["Note the spare key location in notes.","नोट में अतिरिक्त चाबी का स्थान लिखें।"]},
+170:{p:F("Sub-registrar / authority","उप-पंजीयक / प्राधिकरण"),r:F("Registry / khata number","रजिस्ट्री / खाता नंबर"),l:F("Where are the original deeds kept?","मूल काग़ज़ कहाँ रखे हैं?"),c:F("Advocate / family contact","वकील / पारिवारिक संपर्क"),ph:F("Contact phone","संपर्क फ़ोन"),n:NOTES_L,nom:false,g:["Originals, EC and tax receipts are usually asked together.","मूल काग़ज़, EC और कर रसीदें साथ माँगी जाती हैं।"]},
+180:{p:F("Lender (bank / NBFC)","ऋणदाता (बैंक / NBFC)"),r:F("Loan account number","ऋण खाता नंबर"),l:F("Where are the loan papers kept?","ऋण के काग़ज़ कहाँ रखे हैं?"),c:F("Co-borrower / nominee name","सह-ऋणी / नॉमिनी का नाम"),ph:NOMPH_L,n:NOTES_L,nom:true,g:["Note if loan-linked credit-shield life cover exists.","लिखें कि ऋण से जुड़ा क्रेडिट-शील्ड बीमा है या नहीं।"]},
+190:{p:null,r:null,l:F("Where is the unlock note kept?","अनलॉक नोट कहाँ रखा है?"),c:F("Trusted person","भरोसेमंद व्यक्ति"),ph:F("Their phone","उनका फ़ोन"),n:NOTES_L,nom:false,g:["Never type the phone PIN itself here.","फ़ोन PIN स्वयं यहाँ कभी न लिखें।"]},
+200:{p:F("Email provider","ईमेल प्रदाता"),r:F("Recovery email ID","रिकवरी ईमेल ID"),l:PW_L,c:F("Recovery contact name","रिकवरी संपर्क का नाम"),ph:MOB_L,n:NOTES_L,nom:false,g:["This address resets almost everything else; note where its password is kept.","यह पता सब रीसेट करता है; पासवर्ड कहाँ रखा है लिखें।"]},
+210:{p:null,r:F("Registered mobile / username","पंजीकृत मोबाइल / उपयोगकर्ता नाम"),l:F("Where is the security note kept?","सुरक्षा नोट कहाँ रखा है?"),c:null,ph:MOB_L,n:NOTES_L,nom:false,g:["Note the note's location, not the PIN.","नोट का स्थान लिखें, PIN नहीं।"]},
+220:{p:F("CA firm","CA फ़र्म"),r:null,l:F("Where are ITR / Form 16 files kept?","ITR / फ़ॉर्म 16 फ़ाइलें कहाँ रखी हैं?"),c:F("CA name","CA का नाम"),ph:F("CA phone","CA का फ़ोन"),n:NOTES_L,nom:false,g:["The CA files the final ITR and finds investment proofs.","CA अंतिम ITR दाखिल करता है और निवेश प्रमाण खोजता है।"]},
+230:{p:F("Law firm / chamber","कानून फ़र्म / चैंबर"),r:null,l:F("Where are will / property papers kept?","वसीयत / संपत्ति के काग़ज़ कहाँ रखे हैं?"),c:F("Advocate name","वकील का नाम"),ph:F("Advocate phone","वकील का फ़ोन"),n:NOTES_L,nom:false,g:["The advocate who drafted the papers is the first call.","जिस वकील ने काग़ज़ बनाए, पहला फ़ोन उन्हीं को।"]},
+240:{p:F("Insurer / agency","बीमाकर्ता / एजेंसी"),r:null,l:F("Where are the policy files kept?","पॉलिसी फ़ाइलें कहाँ रखी हैं?"),c:F("Agent name","एजेंट का नाम"),ph:F("Agent phone","एजेंट का फ़ोन"),n:NOTES_L,nom:false,g:["A good agent files claims for the family.","अच्छा एजेंट परिवार के लिए दावे दाखिल करता है।"]},
+250:{p:F("Google account email ID","Google खाता ईमेल ID","name@gmail.com"),r:F("Recovery email ID","रिकवरी ईमेल ID"),l:PW_L,c:F("Inactive Account Manager trusted contact","Inactive Account Manager भरोसेमंद संपर्क"),ph:MOB_L,n:NOTES_L,nom:false,g:["Turn on Google Inactive Account Manager: 3–18 months inactivity, up to 10 trusted contacts verified by phone. Password kept-at only.","Google Inactive Account Manager चालू करें: 3–18 माह निष्क्रियता, 10 तक भरोसेमंद संपर्क। केवल पासवर्ड कहाँ रखा है।"]},
+260:{p:F("Apple ID email","Apple ID ईमेल"),r:F("Recovery email ID","रिकवरी ईमेल ID"),l:PW_L,c:F("Legacy Contact name","Legacy Contact का नाम"),ph:MOB_L,n:F("Where is the Legacy Contact access key kept?","Legacy Contact एक्सेस कुंजी कहाँ रखी है?"),nom:false,g:["Apple Legacy Contact needs the access key + death certificate; Keychain passwords are never shared. Print the key, file with the will.","Apple Legacy Contact: एक्सेस कुंजी + मृत्यु प्रमाणपत्र चाहिए; Keychain पासवर्ड साझा नहीं होते। कुंजी छापकर वसीयत के साथ रखें।"]},
+270:{p:F("Email ID & provider","ईमेल ID और प्रदाता"),r:F("Recovery email ID","रिकवरी ईमेल ID"),l:PW_L,c:F("Family contact for this account","इस खाते के लिए पारिवारिक संपर्क"),ph:MOB_L,n:NOTES_L,nom:false,g:["Old email IDs often guard bank/tax accounts.","पुरानी ईमेल IDs अक्सर बैंक/कर खातों की रक्षा करती हैं।"]},
+280:{p:F("Portal username (usually PAN)","पोर्टल उपयोगकर्ता नाम (आमतौर पर PAN)"),r:F("Registered email ID","पंजीकृत ईमेल ID"),l:PW_L,c:F("CA / family contact","CA / पारिवारिक संपर्क"),ph:MOB_L,n:NOTES_L,nom:false,g:["Needed to file the final ITR; username + registered contacts are enough for lawful recovery.","अंतिम ITR के लिए चाहिए; कानूनी रिकवरी हेतु पर्याप्त।"]},
+290:{p:F("Password manager","पासवर्ड मैनेजर","Bitwarden / 1Password / KeePass"),r:F("Vault email ID","वॉल्ट ईमेल ID"),l:F("Master-password hint / sealed copy kept at","मास्टर-पासवर्ड संकेत / मुहरबंद प्रति कहाँ रखी है"),c:F("Emergency access contact","आपातकालीन पहुँच संपर्क"),ph:MOB_L,n:NOTES_L,nom:false,g:["Keep passwords inside the manager, enable emergency access for a trusted person, record only where the hint is sealed.","पासवर्ड मैनेजर में रखें, आपातकालीन पहुँच चालू करें, केवल संकेत का स्थान लिखें।"]},
+300:{p:F("Portal name","पोर्टल का नाम","EPFO / bank / Demat"),r:F("Username / client ID","उपयोगकर्ता नाम / क्लाइंट ID"),l:PW_L,c:F("Family contact","पारिवारिक संपर्क"),ph:MOB_L,n:NOTES_L,nom:false,g:["Username + registered contacts unlock official recovery routes.","उपयोगकर्ता नाम + पंजीकृत संपर्क से आधिकारिक रिकवरी मार्ग खुलते हैं।"]},
+310:{p:F("Platform & username","प्लेटफ़ॉर्म और उपयोगकर्ता नाम","WhatsApp / Facebook"),r:F("Registered email ID","पंजीकृत ईमेल ID"),l:PW_L,c:F("Legacy / memorial contact","विरासत / स्मारक संपर्क"),ph:MOB_L,n:NOTES_L,nom:false,g:["Facebook offers a Legacy Contact; others close accounts on proof of death.","Facebook Legacy Contact देता है; अन्य मृत्यु प्रमाण पर खाते बंद करते हैं।"]}
+};
+const REPEATABLE=[50,51,60,61,80,90,91];
+function specFor(it){ const so=it?(it.specId||(!it.isUserCreated?it.sortOrder:0)):0; if(so&&SPECS[so]) return SPECS[so];
+  const cat=it?it.category:"IDENTITY_GOVT"; const nominee=["BANKING_FUNDS","INVESTMENTS","INSURANCE"].includes(cat);
+  if(cat==="DIGITAL_LEGACY") return {p:F("Account / email ID","खाता / ईमेल ID"),r:F("Username / recovery email","उपयोगकर्ता नाम / रिकवरी ईमेल"),l:PW_L,c:F("Trusted / legacy contact","भरोसेमंद / विरासत संपर्क"),ph:MOB_L,n:NOTES_L,nom:false,g:["Store the map, not the keys.","चाबियाँ नहीं, नक्शा रखें।"]};
+  return {p:F("Institution / branch","संस्था / शाखा"),r:F("Account / policy / UAN / folio (optional)","खाता / पॉलिसी / UAN / फोलियो (वैकल्पिक)"),l:F("Physical document location","दस्तावेज़ रखने का स्थान"),c:F("Contact person / agent","संपर्क व्यक्ति / एजेंट"),ph:F("Contact phone","संपर्क फ़ोन"),n:NOTES_L,nom:nominee,g:["Record locations and metadata only — never passwords, PINs, OTPs or CVVs.","केवल स्थान व जानकारी — पासवर्ड/PIN/OTP/CVV कभी नहीं।"]}; }
+let edSnapshot="";
+let pendingDocs=[];
+function fieldValues(){ return [$("fTitle").value,$("fInstitution").value,$("fRef").value,$("fLocation").value,$("fNominee").value,$("fContact").value,$("fPhone").value,$("fNotes").value,$("fNom1").value,$("fNom1Share").value,$("fNom2").value,$("fNom2Share").value,$("fMat").value,pendingDocs.length].join("|"); }
+function renderDocThumbs(){ const box=$("docThumbs"); box.innerHTML=pendingDocs.map((d,i)=>`<span style="position:relative;display:inline-block"><img src="${d}" style="width:72px;height:72px;object-fit:cover;border-radius:10px;border:1px solid #E4DDD1"><button type="button" data-docx="${i}" style="position:absolute;top:-6px;right:-6px;border-radius:50%;border:1px solid #ccc;background:#fff;width:22px;height:22px;line-height:1">✕</button></span>`).join("");
+  box.querySelectorAll("[data-docx]").forEach(b=>b.addEventListener("click",()=>{ pendingDocs.splice(+b.getAttribute("data-docx"),1); renderDocThumbs(); })); }
+async function compressImage(file){ try{ const bmp=await createImageBitmap(file); const sc=Math.min(1,1400/Math.max(bmp.width,bmp.height));
+    const cv=document.createElement("canvas"); cv.width=Math.round(bmp.width*sc); cv.height=Math.round(bmp.height*sc);
+    cv.getContext("2d").drawImage(bmp,0,0,cv.width,cv.height); return cv.toDataURL("image/jpeg",0.78); }catch(e){ return null; } }
+
+
+/* ============================== Nominee cards ============================== */
+function parseDob(raw){ const m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(raw||"").trim()); if(!m) return null;
+  const d=new Date(+m[3],+m[2]-1,+m[1]); return isNaN(d)?null:d; }
+function ageYears(dob){ const d=parseDob(dob); if(!d) return null; const now=new Date();
+  let a=now.getFullYear()-d.getFullYear(); if(now<new Date(now.getFullYear(),d.getMonth(),d.getDate())) a--; return a>=0?a:null; }
+function profileSummary(pr){ const bits=[pr.fullName]; if(pr.relationship) bits.push(pr.relationship);
+  const a=ageYears(pr.dateOfBirth); if(a!==null) bits.push(a+" yrs"); return bits.join(" · "); }
+function findProfile(id){ return (S.nominees||[]).find(x=>x.id===id)||null; }
+function shareTotal(it){ return [ [it.nominee1Id,it.nominee1Share],[it.nominee2Id,it.nominee2Share] ]
+  .filter(([id])=>id).reduce((sum,[,sh])=>sum+(+sh||0),0); }
+function renderNominees(){ const box=$("nomList"); if(!box) return;
+  if(!S.nominees.length){ box.innerHTML=`<p class="muted">${t().noNomCards}</p>`; return; }
+  box.innerHTML=S.nominees.map(pr=>`<article class="card" style="padding:14px"><h3 style="margin:0">${esc(pr.fullName)}</h3>
+    <div class="muted small">${esc(profileSummary(pr))}</div>
+    ${pr.mobile?`<div class="muted small">${esc(pr.mobile)}</div>`:""}
+    ${pr.address?`<div class="muted small">${esc(pr.address)}</div>`:""}
+    <div class="rowbtns"><button type="button" class="btn alt small" data-nomedit="${pr.id}">✎ ${t().editNom||"Edit"}</button></div></article>`).join("");
+  box.querySelectorAll("[data-nomedit]").forEach(b=>b.addEventListener("click",()=>openNomineeDialog(b.getAttribute("data-nomedit")))); }
+let nomEditingId=null, nomReturnToRecord=false;
+function openNomineeDialog(id,fromRecord=false){ const pr=id?findProfile(id):null; nomEditingId=pr?pr.id:null; nomReturnToRecord=fromRecord;
+  $("nomEdTitle").textContent=pr?t().editNom:t().addNomCard;
+  $("nName").value=pr?.fullName||""; $("nRel").value=pr?.relationship||""; $("nDob").value=pr?.dateOfBirth||"";
+  $("nAddress").value=pr?.address||""; $("nMobile").value=pr?.mobile||""; $("nEmail").value=pr?.email||""; $("nId").value=pr?.idLast4||"";
+  $("btnNomDelete").classList.toggle("hidden",!pr);
+  $("nomineeEditor").showModal(); }
+function closeNomineeDialog(){ $("nomineeEditor").close(); nomEditingId=null;
+  if(nomReturnToRecord){ const it=S.items.find(x=>String(x.id)===String(editingId)); if(it) openEditor(it.id); nomReturnToRecord=false; } }
+$("btnAddNominee").addEventListener("click",()=>openNomineeDialog(null));
+$("btnNomCancel").addEventListener("click",closeNomineeDialog);
+$("btnNomSave").addEventListener("click",()=>{ const name=$("nName").value.trim(); if(!name) return;
+  const dob=$("nDob").value.trim(); if(dob&&!parseDob(dob)){ toast("DD/MM/YYYY"); return; }
+  const pr={id:nomEditingId||("nom-"+Date.now().toString(36)+Math.floor(Math.random()*900+100)),fullName:name,
+    relationship:$("nRel").value.trim(),dateOfBirth:dob,address:$("nAddress").value.trim(),
+    mobile:$("nMobile").value.trim(),email:$("nEmail").value.trim(),idLast4:$("nId").value.trim()};
+  const ix=S.nominees.findIndex(x=>x.id===pr.id); if(ix>=0) S.nominees[ix]=pr; else S.nominees.push(pr);
+  save(); renderNominees(); toast(t().saved);
+  const returnRec=nomReturnToRecord, recId=editingId;
+  if(returnRec&&recId){ /* assign the fresh card to the record before reopening it */
+    const it=S.items.find(x=>String(x.id)===String(recId));
+    if(it&&!it.nominee1Id){ it.nominee1Id=pr.id; it.nominee1Share=100; save(); }
+  }
+  closeNomineeDialog(); });
+$("btnNomDelete").addEventListener("click",()=>{ if(!nomEditingId) return;
+  S.nominees=S.nominees.filter(x=>x.id!==nomEditingId);
+  S.items.forEach(it=>{ if(it.nominee1Id===nomEditingId){it.nominee1Id="";it.nominee1Share=0;} if(it.nominee2Id===nomEditingId){it.nominee2Id="";it.nominee2Share=0;} });
+  save(); renderNominees(); closeNomineeDialog(); toast(t().deleted); });
 
 /* ============================== Editor ============================== */
 function openEditor(id){
@@ -372,23 +581,66 @@ function openEditor(id){
   $("edTitleWrap").style.display= (it&&!it.isUserCreated)?"none":"block";
   $("fTitle").value= it? it.title:""; $("fInstitution").value=it?.institutionName||""; $("fRef").value=it?.accountRef||"";
   $("fLocation").value=it?.physicalLocation||""; $("fNominee").value=it?.nomineeStatus||"NOT_APPLICABLE";
-  $("fContact").value=it?.contactName||""; $("fPhone").value=it?.contactPhone||""; $("fNotes").value=it?.additionalNotes||"";
+  $("fContact").value=it?.contactName||""; $("fPhone").value=it?.contactPhone||""; $("fNotes").value=it?.additionalNotes||""; $("fMat").value=it?.maturityDate||"";
+  pendingDocs=(it?.attachments||[]).slice(); renderDocThumbs();
+  $("btnAnother").classList.toggle("hidden", !(it&&it.specId&&REPEATABLE.includes(it.specId)));
   $("btnDelete").classList.toggle("hidden", !(it&&it.isUserCreated));
+  const sp=specFor(it||{category:"IDENTITY_GOVT",isUserCreated:true}); const li=lang()==="hi"?1:0;
+  const apply=(w,lbl,inp,lab)=>{ $(w).style.display=lab?"block":"none"; if(lab){ $(lbl).textContent=lab[li]; if(lab[2]) $(inp).placeholder=lang()==="hi"?(lab[3]||lab[2]):lab[2]; } };
+  apply("wInstitution","lblInstitution","fInstitution",sp.p); apply("wRef","lblRef","fRef",sp.r);
+  apply("wLocation","lblLocation","fLocation",sp.l); apply("wContact","lblContact","fContact",sp.c);
+  apply("wPhone","lblPhone","fPhone",sp.ph); apply("wNotes","lblNotes","fNotes",sp.n); apply("wMat","lblMat","fMat",sp.m||null);
+  $("wNominee").style.display=sp.nom?"block":"none";
+  $("wAssign").style.display=sp.nom?"block":"none";
+  if(sp.nom){ const opts=`<option value="">${t().nomNone}</option>`+(S.nominees||[]).map(pr=>`<option value="${pr.id}">${esc(profileSummary(pr))}</option>`).join("");
+    $("fNom1").innerHTML=opts; $("fNom2").innerHTML=opts;
+    $("fNom1").value=it?.nominee1Id||""; $("fNom1Share").value=it?.nominee1Share||"";
+    $("fNom2").value=it?.nominee2Id||""; $("fNom2Share").value=it?.nominee2Share||"";
+    $("nomEmptyHint").textContent=S.nominees.length?"":t().noNomCards;
+    updateNomTotal(it); }
+  $("edGuide").textContent=sp.g[li];
+  edSnapshot=fieldValues();
   $("editor").showModal();
 }
 function closeEditor(){ $("editor").close(); editingId=null; }
-$("btnCancel").addEventListener("click",()=>{ const it=S.items.find(x=>String(x.id)===String(editingId));
-  if(it&&it.isUserCreated&&!it.title&&!it.institutionName&&!it.physicalLocation&&!it.accountRef&&!it.contactName){ S.items=S.items.filter(x=>x!==it); save(); render(); }
-  closeEditor(); });
-$("btnAdd").addEventListener("click",()=>{ const it={id:"u"+Date.now(),category:filterCat||"IDENTITY_GOVT",sortOrder:900+Date.now()%1000,title:"",description:"",titleHi:"",descriptionHi:"",nomineeStatus:"NOT_APPLICABLE",isCompleted:false,institutionName:"",accountRef:"",physicalLocation:"",contactName:"",contactPhone:"",additionalNotes:"",isUserCreated:true,updatedAt:Date.now()}; S.items.push(it); editingId=it.id; openEditor(it.id); });
-$("btnSave").addEventListener("click",()=>{
-  const it=S.items.find(x=>String(x.id)===String(editingId)); if(!it) return closeEditor();
+$("btnCancel").addEventListener("click",()=>{ if(!confirmDiscard()) return; cleanupNew(); closeEditor(); });
+$("btnEdHome").addEventListener("click",()=>{ if(!confirmDiscard()) return; cleanupNew(); closeEditor(); window.scrollTo({top:0,behavior:"smooth"}); });
+function confirmDiscard(){ if(fieldValues()!==edSnapshot) return window.confirm(t().discardQ); return true; }
+function cleanupNew(){ const it=S.items.find(x=>String(x.id)===String(editingId));
+  if(it&&it.isUserCreated&&!it.title&&!it.institutionName&&!it.physicalLocation&&!it.accountRef&&!it.contactName){ S.items=S.items.filter(x=>x!==it); save(); render(); } }
+$("btnAdd").addEventListener("click",()=>{ const it={id:"u"+Date.now(),category:filterCat||"IDENTITY_GOVT",sortOrder:900+Date.now()%1000,title:"",description:"",titleHi:"",descriptionHi:"",nomineeStatus:"NOT_APPLICABLE",isCompleted:false,institutionName:"",accountRef:"",physicalLocation:"",contactName:"",contactPhone:"",additionalNotes:"",isUserCreated:true,specId:0,maturityDate:"",attachments:[],updatedAt:Date.now()}; S.items.push(it); editingId=it.id; openEditor(it.id); });
+function writeEditorValues(it){
   if(it.isUserCreated){ it.title=$("fTitle").value.trim()||t().newRecord; }
   it.institutionName=$("fInstitution").value.trim(); it.accountRef=$("fRef").value.trim(); it.physicalLocation=$("fLocation").value.trim();
-  it.nomineeStatus=$("fNominee").value; it.contactName=$("fContact").value.trim(); it.contactPhone=$("fPhone").value.trim(); it.additionalNotes=$("fNotes").value.trim();
+  it.maturityDate=$("fMat").value.trim(); it.attachments=pendingDocs.slice();
+  it.nomineeStatus=specFor(it).nom?$("fNominee").value:"NOT_APPLICABLE";
+  if(specFor(it).nom){ const a=currentAssignments(); it.nominee1Id=a.nominee1Id; it.nominee1Share=a.nominee1Share; it.nominee2Id=a.nominee2Id; it.nominee2Share=a.nominee2Share; } it.contactName=$("fContact").value.trim(); it.contactPhone=$("fPhone").value.trim(); it.additionalNotes=$("fNotes").value.trim();
   it.isCompleted = it.isCompleted || !!(it.physicalLocation||it.institutionName||it.accountRef||it.contactName);
-  it.updatedAt=Date.now(); save(); closeEditor(); render(); toast(t().saved);
+  it.updatedAt=Date.now(); }
+$("btnSave").addEventListener("click",()=>{
+  const it=S.items.find(x=>String(x.id)===String(editingId)); if(!it) return closeEditor();
+  writeEditorValues(it); save(); closeEditor(); render(); toast(t().saved);
 });
+$("btnAnother").addEventListener("click",()=>{
+  const it=S.items.find(x=>String(x.id)===String(editingId)); if(!it) return;
+  writeEditorValues(it); save(); const copy=duplicateOf(it); closeEditor(); openEditor(copy.id); render();
+});
+$("fDocFile").addEventListener("change",async e=>{
+  for(const f of [...e.target.files]){ if(pendingDocs.length>=4) break; const d=await compressImage(f); if(d) pendingDocs.push(d); }
+  e.target.value=""; renderDocThumbs();
+});
+function currentAssignments(){ return {nominee1Id:$("fNom1").value,nominee1Share:+$("fNom1Share").value||0,nominee2Id:$("fNom2").value,nominee2Share:+$("fNom2Share").value||0}; }
+function updateNomTotal(){ const a=currentAssignments(); const tot=shareTotal(a); const box=$("nomTotal");
+  const any=a.nominee1Id||a.nominee2Id;
+  box.textContent=!any?"":(tot===100?t().shareOk:`${t().totalShare}: ${tot}% (${t().must100})`);
+  box.style.color=any&&tot===100?"var(--green)":"#B42318"; }
+["fNom1","fNom2","fNom1Share","fNom2Share"].forEach(id=>$(id).addEventListener("change",()=>{ 
+  const p1=findProfile($("fNom1").value); if(p1){ if($("fNom1Share").value==="") $("fNom1Share").value=100;
+    if(!$("fContact").value) $("fContact").value=p1.fullName; if(!$("fPhone").value) $("fPhone").value=p1.mobile; }
+  updateNomTotal(); }));
+$("btnNom100").addEventListener("click",()=>{ if(!$("fNom1").value) return; $("fNom1Share").value=100; $("fNom2").value=""; $("fNom2Share").value=""; updateNomTotal(); });
+$("btnNom5050").addEventListener("click",()=>{ const a=$("fNom1").value,b=$("fNom2").value; if(!a||!b||a===b) return; $("fNom1Share").value=50; $("fNom2Share").value=50; updateNomTotal(); });
+$("btnNomAdd").addEventListener("click",()=>{ $("editor").close(); openNomineeDialog(null,true); });
 $("btnDelete").addEventListener("click",()=>{ S.items=S.items.filter(x=>String(x.id)!==String(editingId)); save(); closeEditor(); render(); toast(t().deleted); });
 $("search").addEventListener("input",e=>{ query=e.target.value; renderRecords(); });
 
@@ -415,9 +667,9 @@ document.addEventListener("visibilitychange",()=>{ if(document.hidden){ hiddenAt
 /* ============================== Backup (Android-compatible) ============================== */
 function download(blob,name){ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},400); }
 $("btnExport").addEventListener("click",()=>{
-  const payload={app:"kutumb-care",version:1,exportedAt:Date.now(),privacy:"This backup never contains passwords, PINs, OTPs or CVVs.",
+  const payload={app:"kutumb-care",version:1,exportedAt:Date.now(),privacy:"This backup never contains passwords, PINs, OTPs or CVVs.",nominees:S.nominees||[],
     profile:{primaryUserName:S.profile.primaryUserName,familyLabel:S.profile.familyLabel,emergencyContactName:S.profile.emergencyContactName,emergencyContactPhone:S.profile.emergencyContactPhone,themeMode:S.profile.themeMode||"SYSTEM"},
-    items:S.items.map((it,ix)=>({category:it.category,title:it.title,description:it.description,titleHi:it.titleHi||"",descriptionHi:it.descriptionHi||"",isCompleted:!!it.isCompleted,nomineeStatus:it.nomineeStatus,institutionName:it.institutionName||"",accountRef:it.accountRef||"",physicalLocation:it.physicalLocation||"",contactName:it.contactName||"",contactPhone:it.contactPhone||"",additionalNotes:it.additionalNotes||"",isUserCreated:!!it.isUserCreated,sortOrder:it.sortOrder??ix*10,updatedAt:it.updatedAt||Date.now()}))};
+    items:S.items.map((it,ix)=>({category:it.category,title:it.title,description:it.description,titleHi:it.titleHi||"",descriptionHi:it.descriptionHi||"",isCompleted:!!it.isCompleted,nomineeStatus:it.nomineeStatus,institutionName:it.institutionName||"",accountRef:it.accountRef||"",physicalLocation:it.physicalLocation||"",contactName:it.contactName||"",contactPhone:it.contactPhone||"",additionalNotes:it.additionalNotes||"",nominee1Id:it.nominee1Id||"",nominee1Share:it.nominee1Share||0,nominee2Id:it.nominee2Id||"",nominee2Share:it.nominee2Share||0,isUserCreated:!!it.isUserCreated,sortOrder:it.sortOrder??ix*10,specId:it.specId||0,maturityDate:it.maturityDate||"",attachments:it.attachments||[],updatedAt:it.updatedAt||Date.now()}))};
   /* Privacy contract: the PIN must never leave the device in a backup. */
   const text=JSON.stringify(payload,null,2);
   if(/pinHash|pinEnabled/i.test(text)) { toast("PIN leak blocked"); return; }
@@ -429,9 +681,10 @@ $("fileImport").addEventListener("change",async e=>{ const f=e.target.files[0]; 
     if(root.app!=="kutumb-care") throw new Error(lang()==="hi"?"यह कुटुम्ब केयर बैकअप नहीं है।":"This file is not a Kutumb Care backup.");
     if((root.version||0)>1) throw new Error(lang()==="hi"?"यह बैकअप नए संस्करण से है।":"This backup was created by a newer version of Kutumb Care.");
     if(!Array.isArray(root.items)||!root.items.length) throw new Error(t().noMatch);
-    const items=root.items.filter(o=>o&&(o.title||"").trim()).map((o,ix)=>({id:"r"+Date.now()+"_"+ix,category:CATS[o.category]?o.category:"IDENTITY_GOVT",sortOrder:o.sortOrder??ix*10,title:o.title,description:o.description||"",titleHi:o.titleHi||"",descriptionHi:o.descriptionHi||"",isCompleted:!!o.isCompleted,nomineeStatus:NOM[o.nomineeStatus]?o.nomineeStatus:"NOT_APPLICABLE",institutionName:o.institutionName||"",accountRef:o.accountRef||"",physicalLocation:o.physicalLocation||"",contactName:o.contactName||"",contactPhone:o.contactPhone||"",additionalNotes:o.additionalNotes||"",isUserCreated:!!o.isUserCreated,updatedAt:o.updatedAt||Date.now()}));
+    const items=root.items.filter(o=>o&&(o.title||"").trim()).map((o,ix)=>({id:"r"+Date.now()+"_"+ix,category:CATS[o.category]?o.category:"IDENTITY_GOVT",sortOrder:o.sortOrder??ix*10,title:o.title,description:o.description||"",titleHi:o.titleHi||"",descriptionHi:o.descriptionHi||"",isCompleted:!!o.isCompleted,nomineeStatus:NOM[o.nomineeStatus]?o.nomineeStatus:"NOT_APPLICABLE",institutionName:o.institutionName||"",accountRef:o.accountRef||"",physicalLocation:o.physicalLocation||"",contactName:o.contactName||"",contactPhone:o.contactPhone||"",additionalNotes:o.additionalNotes||"",isUserCreated:!!o.isUserCreated,nominee1Id:o.nominee1Id||"",nominee1Share:o.nominee1Share||0,nominee2Id:o.nominee2Id||"",nominee2Share:o.nominee2Share||0,specId:o.specId||(o.isUserCreated?0:(o.sortOrder??ix*10)),maturityDate:o.maturityDate||"",attachments:(Array.isArray(o.attachments)?o.attachments:[]).filter(a=>typeof a==="string"&&a.length>20).map(a=>a.startsWith("data:")?a:("data:image/jpeg;base64,"+a)),updatedAt:o.updatedAt||Date.now()}));
     if(!items.length) throw new Error(t().noMatch);
     if(root.profile){ const c=S.profile,p=root.profile; S.profile={primaryUserName:p.primaryUserName??c.primaryUserName,familyLabel:p.familyLabel??c.familyLabel,emergencyContactName:p.emergencyContactName??c.emergencyContactName,emergencyContactPhone:p.emergencyContactPhone??c.emergencyContactPhone,themeMode:p.themeMode||c.themeMode}; }
+    if(Array.isArray(root.nominees)) S.nominees=root.nominees.filter(n=>n&&n.fullName).map(n=>({id:n.id||("nom-"+Math.random().toString(36).slice(2,8)),fullName:n.fullName,relationship:n.relationship||"",dateOfBirth:n.dateOfBirth||"",address:n.address||"",mobile:n.mobile||"",email:n.email||"",idLast4:n.idLast4||""}));
     S.items=items; save(); render(); toast(t().restoreDone);
   }catch(err){ toast(t().restoreFail+(err.message||err)); }
 });
@@ -440,60 +693,93 @@ $("fileImport").addEventListener("change",async e=>{ const f=e.target.files[0]; 
 const PW=1240, PH=1754, MX=90, CW=PW-2*MX;
 function pageCanvas(){ const c=document.createElement("canvas"); c.width=PW; c.height=PH; const x=c.getContext("2d"); x.fillStyle="#FFFFFF"; x.fillRect(0,0,PW,PH); return [c,x]; }
 function wrap(x,text,maxW){ const words=String(text||"").split(/\s+/); const lines=[]; let line=""; for(const w of words){ const test=line?line+" "+w:w; if(x.measureText(test).width>maxW&&line){ lines.push(line); line=w; } else line=test; } if(line) lines.push(line); return lines.length?lines:[""]; }
-function drawText(x,text,px,py,maxW){ const lines=wrap(x,text,maxW); const lh=parseFloat(x.font)*1.28; lines.forEach((ln,i)=>x.fillText(ln,px,py+i*lh)); return py+lines.length*lh; }
+function drawText(x,text,px,py,maxW){ const lines=wrap(x,text,maxW); const m=/(\d+(?:\.\d+)?)px/.exec(x.font); const lh=(m?parseFloat(m[1]):10)*1.28; lines.forEach((ln,i)=>x.fillText(ln,px,py+i*lh)); return py+lines.length*lh; }
 function header(x,title,pageNo,total){ x.fillStyle="#0B5149"; x.fillRect(0,0,PW,190); x.fillStyle="#C45C26"; x.fillRect(0,190,PW,8);
   x.fillStyle="#E8D5B5"; x.font="700 26px sans-serif"; x.fillText("KUTUMB CARE · कुटुम्ब केयर",MX,74);
   x.fillStyle="#FFFFFF"; x.font="700 44px sans-serif"; wrap(x,title,CW).slice(0,2).forEach((ln,i)=>x.fillText(ln,MX,138+i*46));
-  x.fillStyle="#5C6561"; x.font="24px sans-serif"; x.fillText(`${t().pageWord} ${pageNo} / ${total}`,MX,PH-52); }
-function itemLines(it,blank){ const L=[];
-  const line=(k,v)=>L.push(k+": "+(blank?"________________________________________":(v||t().notRecorded)));
-  line(t().institution,it.institutionName); line(t().reference,it.accountRef); line(t().location,it.physicalLocation);
-  const contact=[it.contactName,it.contactPhone].filter(Boolean).join(" · "); if(blank||contact) line(t().contact,contact);
-  if(blank||it.additionalNotes) line(t().notes,it.additionalNotes); return L; }
-function drawItem(x,it,y,blank){ const lines=blank?itemLines(it,true):itemLines(it,false);
+  /* Footer zone: divider, fine print on the left, page number on the right —
+     side by side so wrapped fine print can never print over the page number. */
+  x.strokeStyle="#E4DDD1"; x.beginPath(); x.moveTo(MX,PH-128); x.lineTo(PW-MX,PH-128); x.stroke();
+  x.fillStyle="#8A8474"; x.font="19px sans-serif"; drawText(x,t().finePrint,MX,PH-94,CW-320);
+  x.fillStyle="#5C6561"; x.font="24px sans-serif"; const pg=`${t().pageWord} ${pageNo} / ${total}`; x.fillText(pg,PW-MX-x.measureText(pg).width,PH-94); }
+function itemLines(it,blank){ const sp=specFor(it); const li=lang()==="hi"?1:0; const L=[];
+  /* Blank (or empty) values become writing lines so a printed page can be
+     completed by hand with room to write. */
+  const line=(lab,v)=>{ if(!lab) return; L.push(lab[li]+": "+((blank||!v)?"________________________________________":v)); };
+  line(sp.p,it.institutionName); line(sp.r,it.accountRef); line(sp.m||null,it.maturityDate); line(sp.l,it.physicalLocation);
+  const contact=[it.contactName,it.contactPhone].filter(Boolean).join(" · ");
+  const clab=[sp.c,sp.ph].filter(Boolean).map(x=>x[li]).join(" / ")||null; line(clab,contact);
+  line(sp.n,it.additionalNotes);
+  [[it.nominee1Id,it.nominee1Share],[it.nominee2Id,it.nominee2Share]].forEach(([id,sh])=>{ const pr=findProfile(id);
+    if(pr) L.push(`${t().pdfNominee}: ${pr.fullName}${pr.relationship?" ("+pr.relationship+")":""} — ${sh||0}%${pr.mobile?" · "+pr.mobile:""}`); });
+  L.push("__________________________________________________________");
+  return L; }
+function drawItem(x,it,y,blank){ const lines=itemLines(it,blank);
   x.font="700 30px sans-serif"; const titleH=wrap(x,itemTitle(it),CW-40).length*38;
-  x.font="24px sans-serif"; const statusH=32; let bodyH=0; x.font="26px sans-serif"; lines.forEach(ln=>{ bodyH+=wrap(x,ln,CW-40).length*33+6; });
+  x.font="24px sans-serif"; const statusH=32; let bodyH=0; x.font="26px sans-serif"; lines.forEach(ln=>{ bodyH+=wrap(x,ln,CW-40).length*33+(blank?12:6); });
   const h=28+titleH+statusH+bodyH+18;
   x.fillStyle="#FBF8F2"; x.strokeStyle="#E4DDD1"; roundRect(x,MX,y,CW,h,16); x.fill(); x.stroke();
   let iy=y+44; x.fillStyle="#134E4A"; x.font="700 30px sans-serif"; iy=drawText(x,(blank?"☐  ":"")+(itemTitle(it)),MX+20,iy,CW-40);
   x.font="24px sans-serif"; x.fillStyle=(!blank&&it.nomineeStatus==="NEEDS_NOMINEE")?"#C45C26":"#5C6561";
-  iy=drawText(x,nomineeLabel(it.nomineeStatus)+"  ·  "+(blank?t().writeHere:(it.isCompleted?t().recordedWord:t().notYet)),MX+20,iy+4,CW-40);
-  x.fillStyle="#1C2321"; x.font="26px sans-serif"; lines.forEach(ln=>{ iy=drawText(x,ln,MX+20,iy+6,CW-40); });
-  return y+h+22; }
+  const statusText=specFor(it).nom ? (nomineeLabel(it.nomineeStatus)+"  ·  "+(blank?t().writeHere:(it.isCompleted?t().recordedWord:t().notYet))) : (blank?t().writeHere:(it.isCompleted?t().recordedWord:t().notYet));
+  iy=drawText(x,statusText,MX+20,iy+4,CW-40);
+  x.fillStyle="#1C2321"; x.font="26px sans-serif"; lines.forEach(ln=>{ iy=drawText(x,ln,MX+20,iy+(blank?12:6),CW-40); });
+  return y+h+(blank?44:22); }
 function roundRect(x,px,py,w,h,r){ x.beginPath(); x.moveTo(px+r,py); x.arcTo(px+w,py,px+w,py+h,r); x.arcTo(px+w,py+h,px,py+h,r); x.arcTo(px,py+h,px,py,r); x.arcTo(px,py,px+w,py,r); x.closePath(); }
-function buildPagesFinal(blank){
+function loadImg(src){ return new Promise(res=>{ const im=new Image(); const done=v=>{ clearTimeout(tm); res(v); }; const tm=setTimeout(()=>done(null),4000); im.onload=()=>done(im); im.onerror=()=>done(null); im.src=src; }); }
+async function buildPagesFinal(blank){
   const built=[]; const r=readiness(); const now=new Date().toLocaleDateString(lang()==="hi"?"hi-IN":"en-IN",{day:"numeric",month:"long",year:"numeric"});
   const addPage=(title)=>{ const [cv,x]=pageCanvas(); built.push({cv,x,title}); return built[built.length-1]; };
-  let p=addPage(blank?t().blankTitle:t().dossierTitle); let x=p.x; let y=300;
+  const coverTitle=blank?t().blankTitle:t().dossierTitle;
+  let p=addPage(coverTitle); let x=p.x; let y=300;
+  /* The cover is the one page drawn without item-level pagination, so guard
+     every section: whatever cannot fit above the footer zone continues on a
+     fresh cover page instead of printing over the footer (the reported bug:
+     "Page 1 / N" struck through the How-to heading). Content ceiling is
+     PH-170; the footer divider sits at PH-128. */
+  const ensureCover=(need)=>{ if(y+need>PH-170){ p=addPage(coverTitle+" "+t().continued); x=p.x; y=300; } };
   x.fillStyle="#134E4A"; x.font="800 58px sans-serif"; y=drawText(x,familyName(),MX,y,CW);
   x.fillStyle="#5C6561"; x.font="28px sans-serif"; y=drawText(x,t().preparedFor+" · "+now,MX,y+16,CW); y+=34;
   x.fillStyle="#F3EDE3"; roundRect(x,MX,y,CW,150,18); x.fill();
   x.fillStyle="#0B5149"; x.font="800 52px sans-serif"; x.fillText(`${blank?0:r.pct}% ${t().readyWord}`,MX+28,y+66);
   x.fillStyle="#5C6561"; x.font="26px sans-serif"; x.fillText(`${blank?0:r.done} ${t().ofWord} ${r.total} ${t().recordsCaptured}  ·  ${blank?0:r.alerts.length} ${t().nomineeAlertsWord}`,MX+28,y+112); y+=190;
+  ensureCover(150);
   x.fillStyle="#C45C26"; x.font="700 27px sans-serif"; x.fillText(t().emgContact.toUpperCase(),MX,y+10); y+=44;
   x.fillStyle="#1C2321"; x.font="30px sans-serif"; y=drawText(x,(S.profile.emergencyContactName||t().notRecorded)+"  ·  "+(S.profile.emergencyContactPhone||"—"),MX,y,CW); y+=30;
+  x.font="26px sans-serif"; ensureCover(64+t().howToLines.reduce((a,ln)=>a+wrap(x,"•  "+ln,CW).length*33+10,0));
   x.fillStyle="#C45C26"; x.font="700 27px sans-serif"; x.fillText(t().howTo.toUpperCase(),MX,y+10); y+=44;
   x.fillStyle="#1C2321"; x.font="26px sans-serif"; t().howToLines.forEach(ln=>{ y=drawText(x,"•  "+ln,MX,y,CW)+10; }); y+=20;
+  ensureCover(66+CAT_ORDER.length*42);
   x.fillStyle="#C45C26"; x.font="700 27px sans-serif"; x.fillText(t().readinessByCat.toUpperCase(),MX,y+10); y+=46;
   CAT_ORDER.forEach(c=>{ const g=S.items.filter(i=>i.category===c); const d=blank?0:g.filter(i=>i.isCompleted).length; const pct=g.length?Math.round(d*100/g.length):0;
     x.fillStyle="#1C2321"; x.font="26px sans-serif"; x.fillText(`${catName(c)}   ${d}/${g.length}`,MX,y);
     x.fillStyle="#E7E0D4"; roundRect(x,MX+560,y-24,420,24,12); x.fill(); if(pct){ x.fillStyle="#C45C26"; roundRect(x,MX+560,y-24,Math.max(18,420*pct/100),24,12); x.fill(); } y+=42; });
-  y+=26; x.fillStyle="#F8EFE6"; roundRect(x,MX,y,CW,110,14); x.fill(); x.fillStyle="#7A4A28"; x.font="24px sans-serif"; drawText(x,t().confidential,MX+22,y+40,CW-44);
+  ensureCover(160); y+=26; x.fillStyle="#F8EFE6"; roundRect(x,MX,y,CW,110,14); x.fill(); x.fillStyle="#7A4A28"; x.font="24px sans-serif"; drawText(x,t().confidential,MX+22,y+40,CW-44);
   CAT_ORDER.forEach(c=>{ const group=S.items.filter(i=>i.category===c).slice().sort((a,b)=>a.sortOrder-b.sortOrder); if(!group.length) return;
     let pg=addPage(catName(c)); let xx=pg.x; let yy=280;
     xx.fillStyle="#5C6561"; xx.font="26px sans-serif"; yy=drawText(xx,catSub(c),MX,yy,CW)+18;
-    group.forEach(it=>{ const probe=document.createElement("canvas").getContext("2d"); probe.font="26px sans-serif";
-      let h=28+40+32+18; itemLines(it,blank).forEach(ln=>{ h+=wrap(probe,ln,CW-40).length*33+6; });
-      if(yy+h>PH-110){ pg=addPage(catName(c)+" "+t().continued); xx=pg.x; yy=260; }
+    group.forEach(it=>{ const probe=document.createElement("canvas").getContext("2d");
+      /* Probe must mirror drawItem's height math exactly (bold title wrap
+         included) or tall cards slip past the break and hit the footer. */
+      probe.font="700 30px sans-serif"; const titleH=wrap(probe,itemTitle(it),CW-40).length*38;
+      probe.font="26px sans-serif"; let bodyH=0; itemLines(it,blank).forEach(ln=>{ bodyH+=wrap(probe,ln,CW-40).length*33+(blank?12:6); });
+      const h=28+titleH+32+bodyH+18;
+      if(yy+h+(blank?44:22)>PH-170){ pg=addPage(catName(c)+" "+t().continued); xx=pg.x; yy=260; }
       yy=drawItem(xx,it,yy,blank); });
   });
+  if(!blank){ for(const it of S.items){ const docs=it.attachments||[]; if(!docs.length) continue;
+    for(const src of docs){ const pg=addPage(itemTitle(it)); const xx=pg.x;
+      xx.fillStyle="#5C6561"; xx.font="26px sans-serif"; drawText(xx,catName(it.category)+" · "+t().docCopy,MX,270,CW);
+      const img=await loadImg(src); if(!img) continue;
+      const areaW=CW, areaH=PH-330-170, sc=Math.min(areaW/img.width,areaH/img.height);
+      xx.drawImage(img,MX+(areaW-img.width*sc)/2,310,img.width*sc,img.height*sc); } } }
   const total=built.length;
   built.forEach((pg,i)=>header(pg.x,pg.title,i+1,total));
   return built.map(pg=>pg.cv);
 }
 function canvasJpeg(cv){ return new Promise(res=>cv.toBlob(async b=>res(new Uint8Array(await b.arrayBuffer())),"image/jpeg",0.82)); }
 async function makePdf(blank){
-  const pages=buildPagesFinal(blank); const jpegs=[]; for(const cv of pages) jpegs.push(await canvasJpeg(cv));
+  const pages=await buildPagesFinal(blank); const jpegs=[]; for(const cv of pages) jpegs.push(await canvasJpeg(cv));
   const enc=new TextEncoder(); const parts=[]; const offsets=[]; let len=0;
   const push=d=>{ const u=typeof d==="string"?enc.encode(d):d; parts.push(u); len+=u.length; };
   push("%PDF-1.4\n"); const n=pages.length; /* objects: 1 catalog,2 pages, then per page: page, content, image */
@@ -518,6 +804,14 @@ async function downloadPdf(blank,btn){ const old=btn.innerHTML; btn.disabled=tru
   finally{ btn.disabled=false; btn.innerHTML=old; } }
 $("btnPdfFilled").addEventListener("click",e=>downloadPdf(false,e.currentTarget));
 $("btnPdfBlank").addEventListener("click",e=>downloadPdf(true,e.currentTarget));
+
+/* ============================== Add to Home Screen ============================== */
+let deferredInstall=null;
+window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); deferredInstall=e; $("btnInstall").classList.remove("hidden"); });
+$("btnInstall").addEventListener("click",async()=>{ if(!deferredInstall) return; deferredInstall.prompt();
+  const choice=await deferredInstall.userChoice; deferredInstall=null; $("btnInstall").classList.add("hidden");
+  if(choice&&choice.outcome==="accepted") toast(t().installed); });
+window.addEventListener("appinstalled",()=>{ $("btnInstall").classList.add("hidden"); toast(t().installed); });
 
 /* ============================== Boot ============================== */
 load();

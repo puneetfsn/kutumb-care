@@ -89,9 +89,9 @@ class ReadinessTest {
     }
 
     @Test
-    fun `seeded checklist covers all 24 India-specific records`() {
-        assertEquals(24, DefaultChecklist.ITEMS.size)
-        assertEquals(24, DefaultChecklist.ITEMS.map { it.sortOrder }.distinct().size)
+    fun `seeded checklist covers all 36 India-specific records`() {
+        assertEquals(36, DefaultChecklist.ITEMS.size)
+        assertEquals(36, DefaultChecklist.ITEMS.map { it.sortOrder }.distinct().size)
         assertEquals(AssetCategory.entries.size, DefaultChecklist.ITEMS.map { it.category }.distinct().size)
         // Only 1,1,1,1 ... every seeded record starts unrecorded so the score is honest.
         assertTrue(DefaultChecklist.ITEMS.none { it.isCompleted })
@@ -144,12 +144,84 @@ class HindiSeedTest {
             assertEquals(item.titleHi, item.displayTitle(hindi = true))
             assertEquals(item.title, item.displayTitle(hindi = false))
         }
-        assertEquals(24, DefaultChecklist.HINDI_BY_ORDER.size)
+        assertTrue(DefaultChecklist.ITEMS.all { it.sortOrder in DefaultChecklist.HINDI_BY_ORDER })
     }
 
     @Test
     fun `hindi family label uses the hindi suffix`() {
         assertEquals("Asha का परिवार", UserPreferences(primaryUserName = "Asha", language = com.puneetfsn.kutumbcare.data.AppLanguage.HINDI).displayFamilyName)
         assertEquals("आपका परिवार", UserPreferences(language = com.puneetfsn.kutumbcare.data.AppLanguage.HINDI).displayFamilyName)
+    }
+}
+
+class EntryFieldsTest {
+
+    private fun seeded(sortOrder: Int) = DefaultChecklist.ITEMS.first { it.sortOrder == sortOrder }
+
+    @Test
+    fun `Aadhaar asks for the full number, never a branch`() {
+        val fields = com.puneetfsn.kutumbcare.data.EntryFieldsCatalog.forItem(seeded(10))
+        assertEquals(null, fields.primary)
+        assertTrue(fields.ref!!.en.contains("Full Aadhaar number"))
+        assertTrue(fields.guidanceEn.contains("full 12-digit"))
+        assertEquals(false, fields.nomineeRelevant)
+    }
+
+    @Test
+    fun `split records carry their own templates and maturity dates`() {
+        val titles = DefaultChecklist.ITEMS.map { it.title }
+        assertTrue(titles.containsAll(listOf(
+            "Savings account", "Current account", "Fixed deposit (FD)", "Recurring deposit (RD)",
+            "Demat account", "Mutual funds", "Passport", "Voter ID card", "Driving licence"
+        )))
+        val catalog = com.puneetfsn.kutumbcare.data.EntryFieldsCatalog
+        assertTrue(catalog.forItem(seeded(60)).maturity!!.en.contains("Maturity"))
+        assertTrue(catalog.forItem(seeded(61)).maturity!!.en.contains("Maturity"))
+        assertTrue(catalog.forItem(seeded(91)).maturity!!.en.contains("Maturity"))
+        assertTrue(catalog.forItem(seeded(110)).maturity!!.en.contains("Maturity"))
+        assertEquals(null, catalog.forItem(seeded(50)).maturity)
+        // Duplicates created with + keep their template through specOrder.
+        val duplicate = seeded(50).copy(id = 99, isUserCreated = false, sortOrder = 50, specOrder = 50)
+        assertTrue(catalog.forItem(duplicate).ref!!.en.contains("Savings account number"))
+        assertTrue(com.puneetfsn.kutumbcare.data.DefaultChecklist.REPEATABLE_ORDERS.containsAll(listOf(50, 51, 60, 61, 80, 90, 91)))
+        // The Will explains what an executor is, in plain words.
+        assertTrue(catalog.forItem(seeded(40)).guidanceEn.contains("What is an executor?"))
+    }
+
+    @Test
+    fun `bank and LIC records keep nominee fields`() {
+        assertTrue(com.puneetfsn.kutumbcare.data.EntryFieldsCatalog.forItem(seeded(50)).nomineeRelevant)
+        val lic = com.puneetfsn.kutumbcare.data.EntryFieldsCatalog.forItem(seeded(140))
+        assertTrue(lic.nomineeRelevant)
+        assertTrue(lic.ref!!.en.contains("Policy"))
+    }
+
+    @Test
+    fun `digital online assets ask where the password is kept, never the password`() {
+        val gmail = com.puneetfsn.kutumbcare.data.EntryFieldsCatalog.forItem(seeded(250))
+        assertTrue(gmail.location!!.en.contains("Password kept at"))
+        assertTrue(gmail.guidanceEn.contains("Inactive Account Manager"))
+        val manager = com.puneetfsn.kutumbcare.data.EntryFieldsCatalog.forItem(seeded(290))
+        assertTrue(manager.contact!!.en.contains("Emergency access"))
+        // No seeded digital record may solicit an actual password as a field label.
+        DefaultChecklist.ITEMS.filter { it.categoryEnum == AssetCategory.DIGITAL_LEGACY }.forEach { item ->
+            val fields = com.puneetfsn.kutumbcare.data.EntryFieldsCatalog.forItem(item)
+            listOfNotNull(fields.primary, fields.ref, fields.contact, fields.phone).forEach { label ->
+                assertTrue(
+                    "Label '${label.en}' must not ask for a password",
+                    !label.en.matches(Regex("(?i)^password$|enter.*password|your password"))
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `digital online assets are seeded`() {
+        val titles = DefaultChecklist.ITEMS.map { it.title }
+        assertTrue(titles.any { it.contains("Gmail") })
+        assertTrue(titles.any { it.contains("Apple ID") })
+        assertTrue(titles.any { it.contains("Income Tax") })
+        assertTrue(titles.any { it.contains("Password manager") })
+        assertEquals(10, DefaultChecklist.ITEMS.count { it.categoryEnum == AssetCategory.DIGITAL_LEGACY })
     }
 }

@@ -20,6 +20,17 @@ class ChecklistRepository(
         if (dao.count() == 0) {
             dao.upsertAll(DefaultChecklist.ITEMS)
             refreshWidget()
+            return
+        }
+        // Existing families keep everything they typed; only brand-new seeded
+        // records (e.g. the Digital online assets added later) are appended.
+        // Seeded records cannot be deleted in the UI, so matching by sortOrder
+        // cannot resurrect something a family removed.
+        val existingOrders = dao.getAll().map { it.sortOrder }.toSet()
+        val missing = DefaultChecklist.ITEMS.filter { it.sortOrder !in existingOrders }
+        if (missing.isNotEmpty()) {
+            dao.upsertAll(missing)
+            refreshWidget()
         }
     }
 
@@ -39,6 +50,31 @@ class ChecklistRepository(
     suspend fun delete(item: ChecklistItem) {
         dao.delete(item)
         refreshWidget()
+    }
+
+    /** Item id → base64 JPEG payloads, for the JSON backup. */
+    suspend fun attachmentData(): Map<Long, List<String>> = getAll().associate { item ->
+        item.id to item.attachmentNames.mapNotNull { name ->
+            DocumentStore.readBytes(appContext, name)?.let {
+                android.util.Base64.encodeToString(it, android.util.Base64.NO_WRAP)
+            }
+        }
+    }
+
+    /**
+     * Turns restored items' base64 attachment payloads back into on-device
+     * files. Accepts raw base64 (Android) and data URLs (web backups).
+     */
+    fun materializeAttachments(items: List<ChecklistItem>): List<ChecklistItem> = items.map { item ->
+        if (item.attachmentNames.isEmpty()) return@map item
+        val names = item.attachmentNames.mapNotNull { payload ->
+            runCatching {
+                val base64 = payload.substringAfter("base64,", payload)
+                val bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT)
+                if (bytes.isEmpty()) null else DocumentStore.writeBytes(appContext, bytes)
+            }.getOrNull()
+        }
+        item.copy(attachmentsJson = org.json.JSONArray(names).toString())
     }
 
     suspend fun replaceAll(items: List<ChecklistItem>) {

@@ -36,7 +36,7 @@ class AppViewModelFactory(
                     container.pdfGenerator
                 ) as T
             modelClass.isAssignableFrom(RecordsViewModel::class.java) ->
-                RecordsViewModel(container.checklistRepository) as T
+                RecordsViewModel(container.checklistRepository, container.settingsRepository) as T
             modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
                 SettingsViewModel(
                     container.settingsRepository,

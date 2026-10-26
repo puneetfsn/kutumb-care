@@ -6,6 +6,7 @@ import com.puneetfsn.kutumbcare.data.ChecklistItem
 import com.puneetfsn.kutumbcare.data.NomineeStatus
 import com.puneetfsn.kutumbcare.data.SettingsRepository
 import com.puneetfsn.kutumbcare.data.ThemeMode
+import com.puneetfsn.kutumbcare.data.NomineeProfile
 import com.puneetfsn.kutumbcare.data.UserPreferences
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -43,7 +44,13 @@ class BackupFormatTest {
         familyLabel = "Kumar family",
         emergencyContactName = "Ravi",
         emergencyContactPhone = "9998887776",
-        setupComplete = true
+        setupComplete = true,
+        nominees = listOf(
+            NomineeProfile(
+                id = "nom-1", fullName = "Meena Kumari", relationship = "Wife",
+                dateOfBirth = "14/02/1985", mobile = "9876543210"
+            )
+        )
     )
 
     @Test
@@ -77,6 +84,8 @@ class BackupFormatTest {
         assertEquals(0L, restored.id)
 
         assertEquals("Kumar family", payload.profile?.familyLabel)
+        assertEquals(1, payload.nominees?.size)
+        assertEquals("Meena Kumari", payload.nominees?.first()?.fullName)
         assertEquals(ThemeMode.DARK, payload.profile?.themeMode)
     }
 

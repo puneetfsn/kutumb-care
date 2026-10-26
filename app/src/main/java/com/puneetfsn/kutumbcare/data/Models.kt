@@ -22,7 +22,7 @@ enum class AssetCategory(
     INVESTMENTS("Investments", "Demat, EPF, PPF, NPS, gold", true),
     INSURANCE("Insurance", "Life, health, vehicle", true),
     REAL_ESTATE_LOANS("Property & loans", "Deeds, khata, home loans", false),
-    DIGITAL_LEGACY("Digital legacy", "Email, phone, DigiLocker", false),
+    DIGITAL_LEGACY("Digital online assets", "Gmail, Apple ID, ITR, password manager", false),
     TRUSTED_CONTACTS("Trusted contacts", "CA, lawyer, agent, family", false);
 
     val icon: ImageVector
@@ -80,11 +80,23 @@ data class ChecklistItem(
     val contactName: String = "",
     val contactPhone: String = "",
     val additionalNotes: String = "",
+    /** Reusable nominee cards attached to this record, with shares totalling 100. */
+    val nominee1Id: String = "",
+    val nominee1Share: Int = 0,
+    val nominee2Id: String = "",
+    val nominee2Share: Int = 0,
     val isUserCreated: Boolean = false,
     /** Hindi rendering of the seeded title/description. Empty for user records. */
     val titleHi: String = "",
     val descriptionHi: String = "",
     val sortOrder: Int = 0,
+    /** Which per-entry template (EntryFieldsCatalog key) this record uses.
+     *  Duplicates created with "+" keep the template even though sortOrder is shared. */
+    val specOrder: Int = 0,
+    /** Maturity / expiry date as typed by the family (FD, RD, MF, PPF, passport…). */
+    val maturityDate: String = "",
+    /** JSON array of document-photo file names in the app-private documents folder. */
+    val attachmentsJson: String = "[]",
     val updatedAt: Long = System.currentTimeMillis()
 ) {
     val categoryEnum: AssetCategory get() = AssetCategory.fromRaw(category)
@@ -97,6 +109,18 @@ data class ChecklistItem(
 
     fun displayDescription(hindi: Boolean): String =
         if (hindi && descriptionHi.isNotBlank()) descriptionHi else description
+
+    val attachmentNames: List<String>
+        get() = runCatching {
+            val arr = org.json.JSONArray(attachmentsJson)
+            (0 until arr.length()).map { arr.optString(it) }.filter { it.isNotBlank() }
+        }.getOrDefault(emptyList())
+
+    val nomineeAssignments: List<NomineeAssignment>
+        get() = listOf(
+            NomineeAssignment(nominee1Id, nominee1Share),
+            NomineeAssignment(nominee2Id, nominee2Share)
+        ).filter { it.profileId.isNotBlank() }
 }
 
 data class UserPreferences(
@@ -110,7 +134,9 @@ data class UserPreferences(
     val setupComplete: Boolean = false,
     val language: AppLanguage = AppLanguage.ENGLISH,
     /** False until the first-launch English / हिन्दी chooser has been answered. */
-    val languageChosen: Boolean = false
+    val languageChosen: Boolean = false,
+    /** Saved nominee cards, shared by every record (stored in DataStore). */
+    val nominees: List<NomineeProfile> = emptyList()
 ) {
     val displayFamilyName: String
         get() = familyName(language.isHindi)

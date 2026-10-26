@@ -39,6 +39,22 @@ class SettingsRepository(context: Context) {
         store.edit { it[THEME_MODE] = mode.name }
     }
 
+    suspend fun setNominees(nominees: List<NomineeProfile>) {
+        store.edit { it[NOMINEES_JSON] = NomineesCodec.encode(nominees) }
+    }
+
+    suspend fun upsertNominee(profile: NomineeProfile) {
+        val current = snapshot().nominees
+        setNominees(
+            if (current.any { it.id == profile.id }) current.map { if (it.id == profile.id) profile else it }
+            else current + profile
+        )
+    }
+
+    suspend fun deleteNominee(id: String) {
+        setNominees(snapshot().nominees.filterNot { it.id == id })
+    }
+
     suspend fun setLanguage(language: AppLanguage) {
         store.edit {
             it[LANGUAGE] = language.name
@@ -78,6 +94,7 @@ class SettingsRepository(context: Context) {
         internal val SETUP_COMPLETE = booleanPreferencesKey("setup_complete")
         internal val LANGUAGE = stringPreferencesKey("app_language")
         internal val LANGUAGE_CHOSEN = booleanPreferencesKey("language_chosen")
+        internal val NOMINEES_JSON = stringPreferencesKey("nominees_json")
 
         fun hashPin(pin: String): String {
             val bytes = MessageDigest.getInstance("SHA-256").digest(pin.toByteArray())
@@ -104,5 +121,6 @@ private fun Preferences.toUserPreferences(): UserPreferences = UserPreferences(
     emergencyContactPhone = this[SettingsRepository.EMERGENCY_PHONE].orEmpty(),
     setupComplete = this[SettingsRepository.SETUP_COMPLETE] ?: false,
     language = AppLanguage.fromRaw(this[SettingsRepository.LANGUAGE]),
-    languageChosen = this[SettingsRepository.LANGUAGE_CHOSEN] ?: false
+    languageChosen = this[SettingsRepository.LANGUAGE_CHOSEN] ?: false,
+    nominees = NomineesCodec.decode(this[SettingsRepository.NOMINEES_JSON])
 )

@@ -30,10 +30,21 @@ object BackupFormat {
 
     data class Payload(
         val items: List<ChecklistItem>,
-        val profile: Profile?
+        val profile: Profile?,
+        /** Null when the backup predates nominee cards (keep what the family has). */
+        val nominees: List<NomineeProfile>? = null
     )
 
-    fun encode(items: List<ChecklistItem>, preferences: UserPreferences): String {
+    /**
+     * [attachmentData] maps item id → base64 JPEG payloads, supplied by the
+     * caller (kept out of this pure formatter). The web app writes the same
+     * field as data URLs; decoders accept both, so backups stay compatible.
+     */
+    fun encode(
+        items: List<ChecklistItem>,
+        preferences: UserPreferences,
+        attachmentData: Map<Long, List<String>> = emptyMap()
+    ): String {
         val root = JSONObject().apply {
             put("app", APP_ID)
             put("version", SCHEMA_VERSION)
@@ -45,6 +56,11 @@ object BackupFormat {
                 put("emergencyContactName", preferences.emergencyContactName)
                 put("emergencyContactPhone", preferences.emergencyContactPhone)
                 put("themeMode", preferences.themeMode.name)
+            })
+            put("nominees", JSONArray().also { array ->
+                preferences.nominees.forEach { profile ->
+                    with(NomineesCodec) { array.put(profile.toJson()) }
+                }
             })
             put("items", JSONArray().also { array ->
                 items.forEach { item ->
@@ -62,8 +78,15 @@ object BackupFormat {
                         put("contactName", item.contactName)
                         put("contactPhone", item.contactPhone)
                         put("additionalNotes", item.additionalNotes)
+                        put("nominee1Id", item.nominee1Id)
+                        put("nominee1Share", item.nominee1Share)
+                        put("nominee2Id", item.nominee2Id)
+                        put("nominee2Share", item.nominee2Share)
                         put("isUserCreated", item.isUserCreated)
                         put("sortOrder", item.sortOrder)
+                        put("specId", item.specOrder)
+                        put("maturityDate", item.maturityDate)
+                        put("attachments", JSONArray(attachmentData[item.id] ?: emptyList<String>()))
                         put("updatedAt", item.updatedAt)
                     })
                 }
@@ -112,15 +135,37 @@ object BackupFormat {
                         contactName = obj.optString("contactName"),
                         contactPhone = obj.optString("contactPhone"),
                         additionalNotes = obj.optString("additionalNotes"),
+                        nominee1Id = obj.optString("nominee1Id"),
+                        nominee1Share = obj.optInt("nominee1Share"),
+                        nominee2Id = obj.optString("nominee2Id"),
+                        nominee2Share = obj.optInt("nominee2Share"),
                         isUserCreated = obj.optBoolean("isUserCreated"),
                         sortOrder = obj.optInt("sortOrder", i * 10),
+                        specOrder = obj.optInt("specId"),
+                        maturityDate = obj.optString("maturityDate"),
+                        attachmentsJson = obj.optJSONArray("attachments")?.let { arr ->
+                            JSONArray().also { out ->
+                                for (j in 0 until arr.length()) out.put(arr.optString(j))
+                            }.toString()
+                        } ?: "[]",
                         updatedAt = obj.optLong("updatedAt", System.currentTimeMillis())
                     )
                 )
             }
         }
         require(items.isNotEmpty()) { "This backup has no records to restore." }
-        return Payload(items = items, profile = root.optJSONObject("profile")?.toProfile())
+        val nominees = root.optJSONArray("nominees")?.let { nomineeArray ->
+            buildList {
+                for (i in 0 until nomineeArray.length()) {
+                    NomineesCodec.fromJson(nomineeArray.getJSONObject(i))?.let { add(it) }
+                }
+            }
+        }
+        return Payload(
+            items = items,
+            profile = root.optJSONObject("profile")?.toProfile(),
+            nominees = nominees
+        )
     }
 
     private fun JSONObject.toProfile(): Profile = Profile(
