@@ -3,4 +3,5 @@
     <!-- Only the generated PDF dossier is shared, and only after unlock.
          There is no backup feature, so nothing else ever needs a content URI. -->
     <cache-path name="dossier" path="dossier/" />
+    <cache-path name="camera" path="camera/" />
 </paths>

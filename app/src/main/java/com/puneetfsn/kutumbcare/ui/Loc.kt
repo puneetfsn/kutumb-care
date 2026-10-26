@@ -142,6 +142,7 @@ class UiStrings(val hindi: Boolean) {
     val documentsTitle get() = pick("Document photos", "दस्तावेज़ की फ़ोटो")
     val documentsNote get() = pick("Attach photos of the document (Aadhaar, PAN, passbook, FD receipt…). Photos stay only on this device and print at the end of the dossier.", "दस्तावेज़ की फ़ोटो लगाएँ (आधार, PAN, पासबुक, FD रसीद…)। फ़ोटो केवल इस डिवाइस पर रहती हैं और दस्तावेज़ के अंत में छपती हैं।")
     val addPhoto get() = pick("＋ Add document photo", "＋ दस्तावेज़ फ़ोटो जोड़ें")
+    val takePhoto get() = pick("📷 Take a photo", "📷 फ़ोटो लें")
     val addAnother get() = pick("＋ Add another like this", "＋ इसी तरह एक और जोड़ें")
     val addAnotherShort get() = pick("＋ Add", "＋ जोड़ें")
     val documentCopy get() = pick("Document copy", "दस्तावेज़ प्रति")
