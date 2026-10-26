@@ -1,6 +1,6 @@
 /* Kutumb Care offline cache. No network data ever leaves the device:
    this worker only serves the app shell that was already downloaded. */
-const CACHE = "kutumb-care-v2";
+const CACHE = "kutumb-care-v3";
 const ASSETS = [
   "./",
   "./index.html",

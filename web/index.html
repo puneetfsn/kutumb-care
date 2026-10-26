@@ -637,12 +637,15 @@ $("fileImport").addEventListener("change",async e=>{ const f=e.target.files[0]; 
 const PW=1240, PH=1754, MX=90, CW=PW-2*MX;
 function pageCanvas(){ const c=document.createElement("canvas"); c.width=PW; c.height=PH; const x=c.getContext("2d"); x.fillStyle="#FFFFFF"; x.fillRect(0,0,PW,PH); return [c,x]; }
 function wrap(x,text,maxW){ const words=String(text||"").split(/\s+/); const lines=[]; let line=""; for(const w of words){ const test=line?line+" "+w:w; if(x.measureText(test).width>maxW&&line){ lines.push(line); line=w; } else line=test; } if(line) lines.push(line); return lines.length?lines:[""]; }
-function drawText(x,text,px,py,maxW){ const lines=wrap(x,text,maxW); const lh=parseFloat(x.font)*1.28; lines.forEach((ln,i)=>x.fillText(ln,px,py+i*lh)); return py+lines.length*lh; }
+function drawText(x,text,px,py,maxW){ const lines=wrap(x,text,maxW); const m=/(\d+(?:\.\d+)?)px/.exec(x.font); const lh=(m?parseFloat(m[1]):10)*1.28; lines.forEach((ln,i)=>x.fillText(ln,px,py+i*lh)); return py+lines.length*lh; }
 function header(x,title,pageNo,total){ x.fillStyle="#0B5149"; x.fillRect(0,0,PW,190); x.fillStyle="#C45C26"; x.fillRect(0,190,PW,8);
   x.fillStyle="#E8D5B5"; x.font="700 26px sans-serif"; x.fillText("KUTUMB CARE · कुटुम्ब केयर",MX,74);
   x.fillStyle="#FFFFFF"; x.font="700 44px sans-serif"; wrap(x,title,CW).slice(0,2).forEach((ln,i)=>x.fillText(ln,MX,138+i*46));
-  x.fillStyle="#8A8474"; x.font="20px sans-serif"; drawText(x,t().finePrint,MX,PH-104,CW);
-  x.fillStyle="#5C6561"; x.font="24px sans-serif"; x.fillText(`${t().pageWord} ${pageNo} / ${total}`,MX,PH-40); }
+  /* Footer zone: divider, fine print on the left, page number on the right —
+     side by side so wrapped fine print can never print over the page number. */
+  x.strokeStyle="#E4DDD1"; x.beginPath(); x.moveTo(MX,PH-128); x.lineTo(PW-MX,PH-128); x.stroke();
+  x.fillStyle="#8A8474"; x.font="19px sans-serif"; drawText(x,t().finePrint,MX,PH-94,CW-320);
+  x.fillStyle="#5C6561"; x.font="24px sans-serif"; const pg=`${t().pageWord} ${pageNo} / ${total}`; x.fillText(pg,PW-MX-x.measureText(pg).width,PH-94); }
 function itemLines(it,blank){ const sp=specFor(it); const li=lang()==="hi"?1:0; const L=[];
   /* Blank (or empty) values become writing lines so a printed page can be
      completed by hand with room to write. */
@@ -670,27 +673,41 @@ function roundRect(x,px,py,w,h,r){ x.beginPath(); x.moveTo(px+r,py); x.arcTo(px+
 function buildPagesFinal(blank){
   const built=[]; const r=readiness(); const now=new Date().toLocaleDateString(lang()==="hi"?"hi-IN":"en-IN",{day:"numeric",month:"long",year:"numeric"});
   const addPage=(title)=>{ const [cv,x]=pageCanvas(); built.push({cv,x,title}); return built[built.length-1]; };
-  let p=addPage(blank?t().blankTitle:t().dossierTitle); let x=p.x; let y=300;
+  const coverTitle=blank?t().blankTitle:t().dossierTitle;
+  let p=addPage(coverTitle); let x=p.x; let y=300;
+  /* The cover is the one page drawn without item-level pagination, so guard
+     every section: whatever cannot fit above the footer zone continues on a
+     fresh cover page instead of printing over the footer (the reported bug:
+     "Page 1 / N" struck through the How-to heading). Content ceiling is
+     PH-170; the footer divider sits at PH-128. */
+  const ensureCover=(need)=>{ if(y+need>PH-170){ p=addPage(coverTitle+" "+t().continued); x=p.x; y=300; } };
   x.fillStyle="#134E4A"; x.font="800 58px sans-serif"; y=drawText(x,familyName(),MX,y,CW);
   x.fillStyle="#5C6561"; x.font="28px sans-serif"; y=drawText(x,t().preparedFor+" · "+now,MX,y+16,CW); y+=34;
   x.fillStyle="#F3EDE3"; roundRect(x,MX,y,CW,150,18); x.fill();
   x.fillStyle="#0B5149"; x.font="800 52px sans-serif"; x.fillText(`${blank?0:r.pct}% ${t().readyWord}`,MX+28,y+66);
   x.fillStyle="#5C6561"; x.font="26px sans-serif"; x.fillText(`${blank?0:r.done} ${t().ofWord} ${r.total} ${t().recordsCaptured}  ·  ${blank?0:r.alerts.length} ${t().nomineeAlertsWord}`,MX+28,y+112); y+=190;
+  ensureCover(150);
   x.fillStyle="#C45C26"; x.font="700 27px sans-serif"; x.fillText(t().emgContact.toUpperCase(),MX,y+10); y+=44;
   x.fillStyle="#1C2321"; x.font="30px sans-serif"; y=drawText(x,(S.profile.emergencyContactName||t().notRecorded)+"  ·  "+(S.profile.emergencyContactPhone||"—"),MX,y,CW); y+=30;
+  x.font="26px sans-serif"; ensureCover(64+t().howToLines.reduce((a,ln)=>a+wrap(x,"•  "+ln,CW).length*33+10,0));
   x.fillStyle="#C45C26"; x.font="700 27px sans-serif"; x.fillText(t().howTo.toUpperCase(),MX,y+10); y+=44;
   x.fillStyle="#1C2321"; x.font="26px sans-serif"; t().howToLines.forEach(ln=>{ y=drawText(x,"•  "+ln,MX,y,CW)+10; }); y+=20;
+  ensureCover(66+CAT_ORDER.length*42);
   x.fillStyle="#C45C26"; x.font="700 27px sans-serif"; x.fillText(t().readinessByCat.toUpperCase(),MX,y+10); y+=46;
   CAT_ORDER.forEach(c=>{ const g=S.items.filter(i=>i.category===c); const d=blank?0:g.filter(i=>i.isCompleted).length; const pct=g.length?Math.round(d*100/g.length):0;
     x.fillStyle="#1C2321"; x.font="26px sans-serif"; x.fillText(`${catName(c)}   ${d}/${g.length}`,MX,y);
     x.fillStyle="#E7E0D4"; roundRect(x,MX+560,y-24,420,24,12); x.fill(); if(pct){ x.fillStyle="#C45C26"; roundRect(x,MX+560,y-24,Math.max(18,420*pct/100),24,12); x.fill(); } y+=42; });
-  y+=26; x.fillStyle="#F8EFE6"; roundRect(x,MX,y,CW,110,14); x.fill(); x.fillStyle="#7A4A28"; x.font="24px sans-serif"; drawText(x,t().confidential,MX+22,y+40,CW-44);
+  ensureCover(160); y+=26; x.fillStyle="#F8EFE6"; roundRect(x,MX,y,CW,110,14); x.fill(); x.fillStyle="#7A4A28"; x.font="24px sans-serif"; drawText(x,t().confidential,MX+22,y+40,CW-44);
   CAT_ORDER.forEach(c=>{ const group=S.items.filter(i=>i.category===c).slice().sort((a,b)=>a.sortOrder-b.sortOrder); if(!group.length) return;
     let pg=addPage(catName(c)); let xx=pg.x; let yy=280;
     xx.fillStyle="#5C6561"; xx.font="26px sans-serif"; yy=drawText(xx,catSub(c),MX,yy,CW)+18;
-    group.forEach(it=>{ const probe=document.createElement("canvas").getContext("2d"); probe.font="26px sans-serif";
-      let h=28+40+32+18; itemLines(it,blank).forEach(ln=>{ h+=wrap(probe,ln,CW-40).length*33+(blank?12:6); });
-      if(yy+h+(blank?44:22)>PH-150){ pg=addPage(catName(c)+" "+t().continued); xx=pg.x; yy=260; }
+    group.forEach(it=>{ const probe=document.createElement("canvas").getContext("2d");
+      /* Probe must mirror drawItem's height math exactly (bold title wrap
+         included) or tall cards slip past the break and hit the footer. */
+      probe.font="700 30px sans-serif"; const titleH=wrap(probe,itemTitle(it),CW-40).length*38;
+      probe.font="26px sans-serif"; let bodyH=0; itemLines(it,blank).forEach(ln=>{ bodyH+=wrap(probe,ln,CW-40).length*33+(blank?12:6); });
+      const h=28+titleH+32+bodyH+18;
+      if(yy+h+(blank?44:22)>PH-170){ pg=addPage(catName(c)+" "+t().continued); xx=pg.x; yy=260; }
       yy=drawItem(xx,it,yy,blank); });
   });
   const total=built.length;

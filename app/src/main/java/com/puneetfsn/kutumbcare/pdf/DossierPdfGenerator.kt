@@ -36,7 +36,18 @@ class DossierPdfGenerator(private val context: Context) {
         val document = PdfDocument()
         try {
             val pages = mutableListOf<PagePainter>()
-            pages += PagePainter { canvas, pageNo, pageCount -> drawCover(canvas, snapshot, pageNo, pageCount) }
+            // The cover has no item-level pagination: if its sections cannot
+            // fit above the footer zone, readiness spills onto a second cover
+            // page instead of printing over the footer.
+            val coverSpills = coverNeedsSecondPage(snapshot)
+            pages += PagePainter { canvas, pageNo, pageCount ->
+                drawCover(canvas, snapshot, pageNo, pageCount, includeReadiness = !coverSpills)
+            }
+            if (coverSpills) {
+                pages += PagePainter { canvas, pageNo, pageCount ->
+                    drawCoverReadinessPage(canvas, snapshot, pageNo, pageCount)
+                }
+            }
             AssetCategory.entries.forEach { category ->
                 val group = snapshot.items.filter { it.categoryEnum == category }
                 if (group.isEmpty()) return@forEach
@@ -123,8 +134,22 @@ class DossierPdfGenerator(private val context: Context) {
             y += 8f
         }
 
-        y += 10f
-        y = sectionTitle(canvas, strings.pdfReadinessByCategory, y)
+        if (includeReadiness) {
+            y += 10f
+            drawReadinessSection(canvas, snapshot, strings, y)
+        }
+    }
+
+    /** Second cover page used only when the readiness block cannot fit on page 1. */
+    private fun drawCoverReadinessPage(canvas: Canvas, snapshot: DashboardSnapshot, pageNo: Int, pageCount: Int) {
+        drawPageChrome(canvas, pageNo, pageCount)
+        val strings = UiStrings.of(snapshot.preferences.language)
+        headerBand(canvas, "${strings.pdfTitle} ${strings.pdfContinued}")
+        drawReadinessSection(canvas, snapshot, strings, 150f)
+    }
+
+    private fun drawReadinessSection(canvas: Canvas, snapshot: DashboardSnapshot, strings: UiStrings, startY: Float) {
+        var y = sectionTitle(canvas, strings.pdfReadinessByCategory, startY)
         snapshot.categoryProgress.forEach { progress ->
             val label = "${strings.category(progress.category)}   ${progress.completed}/${progress.total}"
             canvas.drawText(label, MARGIN, y + 12f, bodyPaint(11f, INK))
@@ -147,6 +172,27 @@ class DossierPdfGenerator(private val context: Context) {
             bodyPaint(10f, Color.parseColor("#7A4A28")),
             CONTENT_WIDTH - 28f
         )
+    }
+
+    /** Mirrors [drawCover]'s measurements to decide whether readiness fits on page 1. */
+    private fun coverNeedsSecondPage(snapshot: DashboardSnapshot): Boolean {
+        val strings = UiStrings.of(snapshot.preferences.language)
+        val prefs = snapshot.preferences
+        var y = 150f
+        y += textHeight(prefs.familyName(strings.hindi), titlePaint(28f, FOREST), CONTENT_WIDTH)
+        y += 6f + textHeight("${strings.pdfPreparedFor} · 1 January 2026", bodyPaint(11f, MUTED), CONTENT_WIDTH)
+        y += 18f + 78f + 22f
+        y += 22f
+        val contactName = prefs.emergencyContactName.ifBlank { strings.pdfNotRecorded }
+        val contactPhone = prefs.emergencyContactPhone.ifBlank { "—" }
+        y += textHeight("$contactName  ·  $contactPhone", bodyPaint(13f, INK), CONTENT_WIDTH) + 16f
+        y += 22f
+        strings.pdfHowToLines.forEach { line ->
+            y += textHeight("•  $line", bodyPaint(11f, INK), CONTENT_WIDTH) + 8f
+        }
+        y += 10f
+        val readinessHeight = 22f + snapshot.categoryProgress.size * 20f + 16f + 56f
+        return y + readinessHeight > PAGE_BOTTOM
     }
 
     private fun paginateCategory(items: List<ChecklistItem>): List<List<ChecklistItem>> {
@@ -238,7 +284,7 @@ class DossierPdfGenerator(private val context: Context) {
             canvas.drawText(
                 "${strings.pdfOwner}: ${snapshot.preferences.primaryUserName}",
                 MARGIN,
-                PAGE_HEIGHT - 48f,
+                PAGE_HEIGHT - 64f,
                 bodyPaint(9f, MUTED)
             )
         }
@@ -375,7 +421,7 @@ class DossierPdfGenerator(private val context: Context) {
         private const val CATEGORY_START_Y = 186f
         private const val CONTINUATION_START_Y = 126f
         private const val ITEM_GAP = 10f
-        private const val PAGE_BOTTOM = 842f - 56f
+        private const val PAGE_BOTTOM = 842f - 76f
         private val FOREST = Color.parseColor("#134E4A")
         private val SAFFRON = Color.parseColor("#C45C26")
         private val INK = Color.parseColor("#1C2321")
