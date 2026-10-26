@@ -6,6 +6,17 @@ Kutumb Care helps you catalogue **where** identity papers, bank accounts, insura
 
 When the time comes, print the **Family Emergency Dossier** PDF, seal it, and keep a copy with trusted kin or in a bank locker.
 
+## Try it
+
+- **Web app (phone or computer):** https://puneetfsn.github.io/kutumb-care/
+  Open it once, then use **Install app on Home Screen** inside the page (or the
+  browser menu → *Add to Home screen*) — it then works like an app, fully offline.
+- **Android app (APK):** download the `kutumb-care-debug` artifact from the latest
+  green *Build APK* run at https://github.com/puneetfsn/kutumb-care/actions
+  (GitHub login required), install it, and the Kutumb Care icon appears in your
+  app drawer — long-press it to place it on the Home Screen. A home-screen
+  *Family readiness* widget is also included.
+
 ## Privacy contract
 
 - **No internet.** `android.permission.INTERNET` is forbidden and stripped from the manifest.
