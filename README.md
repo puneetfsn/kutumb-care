@@ -87,7 +87,7 @@ cd web && python3 -m http.server 8080   # then open http://localhost:8080
 Every record asks only for what that record needs, in the language chosen — an
 Aadhaar card never asks for a "branch". Labels follow official guidance:
 
-- **Aadhaar (UIDAI/PIB):** only the last 4 digits (masked Aadhaar) are ever written.
+- **Aadhaar & PAN:** the full numbers are recorded (the family's own sealed copy — forms and logins need them); only OTPs and PINs are never written.
 - **Demat/MF (SEBI 2026 nomination framework):** nominee name + relationship is the
   mandatory core; share % and contacts are optional.
 - **EPF (EPFO):** e-nomination covers PF + EPS pension + EDLI; shares total 100%,
@@ -155,7 +155,7 @@ cd web && python3 -m http.server 8080   # then open http://localhost:8080
 Every record asks only for what that record needs, in the language chosen — an
 Aadhaar card never asks for a "branch". Labels follow official guidance:
 
-- **Aadhaar (UIDAI/PIB):** only the last 4 digits (masked Aadhaar) are ever written.
+- **Aadhaar & PAN:** the full numbers are recorded (the family's own sealed copy — forms and logins need them); only OTPs and PINs are never written.
 - **Demat/MF (SEBI 2026 nomination framework):** nominee name + relationship is the
   mandatory core; share % and contacts are optional.
 - **EPF (EPFO):** e-nomination covers PF + EPS pension + EDLI; shares total 100%,
