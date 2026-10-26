@@ -1,5 +1,15 @@
 name: Deploy web app to GitHub Pages
 
+# Deployment strategy: publish web/ to the gh-pages branch with a plain git
+# push. The previous approach (configure-pages with enablement + deploy-pages)
+# failed with "Resource not accessible by integration" because neither the
+# workflow GITHUB_TOKEN nor an app integration token is allowed to CREATE a
+# Pages site through the API — that first creation is reserved for a human in
+# repo Settings. A git push to gh-pages needs only contents:write and is the
+# classic publishing source; once the branch exists GitHub serves it at
+# https://puneetfsn.github.io/kutumb-care/ (Settings → Pages shows
+# "Deploy from a branch: gh-pages" if it ever needs re-selecting).
+
 on:
   push:
     branches: [main]
@@ -7,9 +17,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
@@ -17,22 +25,19 @@ concurrency:
 
 jobs:
   deploy:
-    name: Publish web/
+    name: Publish web/ to gh-pages
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      - name: Set up Pages
-        uses: actions/configure-pages@v5
+
+      - name: Publish web folder to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          enablement: true
-      - name: Upload web app
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: web
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./web
+          publish_branch: gh-pages
+          commit_message: "Deploy Kutumb Care web app"
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
