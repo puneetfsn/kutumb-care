@@ -31,13 +31,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.puneetfsn.kutumbcare.data.AppLanguage
 import com.puneetfsn.kutumbcare.data.ThemeMode
+import com.puneetfsn.kutumbcare.ui.LocalStrings
 import com.puneetfsn.kutumbcare.ui.components.PrivacyBanner
 import kotlinx.coroutines.delay
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel) {
     val prefs by viewModel.preferences.collectAsStateWithLifecycle()
+    val strings = LocalStrings.current
     val message by viewModel.message.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
@@ -82,61 +85,85 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             .verticalScroll(rememberScrollState())
             .padding(20.dp)
     ) {
-        Text("Privacy & family", style = MaterialTheme.typography.headlineMedium)
+        Text(strings.settingsTitle, style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(8.dp))
         PrivacyBanner()
         Spacer(Modifier.height(8.dp))
         Text(
-            "Kutumb Care has no internet permission, no account and no cloud. Clearing app data is the only way to recover a forgotten PIN.",
+            strings.noInternetNote,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(20.dp))
-        Text("Family profile", style = MaterialTheme.typography.titleLarge)
+        Text(strings.familyProfileLink, style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(10.dp))
-        OutlinedTextField(name, { name = it }, label = { Text("Primary person") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(name, { name = it }, label = { Text(strings.primaryPerson) }, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(8.dp))
-        OutlinedTextField(family, { family = it }, label = { Text("Family label") }, placeholder = { Text("Kumar family") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(family, { family = it }, label = { Text(strings.familyLabel) }, placeholder = { Text(strings.familyLabelPlaceholder) }, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(8.dp))
-        OutlinedTextField(contact, { contact = it }, label = { Text("Emergency contact name") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(contact, { contact = it }, label = { Text(strings.emergencyName) }, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
             phone, { phone = it },
-            label = { Text("Emergency contact phone") },
+            label = { Text(strings.emergencyPhone) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(12.dp))
         Button(onClick = { viewModel.saveProfile(name, family, contact, phone) }, modifier = Modifier.fillMaxWidth()) {
-            Text("Save profile")
+            Text(strings.saveProfile)
         }
 
         Spacer(Modifier.height(24.dp))
-        Text("Appearance", style = MaterialTheme.typography.titleLarge)
+        Text(strings.appearance, style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ThemeMode.entries.forEach { mode ->
                 FilterChip(
                     selected = prefs.themeMode == mode,
                     onClick = { viewModel.setTheme(mode) },
-                    label = { Text(mode.name.lowercase().replaceFirstChar { it.titlecase() }) }
+                    label = {
+                        Text(
+                            when (mode) {
+                                ThemeMode.SYSTEM -> strings.themeSystem
+                                ThemeMode.LIGHT -> strings.themeLight
+                                ThemeMode.DARK -> strings.themeDark
+                            }
+                        )
+                    }
                 )
             }
         }
 
         Spacer(Modifier.height(24.dp))
-        Text("4-digit app PIN", style = MaterialTheme.typography.titleLarge)
+        Text(strings.language, style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = prefs.language == AppLanguage.ENGLISH,
+                onClick = { viewModel.setLanguage(AppLanguage.ENGLISH) },
+                label = { Text(strings.english) }
+            )
+            FilterChip(
+                selected = prefs.language == AppLanguage.HINDI,
+                onClick = { viewModel.setLanguage(AppLanguage.HINDI) },
+                label = { Text(strings.hindiName) }
+            )
+        }
+
+        Spacer(Modifier.height(24.dp))
+        Text(strings.pinSection, style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
         Text(
-            if (prefs.pinEnabled) "PIN lock is on. The PIN is hashed on this device only."
-            else "Optional lock so a roommate cannot open the dossier.",
+            if (prefs.pinEnabled) strings.pinOn
+            else strings.pinOff,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
             pin, { if (it.length <= 4 && it.all(Char::isDigit)) pin = it },
-            label = { Text("New PIN") },
+            label = { Text(strings.newPin) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             modifier = Modifier.fillMaxWidth()
@@ -144,7 +171,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
             pinConfirm, { if (it.length <= 4 && it.all(Char::isDigit)) pinConfirm = it },
-            label = { Text("Confirm PIN") },
+            label = { Text(strings.confirmPin) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             modifier = Modifier.fillMaxWidth()
@@ -152,33 +179,33 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             Button(onClick = { viewModel.setPin(pin, pinConfirm) }, modifier = Modifier.weight(1f), enabled = pin.length == 4) {
-                Text("Set PIN")
+                Text(strings.setPin)
             }
             if (prefs.pinEnabled) {
                 OutlinedButton(onClick = { viewModel.clearPin() }, modifier = Modifier.weight(1f)) {
-                    Text("Remove PIN")
+                    Text(strings.removePin)
                 }
             }
         }
 
         Spacer(Modifier.height(24.dp))
-        Text("Offline backup", style = MaterialTheme.typography.titleLarge)
+        Text(strings.offlineBackup, style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
         Text(
-            "Export a JSON file you can keep on a USB drive. The backup does not include the app PIN.",
+            strings.backupNote,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(8.dp))
         Button(onClick = { createBackup.launch("kutumb-care-backup.json") }, modifier = Modifier.fillMaxWidth()) {
-            Text("Export JSON backup")
+            Text(strings.exportBackup)
         }
         Spacer(Modifier.height(8.dp))
         OutlinedButton(
             onClick = { openBackup.launch(arrayOf("application/json", "text/*", "*/*")) },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Restore JSON backup")
+            Text(strings.restoreBackup)
         }
 
         message?.let {
@@ -187,10 +214,10 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         }
 
         Spacer(Modifier.height(28.dp))
-        Text("About", style = MaterialTheme.typography.titleLarge)
+        Text(strings.about, style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(6.dp))
         Text(
-            "Kutumb Care is a 100% offline family emergency checklist for India. It helps your people find Aadhaar, bank nominees, LIC policies, EPF / UAN, property deeds and trusted contacts — without ever storing passwords.",
+            strings.aboutText,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

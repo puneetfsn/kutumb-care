@@ -1,16 +1,26 @@
 package com.puneetfsn.kutumbcare.ui
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +39,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import com.puneetfsn.kutumbcare.data.AppLanguage
 import com.puneetfsn.kutumbcare.data.AssetCategory
 import com.puneetfsn.kutumbcare.data.UserPreferences
 import com.puneetfsn.kutumbcare.di.AppContainer
@@ -40,6 +53,7 @@ import com.puneetfsn.kutumbcare.ui.records.RecordsScreen
 import com.puneetfsn.kutumbcare.ui.records.RecordsViewModel
 import com.puneetfsn.kutumbcare.ui.settings.SettingsScreen
 import com.puneetfsn.kutumbcare.ui.settings.SettingsViewModel
+import kotlinx.coroutines.launch
 
 private object Routes {
     const val PIN = "pin"
@@ -51,6 +65,59 @@ private object Routes {
 
 @Composable
 fun KutumbCareRoot(
+    container: AppContainer,
+    preferences: UserPreferences
+) {
+    CompositionLocalProvider(
+        LocalStrings provides UiStrings.of(preferences.language),
+        LocalAppLanguage provides preferences.language
+    ) {
+        KutumbCareRootContent(container, preferences)
+    }
+}
+
+/** First launch: ask English or हिन्दी before anything else. */
+@Composable
+private fun LanguageChooser(container: AppContainer) {
+    val scope = rememberCoroutineScope()
+    val strings = LocalStrings.current
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("Kutumb Care · कुटुम्ब केयर", style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(8.dp))
+        Text(strings.chooseLanguageTitle, style = MaterialTheme.typography.titleLarge)
+        Text("अपनी भाषा चुनें", style = MaterialTheme.typography.titleLarge)
+        Text(
+            strings.chooseLanguageSub,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(24.dp))
+        Card(onClick = {
+            scope.launch { container.settingsRepository.setLanguage(AppLanguage.ENGLISH) }
+        }, modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(20.dp)) {
+                Text("English", style = MaterialTheme.typography.headlineSmall)
+                Text("Continue in English", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        Card(onClick = {
+            scope.launch { container.settingsRepository.setLanguage(AppLanguage.HINDI) }
+        }, modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(20.dp)) {
+                Text("हिन्दी", style = MaterialTheme.typography.headlineSmall)
+                Text("हिन्दी में आगे बढ़ें", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+private fun KutumbCareRootContent(
     container: AppContainer,
     preferences: UserPreferences
 ) {
@@ -73,6 +140,11 @@ fun KutumbCareRoot(
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    if (!preferences.languageChosen) {
+        LanguageChooser(container)
+        return
     }
 
     if (preferences.pinEnabled && !unlocked) {
@@ -100,20 +172,20 @@ fun KutumbCareRoot(
                     NavigationBarItem(
                         selected = route == Routes.HOME,
                         onClick = { navController.navigateTop(Routes.HOME) },
-                        icon = { Icon(Icons.Outlined.Home, contentDescription = "Home") },
-                        label = { Text("Home") }
+                        icon = { Icon(Icons.Outlined.Home, contentDescription = LocalStrings.current.home) },
+                        label = { Text(LocalStrings.current.home) }
                     )
                     NavigationBarItem(
                         selected = route.startsWith("records"),
                         onClick = { navController.navigateTop("records?category=") },
-                        icon = { Icon(Icons.Outlined.Description, contentDescription = "Records") },
-                        label = { Text("Records") }
+                        icon = { Icon(Icons.Outlined.Description, contentDescription = LocalStrings.current.recordsNav) },
+                        label = { Text(LocalStrings.current.recordsNav) }
                     )
                     NavigationBarItem(
                         selected = route == Routes.SETTINGS,
                         onClick = { navController.navigateTop(Routes.SETTINGS) },
-                        icon = { Icon(Icons.Outlined.Settings, contentDescription = "Settings") },
-                        label = { Text("Settings") }
+                        icon = { Icon(Icons.Outlined.Settings, contentDescription = LocalStrings.current.settingsNav) },
+                        label = { Text(LocalStrings.current.settingsNav) }
                     )
                 }
             }

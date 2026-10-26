@@ -1,6 +1,6 @@
-# Kutumb Care
+# Kutumb Care · कुटुम्ब केयर
 
-A private, 100% offline Android emergency dossier for Indian families.
+A private, 100% offline family emergency dossier for Indian families — as an **Android app** and a **web app**, in **English and हिन्दी**.
 
 Kutumb Care helps you catalogue **where** identity papers, bank accounts, insurance policies, EPF / UAN, property deeds and trusted contacts live — so your people can find them in an emergency. It never asks for net-banking passwords, UPI PINs, ATM PINs, OTPs or CVVs.
 
@@ -25,7 +25,7 @@ When the time comes, print the **Family Emergency Dossier** PDF, seal it, and ke
 | Reference | Policy, account, folio or UAN number |
 | Contact | LIC agent name and phone |
 
-## India-specific checklist (auto-seeded)
+## India-specific checklist (auto-seeded, English + हिन्दी)
 
 Identity & civil · Banking & funds · Investments (Demat, EPF/UAN, PPF, NPS, gold) · Insurance · Property & loans · Digital legacy · Trusted contacts (CA, lawyer, agent).
 
@@ -51,6 +51,38 @@ app/src/main/java/com/puneetfsn/kutumbcare/
 app/src/test/                 JVM unit tests (readiness, PIN hash, backup format, re-lock)
 ```
 
+## Web app (English + हिन्दी)
+
+`web/` is a self-contained offline web app — no build step, no CDN, no network calls
+(`connect-src 'none'`). Open `web/index.html` in any browser, or serve the folder:
+
+```bash
+cd web && python3 -m http.server 8080   # then open http://localhost:8080
+```
+
+- First launch asks **English / हिन्दी**; the choice is remembered and can be changed anytime.
+- Same 24 records, readiness score, nominee alerts, search and record editor as Android.
+- Data lives only in that browser on that device (`localStorage`). Clearing browser data
+  erases it — keep a JSON backup or a printed dossier.
+- **JSON backup is interchangeable with the Android app** (same format; the PIN is never exported).
+- Two PDF downloads are generated on-device in the chosen language:
+  **“Download my dossier”** (filled with your records) and
+  **“Download blank form to fill by hand”** (an empty A4 booklet to print and complete with a pen).
+- Installable as a PWA (“Add to Home Screen”) with the shielded-home icon; the service
+  worker caches only the app shell so it keeps working with no connection.
+
+## Languages
+
+Both apps ask **English / हिन्दी** on first launch and remember the choice (changeable in
+Settings). On Android the 24 seeded records carry Hindi titles/descriptions in the database
+(Room v2 migration — existing family data is preserved), and the PDF dossier and widget
+follow the chosen language.
+
+## App icon
+
+The shielded-home emblem lives in `assets/kutumb-care-icon.png` and is generated into the
+Android launcher mipmaps / adaptive icon and the web favicons + PWA icons (`web/icons/`).
+
 ## Build an APK (GitHub Actions)
 
 This repository is set up so you never need Android Studio on a slow laptop.
@@ -63,6 +95,38 @@ The debug APK is signed with the public debug keystore. It is installable for te
 
 The workflow also runs the unit tests and then **fails the build if the assembled APK requests
 `INTERNET`, `ACCESS_NETWORK_STATE` or `ACCESS_WIFI_STATE`**, so the privacy claim is checked on every push.
+
+## Web app (English + हिन्दी)
+
+`web/` is a self-contained offline web app — no build step, no CDN, no network calls
+(`connect-src 'none'`). Open `web/index.html` in any browser, or serve the folder:
+
+```bash
+cd web && python3 -m http.server 8080   # then open http://localhost:8080
+```
+
+- First launch asks **English / हिन्दी**; the choice is remembered and can be changed anytime.
+- Same 24 records, readiness score, nominee alerts, search and record editor as Android.
+- Data lives only in that browser on that device (`localStorage`). Clearing browser data
+  erases it — keep a JSON backup or a printed dossier.
+- **JSON backup is interchangeable with the Android app** (same format; the PIN is never exported).
+- Two PDF downloads are generated on-device in the chosen language:
+  **“Download my dossier”** (filled with your records) and
+  **“Download blank form to fill by hand”** (an empty A4 booklet to print and complete with a pen).
+- Installable as a PWA (“Add to Home Screen”) with the shielded-home icon; the service
+  worker caches only the app shell so it keeps working with no connection.
+
+## Languages
+
+Both apps ask **English / हिन्दी** on first launch and remember the choice (changeable in
+Settings). On Android the 24 seeded records carry Hindi titles/descriptions in the database
+(Room v2 migration — existing family data is preserved), and the PDF dossier and widget
+follow the chosen language.
+
+## App icon
+
+The shielded-home emblem lives in `assets/kutumb-care-icon.png` and is generated into the
+Android launcher mipmaps / adaptive icon and the web favicons + PWA icons (`web/icons/`).
 
 ## Build locally
 

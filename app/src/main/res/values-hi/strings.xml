@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kutumb Care</string>
+    <string name="widget_name">पारिवारिक तैयारी</string>
+    <string name="widget_description">आपके कुटुम्ब केयर परिवार की तैयारी का स्कोर और नॉमिनी अलर्ट दिखाता है।</string>
+    <string name="privacy_never_passwords">नेट-बैंकिंग पासवर्ड, UPI PIN, ATM PIN, OTP या CVV कभी न सहेजें। केवल स्थान और जानकारी दर्ज करें।</string>
+</resources>

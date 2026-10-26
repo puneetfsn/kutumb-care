@@ -45,6 +45,7 @@ class ReadinessWidget : GlanceAppWidget() {
                     completed = snapshot.completedCount,
                     total = snapshot.totalCount,
                     missingNominees = snapshot.missingNomineeItems.size,
+                    hindi = snapshot.preferences.language.isHindi,
                     launchIntent = Intent(context, MainActivity::class.java)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 )
@@ -59,6 +60,7 @@ private fun WidgetContent(
     completed: Int,
     total: Int,
     missingNominees: Int,
+    hindi: Boolean,
     launchIntent: Intent
 ) {
     Column(
@@ -75,7 +77,7 @@ private fun WidgetContent(
         )
         Spacer(GlanceModifier.height(6.dp))
         Text(
-            text = "$percent% ready",
+            text = if (hindi) "$percent% तैयार" else "$percent% ready",
             style = TextStyle(
                 color = ColorProvider(Color.White),
                 fontSize = 28.sp,
@@ -84,7 +86,7 @@ private fun WidgetContent(
         )
         Spacer(GlanceModifier.height(4.dp))
         Text(
-            text = "$completed of $total records  ·  $missingNominees nominee alerts",
+            text = if (hindi) "$total में से $completed रिकॉर्ड  ·  $missingNominees नॉमिनी अलर्ट" else "$completed of $total records  ·  $missingNominees nominee alerts",
             style = TextStyle(color = ColorProvider(Color(0xFFD4C4A8)), fontSize = 12.sp)
         )
     }

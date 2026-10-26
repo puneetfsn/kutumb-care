@@ -133,3 +133,23 @@ class ReadinessTest {
         assertEquals("Your family", UserPreferences().displayFamilyName)
     }
 }
+
+class HindiSeedTest {
+
+    @Test
+    fun `every seeded record has a Hindi title and description`() {
+        DefaultChecklist.ITEMS.forEach { item ->
+            assertTrue("Missing Hindi title for ${item.title}", item.titleHi.isNotBlank())
+            assertTrue("Missing Hindi description for ${item.title}", item.descriptionHi.isNotBlank())
+            assertEquals(item.titleHi, item.displayTitle(hindi = true))
+            assertEquals(item.title, item.displayTitle(hindi = false))
+        }
+        assertEquals(24, DefaultChecklist.HINDI_BY_ORDER.size)
+    }
+
+    @Test
+    fun `hindi family label uses the hindi suffix`() {
+        assertEquals("Asha का परिवार", UserPreferences(primaryUserName = "Asha", language = com.puneetfsn.kutumbcare.data.AppLanguage.HINDI).displayFamilyName)
+        assertEquals("आपका परिवार", UserPreferences(language = com.puneetfsn.kutumbcare.data.AppLanguage.HINDI).displayFamilyName)
+    }
+}

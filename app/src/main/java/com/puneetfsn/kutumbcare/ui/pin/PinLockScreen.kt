@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.puneetfsn.kutumbcare.data.SettingsRepository
+import com.puneetfsn.kutumbcare.ui.LocalStrings
 import kotlinx.coroutines.launch
 
 @Composable
@@ -34,6 +35,7 @@ fun PinLockScreen(
     onUnlocked: () -> Unit
 ) {
     var pin by remember { mutableStateOf("") }
+    val strings = LocalStrings.current
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
@@ -42,7 +44,7 @@ fun PinLockScreen(
             if (settingsRepository.verifyPin(candidate)) {
                 onUnlocked()
             } else {
-                error = "That PIN does not match"
+                error = strings.pinWrong
                 pin = ""
             }
         }
@@ -56,7 +58,7 @@ fun PinLockScreen(
         Text("Kutumb Care", style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(8.dp))
         Text(
-            "Enter your 4-digit PIN to open the family dossier.",
+            strings.pinPrompt,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

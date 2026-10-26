@@ -2,6 +2,7 @@ package com.puneetfsn.kutumbcare.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.puneetfsn.kutumbcare.data.AppLanguage
 import com.puneetfsn.kutumbcare.data.BackupManager
 import com.puneetfsn.kutumbcare.data.SettingsRepository
 import com.puneetfsn.kutumbcare.data.ThemeMode
@@ -34,9 +35,16 @@ class SettingsViewModel(
     ) {
         viewModelScope.launch {
             settingsRepository.updateProfile(name, family, contact, phone)
-            _message.value = "Family profile saved on this phone"
+            _message.value = msg("Family profile saved on this phone", "पारिवारिक प्रोफ़ाइल इस फ़ोन पर सहेजी गई")
         }
     }
+
+    fun setLanguage(language: AppLanguage) {
+        viewModelScope.launch { settingsRepository.setLanguage(language) }
+    }
+
+    private suspend fun msg(en: String, hi: String): String =
+        if (settingsRepository.snapshot().language.isHindi) hi else en
 
     fun setTheme(mode: ThemeMode) {
         viewModelScope.launch { settingsRepository.setThemeMode(mode) }
@@ -45,11 +53,11 @@ class SettingsViewModel(
     fun setPin(pin: String, confirm: String) {
         viewModelScope.launch {
             if (pin != confirm) {
-                _message.value = "The two PINs do not match"
+                _message.value = msg("The two PINs do not match", "दोनों PIN मेल नहीं खाते")
                 return@launch
             }
             runCatching { settingsRepository.setPin(pin) }
-                .onSuccess { _message.value = "App PIN enabled" }
+                .onSuccess { _message.value = msg("App PIN enabled", "ऐप PIN चालू हो गया") }
                 .onFailure { _message.value = it.message }
         }
     }
@@ -57,23 +65,23 @@ class SettingsViewModel(
     fun clearPin() {
         viewModelScope.launch {
             settingsRepository.clearPin()
-            _message.value = "App PIN removed"
+            _message.value = msg("App PIN removed", "ऐप PIN हटा दिया गया")
         }
     }
 
     fun exportBackup(stream: OutputStream) {
         viewModelScope.launch {
             runCatching { stream.use { backupManager.exportTo(it) } }
-                .onSuccess { _message.value = "Backup written. Keep this file private." }
-                .onFailure { _message.value = it.message ?: "Backup failed" }
+                .onSuccess { _message.value = msg("Backup written. Keep this file private.", "बैकअप लिखा गया। इस फ़ाइल को निजी रखें।") }
+                .onFailure { _message.value = it.message ?: msg("Backup failed", "बैकअप विफल") }
         }
     }
 
     fun importBackup(stream: InputStream) {
         viewModelScope.launch {
             runCatching { stream.use { backupManager.importFrom(it) } }
-                .onSuccess { _message.value = "Backup restored on this phone" }
-                .onFailure { _message.value = it.message ?: "Restore failed" }
+                .onSuccess { _message.value = msg("Backup restored on this phone", "बैकअप इस फ़ोन पर बहाल हो गया") }
+                .onFailure { _message.value = it.message ?: msg("Restore failed", "बहाली विफल") }
         }
     }
 

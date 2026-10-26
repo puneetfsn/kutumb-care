@@ -52,6 +52,8 @@ object BackupFormat {
                         put("category", item.category)
                         put("title", item.title)
                         put("description", item.description)
+                        put("titleHi", item.titleHi)
+                        put("descriptionHi", item.descriptionHi)
                         put("isCompleted", item.isCompleted)
                         put("nomineeStatus", item.nomineeStatus)
                         put("institutionName", item.institutionName)
@@ -98,6 +100,8 @@ object BackupFormat {
                         ).name,
                         title = title,
                         description = obj.optString("description"),
+                        titleHi = obj.optString("titleHi"),
+                        descriptionHi = obj.optString("descriptionHi"),
                         isCompleted = obj.optBoolean("isCompleted"),
                         nomineeStatus = NomineeStatus.fromRaw(
                             obj.optString("nomineeStatus", NomineeStatus.NOT_APPLICABLE.name)
