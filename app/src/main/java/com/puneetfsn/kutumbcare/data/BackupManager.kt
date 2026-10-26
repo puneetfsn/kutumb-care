@@ -6,8 +6,9 @@ import java.io.OutputStream
 import org.json.JSONArray
 import org.json.JSONObject
 
+@Suppress("UNUSED_PARAMETER")
 class BackupManager(
-    private val context: Context,
+    context: Context,
     private val checklistRepository: ChecklistRepository,
     private val settingsRepository: SettingsRepository
 ) {
@@ -16,7 +17,7 @@ class BackupManager(
         val prefs = settingsRepository.snapshot()
         val root = JSONObject().apply {
             put("app", "kutumb-care")
-            put("version", 1)
+            put("version", SCHEMA_VERSION)
             put("exportedAt", System.currentTimeMillis())
             put("privacy", "This backup never contains passwords, PINs, OTPs or CVVs.")
             put("profile", JSONObject().apply {
@@ -57,19 +58,28 @@ class BackupManager(
         if (root.optString("app") != "kutumb-care") {
             error("This file is not a Kutumb Care backup.")
         }
+        if (root.optInt("version", 0) > SCHEMA_VERSION) {
+            error("This backup was created by a newer version of Kutumb Care.")
+        }
         val profile = root.optJSONObject("profile")
         if (profile != null) {
+            // Keep whatever the family already typed in when a field is absent.
+            val current = settingsRepository.snapshot()
             settingsRepository.updateProfile(
-                primaryUserName = profile.optString("primaryUserName"),
-                familyLabel = profile.optString("familyLabel"),
-                emergencyContactName = profile.optString("emergencyContactName"),
-                emergencyContactPhone = profile.optString("emergencyContactPhone")
+                primaryUserName = profile.optString("primaryUserName", current.primaryUserName),
+                familyLabel = profile.optString("familyLabel", current.familyLabel),
+                emergencyContactName = profile.optString("emergencyContactName", current.emergencyContactName),
+                emergencyContactPhone = profile.optString("emergencyContactPhone", current.emergencyContactPhone)
             )
             runCatching {
-                settingsRepository.setThemeMode(ThemeMode.valueOf(profile.optString("themeMode", "SYSTEM")))
+                settingsRepository.setThemeMode(
+                    ThemeMode.valueOf(profile.optString("themeMode", current.themeMode.name))
+                )
             }
         }
-        val array = root.getJSONArray("items")
+        val array = root.optJSONArray("items")
+            ?: error("This backup has no records to restore.")
+        if (array.length() == 0) error("This backup has no records to restore.")
         val items = buildList {
             for (i in 0 until array.length()) {
                 val obj = array.getJSONObject(i)
@@ -96,8 +106,8 @@ class BackupManager(
         checklistRepository.replaceAll(items)
     }
 
-    fun cacheBackupFile(): java.io.File {
-        val dir = java.io.File(context.cacheDir, "backup").apply { mkdirs() }
-        return java.io.File(dir, "kutumb-care-backup.json")
+    private companion object {
+        /** Bump when the JSON layout changes, and keep imports backward compatible. */
+        const val SCHEMA_VERSION = 1
     }
 }

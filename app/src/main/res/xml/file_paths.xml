@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
+    <!-- Only the generated PDF is shared. Backups travel through the system
+         file picker, so they never need a content URI. -->
     <cache-path name="dossier" path="dossier/" />
-    <cache-path name="backup" path="backup/" />
 </paths>
