@@ -136,7 +136,11 @@ data class UserPreferences(
     /** False until the first-launch English / हिन्दी chooser has been answered. */
     val languageChosen: Boolean = false,
     /** Saved nominee cards, shared by every record (stored in DataStore). */
-    val nominees: List<NomineeProfile> = emptyList()
+    val nominees: List<NomineeProfile> = emptyList(),
+    /** Lock the moment the app leaves the foreground (no 30s grace). */
+    val lockInstant: Boolean = false,
+    /** Erase everything after 10 wrong unlock tries (owner-enabled). */
+    val autoWipe: Boolean = false
 ) {
     val displayFamilyName: String
         get() = familyName(language.isHindi)

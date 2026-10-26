@@ -53,6 +53,13 @@ class ChecklistRepository(
         refreshWidget()
     }
 
+    /** Erases all records and document photos (Erase everything / auto-wipe). */
+    suspend fun wipeAll() {
+        dao.deleteAll()
+        DocumentStore.deleteAll(appContext)
+        refreshWidget()
+    }
+
     suspend fun toggleCompleted(item: ChecklistItem) {
         dao.upsert(encryptItem(item.copy(isCompleted = !item.isCompleted, updatedAt = System.currentTimeMillis())))
         refreshWidget()

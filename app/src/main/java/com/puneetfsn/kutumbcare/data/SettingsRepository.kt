@@ -97,15 +97,38 @@ class SettingsRepository(context: Context) {
         return maxOf(0L, (until - System.currentTimeMillis() + 999) / 1000)
     }
 
-    /** Records a failed unlock; from the 5th failure the wait doubles each time (30s → 1m → 2m…, capped at 30m). */
-    suspend fun recordFailedAttempt() {
+    /** Records a failed unlock; from the 5th failure the wait doubles each time (30s → 1m → 2m…, capped at 30m). Returns the total failure count. */
+    suspend fun recordFailedAttempt(): Int {
+        var fails = 0
         store.edit { prefs ->
-            val fails = (prefs[PIN_FAIL_COUNT] ?: 0) + 1
+            fails = (prefs[PIN_FAIL_COUNT] ?: 0) + 1
             prefs[PIN_FAIL_COUNT] = fails
             if (fails >= 5) {
                 val waitSec = minOf(1800L, 30L shl minOf(6, fails - 5))
                 prefs[PIN_LOCK_UNTIL] = System.currentTimeMillis() + waitSec * 1000
             }
+        }
+        return fails
+    }
+
+    /** Total consecutive failed unlock attempts. */
+    suspend fun failedAttempts(): Int = store.data.first()[PIN_FAIL_COUNT] ?: 0
+
+    suspend fun setLockInstant(enabled: Boolean) {
+        store.edit { it[LOCK_INSTANT] = enabled }
+    }
+
+    suspend fun setAutoWipe(enabled: Boolean) {
+        store.edit { it[AUTO_WIPE] = enabled }
+    }
+
+    /** Erases every preference except the chosen language (used by Erase everything / auto-wipe). */
+    suspend fun wipeAllPreservingLanguage() {
+        val current = snapshot()
+        store.edit { it.clear() }
+        store.edit {
+            it[LANGUAGE] = current.language.name
+            it[LANGUAGE_CHOSEN] = current.languageChosen
         }
     }
 
@@ -129,6 +152,8 @@ class SettingsRepository(context: Context) {
         internal val LANGUAGE_CHOSEN = booleanPreferencesKey("language_chosen")
         internal val NOMINEES_JSON = stringPreferencesKey("nominees_json")
         internal val PIN_FAIL_COUNT = androidx.datastore.preferences.core.intPreferencesKey("pin_fail_count")
+        internal val LOCK_INSTANT = booleanPreferencesKey("lock_instant")
+        internal val AUTO_WIPE = booleanPreferencesKey("auto_wipe")
         internal val PIN_LOCK_UNTIL = androidx.datastore.preferences.core.longPreferencesKey("pin_lock_until")
 
         fun hashPin(pin: String): String {
@@ -157,6 +182,8 @@ private fun Preferences.toUserPreferences(): UserPreferences = UserPreferences(
     setupComplete = this[SettingsRepository.SETUP_COMPLETE] ?: false,
     language = AppLanguage.fromRaw(this[SettingsRepository.LANGUAGE]),
     languageChosen = this[SettingsRepository.LANGUAGE_CHOSEN] ?: false,
+    lockInstant = this[SettingsRepository.LOCK_INSTANT] ?: false,
+    autoWipe = this[SettingsRepository.AUTO_WIPE] ?: false,
     nominees = NomineesCodec.decode(
         this[SettingsRepository.NOMINEES_JSON]?.let { VaultCrypto.decryptField(it) }
     )

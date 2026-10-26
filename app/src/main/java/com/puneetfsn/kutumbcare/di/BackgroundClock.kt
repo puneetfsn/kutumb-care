@@ -25,6 +25,13 @@ class BackgroundClock(
         return clock() - since >= graceMillis
     }
 
+    /** True if the app was backgrounded at all since the last check (for instant-lock mode). */
+    fun consumeBackgrounded(): Boolean {
+        val was = backgroundedAt != null
+        backgroundedAt = null
+        return was
+    }
+
     fun reset() {
         backgroundedAt = null
     }

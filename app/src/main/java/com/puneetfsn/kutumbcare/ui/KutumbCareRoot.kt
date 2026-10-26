@@ -126,16 +126,12 @@ private fun KutumbCareRootContent(
 ) {
     var unlocked by rememberSaveable { mutableStateOf(!preferences.pinEnabled) }
 
-    // While the lock is enabled, block screenshots and recents-screen
-    // thumbnails so the dossier cannot leak through the app switcher.
+    // Maximum security: screenshots and recents-screen thumbnails are
+    // ALWAYS blocked, whether or not a passphrase is set, so the dossier
+    // can never leak through the app switcher or a casual screenshot.
     val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
-    DisposableEffect(activity, preferences.pinEnabled) {
-        val window = activity?.window
-        if (preferences.pinEnabled) {
-            window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
-        } else {
-            window?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
-        }
+    DisposableEffect(activity) {
+        activity?.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
         onDispose { }
     }
 
@@ -149,7 +145,9 @@ private fun KutumbCareRootContent(
             when (event) {
                 Lifecycle.Event.ON_STOP -> lockClock.onBackground()
                 Lifecycle.Event.ON_START -> {
-                    if (preferences.pinEnabled && lockClock.shouldRelock()) unlocked = false
+                    if (preferences.pinEnabled &&
+                        (if (preferences.lockInstant) lockClock.consumeBackgrounded() else lockClock.shouldRelock())
+                    ) unlocked = false
                 }
                 else -> Unit
             }
@@ -166,7 +164,12 @@ private fun KutumbCareRootContent(
     if (preferences.pinEnabled && !unlocked) {
         PinLockScreen(
             settingsRepository = container.settingsRepository,
-            onUnlocked = { unlocked = true }
+            onUnlocked = { unlocked = true },
+            onWipeAll = {
+                container.checklistRepository.wipeAll()
+                container.settingsRepository.wipeAllPreservingLanguage()
+                container.checklistRepository.seedIfEmpty()
+            }
         )
         return
     }

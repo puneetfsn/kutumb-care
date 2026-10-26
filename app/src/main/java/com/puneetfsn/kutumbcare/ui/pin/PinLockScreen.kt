@@ -41,7 +41,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun PinLockScreen(
     settingsRepository: SettingsRepository,
-    onUnlocked: () -> Unit
+    onUnlocked: () -> Unit,
+    onWipeAll: suspend () -> Unit = {}
 ) {
     var secret by remember { mutableStateOf("") }
     val strings = LocalStrings.current
@@ -65,7 +66,14 @@ fun PinLockScreen(
                 settingsRepository.resetFailedAttempts()
                 onUnlocked()
             } else {
-                settingsRepository.recordFailedAttempt()
+                val fails = settingsRepository.recordFailedAttempt()
+                if (fails >= 10 && settingsRepository.snapshot().autoWipe) {
+                    // Owner enabled self-erase: ten wrong guesses and the
+                    // dossier destroys itself. No recovery, by design.
+                    onWipeAll()
+                    onUnlocked()
+                    return@launch
+                }
                 waitSeconds = settingsRepository.lockWaitSeconds()
                 error = if (waitSeconds > 0L) strings.tooManyTries else strings.pinWrong
                 secret = ""
