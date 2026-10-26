@@ -98,6 +98,26 @@ fun RecordsScreen(
                     .padding(horizontal = 16.dp, vertical = 6.dp)
             )
             Spacer(Modifier.height(4.dp))
+            // Quick-add for record types a family often holds several of.
+            val templates = com.puneetfsn.kutumbcare.data.DefaultChecklist.ITEMS.filter {
+                it.sortOrder in com.puneetfsn.kutumbcare.data.DefaultChecklist.REPEATABLE_ORDERS &&
+                    (category == null || it.categoryEnum == category)
+            }
+            if (templates.isNotEmpty()) {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(bottom = 4.dp)
+                ) {
+                    items(templates, key = { it.sortOrder }) { template ->
+                        FilterChip(
+                            selected = false,
+                            onClick = { viewModel.createFromTemplate(template.sortOrder) },
+                            label = { Text("＋ " + template.displayTitle(hindi)) }
+                        )
+                    }
+                }
+            }
             LazyColumn(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp, top = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -114,7 +134,12 @@ fun RecordsScreen(
                     RecordCard(
                         item = item,
                         onOpen = { onOpenItem(item.id) },
-                        onToggle = { viewModel.toggle(item) }
+                        onToggle = { viewModel.toggle(item) },
+                        onAddAnother = if (item.specOrder in com.puneetfsn.kutumbcare.data.DefaultChecklist.REPEATABLE_ORDERS ||
+                            item.sortOrder in com.puneetfsn.kutumbcare.data.DefaultChecklist.REPEATABLE_ORDERS
+                        ) {
+                            { viewModel.addAnotherLike(item) }
+                        } else null
                     )
                 }
             }
@@ -132,7 +157,8 @@ fun RecordsScreen(
 private fun RecordCard(
     item: ChecklistItem,
     onOpen: () -> Unit,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
+    onAddAnother: (() -> Unit)? = null
 ) {
     Card(
         onClick = onOpen,
@@ -166,6 +192,15 @@ private fun RecordCard(
                 )
                 Spacer(Modifier.height(6.dp))
                 NomineeBadge(item.nomineeEnum)
+            }
+            if (onAddAnother != null) {
+                IconButton(onClick = onAddAnother) {
+                    Icon(
+                        Icons.Outlined.Add,
+                        contentDescription = LocalStrings.current.addAnother,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }

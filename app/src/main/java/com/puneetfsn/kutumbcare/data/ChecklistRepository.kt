@@ -52,6 +52,31 @@ class ChecklistRepository(
         refreshWidget()
     }
 
+    /** Item id → base64 JPEG payloads, for the JSON backup. */
+    suspend fun attachmentData(): Map<Long, List<String>> = getAll().associate { item ->
+        item.id to item.attachmentNames.mapNotNull { name ->
+            DocumentStore.readBytes(appContext, name)?.let {
+                android.util.Base64.encodeToString(it, android.util.Base64.NO_WRAP)
+            }
+        }
+    }
+
+    /**
+     * Turns restored items' base64 attachment payloads back into on-device
+     * files. Accepts raw base64 (Android) and data URLs (web backups).
+     */
+    fun materializeAttachments(items: List<ChecklistItem>): List<ChecklistItem> = items.map { item ->
+        if (item.attachmentNames.isEmpty()) return@map item
+        val names = item.attachmentNames.mapNotNull { payload ->
+            runCatching {
+                val base64 = payload.substringAfter("base64,", payload)
+                val bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT)
+                if (bytes.isEmpty()) null else DocumentStore.writeBytes(appContext, bytes)
+            }.getOrNull()
+        }
+        item.copy(attachmentsJson = org.json.JSONArray(names).toString())
+    }
+
     suspend fun replaceAll(items: List<ChecklistItem>) {
         dao.deleteAll()
         dao.upsertAll(items)

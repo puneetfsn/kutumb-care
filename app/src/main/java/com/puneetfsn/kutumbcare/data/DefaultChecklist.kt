@@ -7,17 +7,26 @@ package com.puneetfsn.kutumbcare.data
  */
 object DefaultChecklist {
 
+    /** Templates a family commonly holds several of — these get a "+" add-another action. */
+    val REPEATABLE_ORDERS: List<Int> = listOf(50, 51, 60, 61, 80, 90, 91)
+
     /** sortOrder → (Hindi title, Hindi description). */
     val HINDI_BY_ORDER: Map<Int, Pair<String, String>> = mapOf(
         10 to ("आधार कार्ड" to "आधार की प्रतियाँ, जुड़ा मोबाइल नंबर और DigiLocker की जानकारी। यहाँ OTP या आधार PIN न लिखें।"),
         20 to ("PAN कार्ड" to "PAN नंबर का स्थान और क्या स्कैन की गई प्रति आधार फ़ाइल के साथ है।"),
         30 to ("पासपोर्ट, मतदाता पहचान पत्र और ड्राइविंग लाइसेंस" to "पासपोर्ट, मतदाता पहचान पत्र और DL — मूल और प्रतियाँ कहाँ रखी हैं।"),
+        31 to ("पासपोर्ट" to "पासपोर्ट नंबर, जारी/समाप्ति तारीखें, और मूल व प्रतियाँ कहाँ रखी हैं।"),
+        32 to ("मतदाता पहचान पत्र" to "मतदाता पहचान पत्र (EPIC) नंबर और मूल व प्रतियाँ कहाँ रखी हैं।"),
+        33 to ("ड्राइविंग लाइसेंस" to "ड्राइविंग लाइसेंस नंबर, वैधता, और मूल व प्रतियाँ कहाँ रखी हैं।"),
         40 to ("वसीयत और निष्पादक" to "पंजीकृत या अपंजीकृत वसीयत, निष्पादक का नाम, और वह वकील या संरक्षक जिसके पास प्रति है।"),
-        50 to ("बचत और चालू खाते" to "बैंक का नाम, शाखा, खाते का प्रकार और नॉमिनी दर्ज है या नहीं। खाता नंबर केवल ज़रूरत पर लिखें — नेट-बैंकिंग पासवर्ड या UPI PIN कभी नहीं।"),
-        60 to ("स्थायी जमा और आवर्ती जमा" to "FD / RD रसीदें, जारी करने वाला बैंक, परिपक्वता नोट और नॉमिनी की स्थिति।"),
+        50 to ("बचत खाता" to "बैंक का नाम, शाखा, पूरा बचत खाता नंबर और नॉमिनी दर्ज है या नहीं। नेट-बैंकिंग पासवर्ड या UPI PIN कभी नहीं।"),
+        51 to ("चालू खाता" to "बैंक का नाम, शाखा, पूरा चालू खाता नंबर और नॉमिनी स्थिति — व्यवसाय / HUF खातों के लिए।"),
+        60 to ("स्थायी जमा (FD)" to "FD रसीद, जारी करने वाला बैंक, परिपक्वता तारीख और नॉमिनी स्थिति।"),
+        61 to ("आवर्ती जमा (RD)" to "RD खाता, जारी करने वाला बैंक, मासिक किस्त, परिपक्वता तारीख और नॉमिनी स्थिति।"),
         70 to ("बैंक लॉकर" to "लॉकर नंबर, शाखा, संयुक्त धारक और लॉकर की चाबी कहाँ रखी है।"),
         80 to ("क्रेडिट कार्ड" to "जारी करने वाला बैंक और बकाया राशि जाँचने की याद। CVV, ATM PIN या OTP कभी न रखें।"),
-        90 to ("डीमैट और म्यूचुअल फंड" to "Zerodha, Groww, Angel One, CAMS या KFintech फोलियो। DP ID / क्लाइंट ID और नॉमिनी स्थिति लिखें — ब्रोकर पासवर्ड कभी नहीं।"),
+        90 to ("डीमैट खाता" to "Zerodha, Groww, Angel One — DP ID / क्लाइंट ID और नॉमिनी स्थिति। ब्रोकर पासवर्ड कभी नहीं।"),
+        91 to ("म्यूचुअल फंड" to "AMC / प्लेटफ़ॉर्म (CAMS, KFintech, Zerodha, Groww), फोलियो नंबर, परिपक्वता तारीख यदि कोई हो (ELSS / क्लोज़-एंडेड) और नॉमिनी स्थिति।"),
         100 to ("EPF / UAN" to "EPF निकासी और EDLI जीवन बीमा के लिए यूनिवर्सल खाता नंबर। EPFO पोर्टल पर नॉमिनी अद्यतन है, यह सुनिश्चित करें।"),
         110 to ("PPF पासबुक" to "सार्वजनिक भविष्य निधि खाता, बैंक या डाकघर शाखा, पासबुक का स्थान और नॉमिनी।"),
         120 to ("NPS / PRAN" to "स्थायी सेवानिवृत्ति खाता नंबर, POP या नियोक्ता NPS, और नॉमिनी / पारिवारिक पेंशन विवरण।"),
@@ -58,11 +67,25 @@ object DefaultChecklist {
             "PAN नंबर का स्थान और क्या स्कैन की गई प्रति आधार फ़ाइल के साथ है।"
         ),
         item(
-            AssetCategory.IDENTITY_GOVT, 30,
-            "Passport, voter ID & driving licence",
-            "Passport number booklet, voter ID and DL — where the originals and photocopies are kept.",
-            "पासपोर्ट, मतदाता पहचान पत्र और ड्राइविंग लाइसेंस",
-            "पासपोर्ट, मतदाता पहचान पत्र और DL — मूल और प्रतियाँ कहाँ रखी हैं।"
+            AssetCategory.IDENTITY_GOVT, 31,
+            "Passport",
+            "Passport number, issue/expiry dates, and where the original and photocopies are kept.",
+            "पासपोर्ट",
+            "पासपोर्ट नंबर, जारी/समाप्ति तारीखें, और मूल व प्रतियाँ कहाँ रखी हैं।"
+        ),
+        item(
+            AssetCategory.IDENTITY_GOVT, 32,
+            "Voter ID card",
+            "Voter ID (EPIC) number and where the original and photocopies are kept.",
+            "मतदाता पहचान पत्र",
+            "मतदाता पहचान पत्र (EPIC) नंबर और मूल व प्रतियाँ कहाँ रखी हैं।"
+        ),
+        item(
+            AssetCategory.IDENTITY_GOVT, 33,
+            "Driving licence",
+            "Driving licence number, validity, and where the original and copies are kept.",
+            "ड्राइविंग लाइसेंस",
+            "ड्राइविंग लाइसेंस नंबर, वैधता, और मूल व प्रतियाँ कहाँ रखी हैं।"
         ),
         item(
             AssetCategory.IDENTITY_GOVT, 40,
@@ -73,17 +96,31 @@ object DefaultChecklist {
         ),
         item(
             AssetCategory.BANKING_FUNDS, 50,
-            "Savings & current accounts",
-            "Bank name, branch, account type and whether a nominee is registered. Record account numbers only if useful — never net-banking passwords or UPI PINs.",
-            "बचत और चालू खाते",
-            "बैंक का नाम, शाखा, खाते का प्रकार और नॉमिनी दर्ज है या नहीं। खाता नंबर केवल ज़रूरत पर लिखें — नेट-बैंकिंग पासवर्ड या UPI PIN कभी नहीं।"
+            "Savings account",
+            "Bank name, branch, full savings account number and whether a nominee is registered. Never net-banking passwords or UPI PINs.",
+            "बचत खाता",
+            "बैंक का नाम, शाखा, पूरा बचत खाता नंबर और नॉमिनी दर्ज है या नहीं। नेट-बैंकिंग पासवर्ड या UPI PIN कभी नहीं।"
         ),
         item(
             AssetCategory.BANKING_FUNDS, 60,
-            "Fixed deposits & recurring deposits",
-            "FD / RD receipts, issuing bank, maturity notes and nominee status.",
-            "स्थायी जमा और आवर्ती जमा",
-            "FD / RD रसीदें, जारी करने वाला बैंक, परिपक्वता नोट और नॉमिनी की स्थिति।"
+            "Fixed deposit (FD)",
+            "FD receipt, issuing bank, maturity date and nominee status.",
+            "स्थायी जमा (FD)",
+            "FD रसीद, जारी करने वाला बैंक, परिपक्वता तारीख और नॉमिनी स्थिति।"
+        ),
+        item(
+            AssetCategory.BANKING_FUNDS, 51,
+            "Current account",
+            "Bank name, branch, full current account number and nominee status — for business / HUF accounts.",
+            "चालू खाता",
+            "बैंक का नाम, शाखा, पूरा चालू खाता नंबर और नॉमिनी स्थिति — व्यवसाय / HUF खातों के लिए।"
+        ),
+        item(
+            AssetCategory.BANKING_FUNDS, 61,
+            "Recurring deposit (RD)",
+            "RD account, issuing bank, monthly instalment, maturity date and nominee status.",
+            "आवर्ती जमा (RD)",
+            "RD खाता, जारी करने वाला बैंक, मासिक किस्त, परिपक्वता तारीख और नॉमिनी स्थिति।"
         ),
         item(
             AssetCategory.BANKING_FUNDS, 70,
@@ -101,10 +138,17 @@ object DefaultChecklist {
         ),
         item(
             AssetCategory.INVESTMENTS, 90,
-            "Demat & mutual funds",
-            "Zerodha, Groww, Angel One, CAMS or KFintech folios. Note DP ID / client ID and nominee status — never broker passwords.",
-            "डीमैट और म्यूचुअल फंड",
-            "Zerodha, Groww, Angel One, CAMS या KFintech फोलियो। DP ID / क्लाइंट ID और नॉमिनी स्थिति लिखें — ब्रोकर पासवर्ड कभी नहीं।"
+            "Demat account",
+            "Zerodha, Groww, Angel One — DP ID / client ID and nominee status. Never broker passwords.",
+            "डीमैट खाता",
+            "Zerodha, Groww, Angel One — DP ID / क्लाइंट ID और नॉमिनी स्थिति। ब्रोकर पासवर्ड कभी नहीं।"
+        ),
+        item(
+            AssetCategory.INVESTMENTS, 91,
+            "Mutual funds",
+            "AMC / platform (CAMS, KFintech, Zerodha, Groww), folio numbers, maturity date if any (ELSS / close-ended) and nominee status.",
+            "म्यूचुअल फंड",
+            "AMC / प्लेटफ़ॉर्म (CAMS, KFintech, Zerodha, Groww), फोलियो नंबर, परिपक्वता तारीख यदि कोई हो (ELSS / क्लोज़-एंडेड) और नॉमिनी स्थिति।"
         ),
         item(
             AssetCategory.INVESTMENTS, 100,
@@ -277,7 +321,7 @@ object DefaultChecklist {
         titleHi: String,
         descriptionHi: String,
         nominee: NomineeStatus = if (category.requiresNominee) NomineeStatus.NEEDS_NOMINEE else NomineeStatus.NOT_APPLICABLE
-    ) = ChecklistItem(
+    ) = ChecklistItem(specOrder = order,
         category = category.name,
         title = title,
         description = description,

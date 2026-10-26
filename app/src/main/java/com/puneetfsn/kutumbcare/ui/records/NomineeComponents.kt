@@ -62,7 +62,7 @@ fun NomineeProfileDialog(
                 NomineeField(address, { address = it }, strings.nomineeAddress)
                 NomineeField(mobile, { mobile = it }, strings.nomineeMobile, keyboardType = KeyboardType.Phone)
                 NomineeField(email, { email = it }, strings.nomineeEmail, keyboardType = KeyboardType.Email)
-                NomineeField(idLast4, { if (it.length <= 4) idLast4 = it }, strings.nomineeIdLast4)
+                NomineeField(idLast4, { idLast4 = it }, strings.nomineeIdLast4)
             }
         },
         confirmButton = {

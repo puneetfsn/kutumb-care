@@ -34,6 +34,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.activity.compose.BackHandler
@@ -79,6 +80,8 @@ fun ItemEditorScreen(
     var nom1Share by remember { mutableStateOf("") }
     var nom2Id by remember { mutableStateOf("") }
     var nom2Share by remember { mutableStateOf("") }
+    var maturity by remember { mutableStateOf("") }
+    var attachments by remember { mutableStateOf<List<String>>(emptyList()) }
     var showNomineeDialog by remember { mutableStateOf(false) }
     val prefs by viewModel.preferences.collectAsStateWithLifecycle()
     var loadedKey by remember { mutableStateOf<String?>(null) }
@@ -86,10 +89,10 @@ fun ItemEditorScreen(
 
     fun currentValues() = listOf(
         title, institution, accountRef, location, contactName, contactPhone, notes, nominee.name,
-        nom1Id, nom1Share, nom2Id, nom2Share
+        nom1Id, nom1Share, nom2Id, nom2Share, maturity, attachments.joinToString(",")
     )
 
-    LaunchedEffect(title, institution, accountRef, location, contactName, contactPhone, notes, nominee, nom1Id, nom1Share, nom2Id, nom2Share) {
+    LaunchedEffect(title, institution, accountRef, location, contactName, contactPhone, notes, nominee, nom1Id, nom1Share, nom2Id, nom2Share, maturity, attachments) {
         val snapshot = initial
         if (snapshot != null) viewModel.setEditorDirty(currentValues() != snapshot)
     }
@@ -134,11 +137,14 @@ fun ItemEditorScreen(
             nom1Share = if (current.nominee1Share > 0) current.nominee1Share.toString() else ""
             nom2Id = current.nominee2Id
             nom2Share = if (current.nominee2Share > 0) current.nominee2Share.toString() else ""
+            maturity = current.maturityDate
+            attachments = current.attachmentNames
             initial = listOf(
                 current.title, current.institutionName, current.accountRef, current.physicalLocation,
                 current.contactName, current.contactPhone, current.additionalNotes, current.nomineeStatus,
                 current.nominee1Id, if (current.nominee1Share > 0) current.nominee1Share.toString() else "",
-                current.nominee2Id, if (current.nominee2Share > 0) current.nominee2Share.toString() else ""
+                current.nominee2Id, if (current.nominee2Share > 0) current.nominee2Share.toString() else "",
+                current.maturityDate, current.attachmentNames.joinToString(",")
             )
             viewModel.setEditorDirty(false)
             loadedKey = key
@@ -223,6 +229,10 @@ fun ItemEditorScreen(
             }
             fields.ref?.let { label ->
                 EntryField(value = accountRef, onChange = { accountRef = it }, label = label, hindi = hindi)
+                Spacer(Modifier.height(10.dp))
+            }
+            fields.maturity?.let { label ->
+                EntryField(value = maturity, onChange = { maturity = it }, label = label, hindi = hindi)
                 Spacer(Modifier.height(10.dp))
             }
             fields.location?.let { label ->
@@ -353,6 +363,85 @@ fun ItemEditorScreen(
                 )
             }
             Spacer(Modifier.height(20.dp))
+            Text(strings.documentsTitle, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                strings.documentsNote,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(8.dp))
+            val docContext = androidx.compose.ui.platform.LocalContext.current
+            val docScope = androidx.compose.runtime.rememberCoroutineScope()
+            val photoPicker = androidx.activity.compose.rememberLauncherForActivityResult(
+                androidx.activity.result.contract.ActivityResultContracts.PickMultipleVisualMedia(4)
+            ) { uris ->
+                docScope.launch {
+                    val added = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        uris.mapNotNull { com.puneetfsn.kutumbcare.data.DocumentStore.importImage(docContext, it) }
+                    }
+                    if (added.isNotEmpty()) attachments = (attachments + added).take(4)
+                }
+            }
+            if (attachments.isNotEmpty()) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    attachments.forEach { name ->
+                        val bmp = remember(name) { com.puneetfsn.kutumbcare.data.DocumentStore.preview(docContext, name) }
+                        androidx.compose.foundation.layout.Box {
+                            if (bmp != null) {
+                                androidx.compose.foundation.Image(
+                                    bitmap = bmp.asImageBitmap(),
+                                    contentDescription = null,
+                                    modifier = Modifier.height(72.dp),
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                                )
+                            }
+                            IconButton(onClick = {
+                                com.puneetfsn.kutumbcare.data.DocumentStore.delete(docContext, name)
+                                attachments = attachments - name
+                            }) {
+                                Icon(Icons.Outlined.Delete, contentDescription = strings.delete)
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+            if (attachments.size < 4) {
+                OutlinedButton(onClick = {
+                    photoPicker.launch(
+                        androidx.activity.result.PickVisualMediaRequest(
+                            androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
+                        )
+                    )
+                }) { Text(strings.addPhoto) }
+                Spacer(Modifier.height(16.dp))
+            }
+            val templateKey = item.specOrder.takeIf { it != 0 } ?: item.sortOrder
+            if (templateKey in com.puneetfsn.kutumbcare.data.DefaultChecklist.REPEATABLE_ORDERS) {
+                OutlinedButton(
+                    onClick = {
+                        viewModel.save(
+                            item.copy(
+                                title = title.ifBlank { item.title },
+                                institutionName = institution.trim(),
+                                accountRef = accountRef.trim(),
+                                physicalLocation = location.trim(),
+                                contactName = contactName.trim(),
+                                contactPhone = contactPhone.trim(),
+                                additionalNotes = notes.trim(),
+                                maturityDate = maturity.trim(),
+                                attachmentsJson = org.json.JSONArray(attachments).toString()
+                            )
+                        )
+                        viewModel.addAnotherLike(item)
+                        viewModel.setEditorDirty(false)
+                        onBack()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text(strings.addAnother) }
+                Spacer(Modifier.height(12.dp))
+            }
             Button(
                 onClick = {
                     viewModel.save(
@@ -369,7 +458,9 @@ fun ItemEditorScreen(
                             nominee1Id = if (fields.nomineeRelevant) nom1Id else "",
                             nominee1Share = if (fields.nomineeRelevant) (nom1Share.toIntOrNull() ?: 0) else 0,
                             nominee2Id = if (fields.nomineeRelevant) nom2Id else "",
-                            nominee2Share = if (fields.nomineeRelevant) (nom2Share.toIntOrNull() ?: 0) else 0
+                            nominee2Share = if (fields.nomineeRelevant) (nom2Share.toIntOrNull() ?: 0) else 0,
+                            maturityDate = maturity.trim(),
+                            attachmentsJson = org.json.JSONArray(attachments).toString()
                         )
                     )
                     viewModel.setEditorDirty(false)

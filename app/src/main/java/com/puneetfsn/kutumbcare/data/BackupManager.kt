@@ -12,9 +12,11 @@ class BackupManager(
     private val settingsRepository: SettingsRepository
 ) {
     suspend fun exportTo(stream: OutputStream) {
+        val items = checklistRepository.getAll()
         val json = BackupFormat.encode(
-            items = checklistRepository.getAll(),
-            preferences = settingsRepository.snapshot()
+            items = items,
+            preferences = settingsRepository.snapshot(),
+            attachmentData = checklistRepository.attachmentData()
         )
         stream.bufferedWriter(Charsets.UTF_8).use { writer ->
             writer.write(json)
@@ -39,6 +41,6 @@ class BackupManager(
         }
 
         payload.nominees?.let { settingsRepository.setNominees(it) }
-        checklistRepository.replaceAll(payload.items)
+        checklistRepository.replaceAll(checklistRepository.materializeAttachments(payload.items))
     }
 }

@@ -14,8 +14,8 @@ import org.json.JSONObject
  * re-typing the details on every record.
  *
  * Age is never stored; it is derived from [dateOfBirth] so it cannot go stale.
- * [idLast4] accepts only the last 4 characters of PAN/Aadhaar — the full
- * numbers should not be written down (UIDAI masked-Aadhaar guidance).
+ * [idLast4] holds the nominee's PAN / Aadhaar number when the family chooses
+ * to record it in full — this dossier is the family's own sealed copy.
  */
 data class NomineeProfile(
     val id: String,

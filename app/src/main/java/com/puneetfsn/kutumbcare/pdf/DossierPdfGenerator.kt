@@ -69,6 +69,15 @@ class DossierPdfGenerator(private val context: Context) {
                     }
                 }
             }
+            // Document photos print at the end, one A4 page each, so the
+            // family can bind the dossier and the documents in one go.
+            snapshot.items.forEach { item ->
+                item.attachmentNames.forEach { name ->
+                    pages += PagePainter { canvas, pageNo, pageCount ->
+                        drawDocumentPage(canvas, item, name, pageNo, pageCount)
+                    }
+                }
+            }
             pages.forEachIndexed { index, painter ->
                 val pageNumber = index + 1
                 val info = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, pageNumber).create()
@@ -195,6 +204,30 @@ class DossierPdfGenerator(private val context: Context) {
         return y + readinessHeight > PAGE_BOTTOM
     }
 
+    private fun drawDocumentPage(canvas: Canvas, item: ChecklistItem, name: String, pageNo: Int, pageCount: Int) {
+        drawPageChrome(canvas, pageNo, pageCount)
+        val strings = UiStrings(hindiPdf)
+        headerBand(canvas, item.displayTitle(hindiPdf).uppercase().take(38))
+        var y = 120f
+        y = drawText(
+            canvas,
+            "${strings.category(item.categoryEnum)} · ${strings.documentCopy}",
+            MARGIN, y, bodyPaint(11f, MUTED), CONTENT_WIDTH
+        )
+        val bitmap = android.graphics.BitmapFactory.decodeFile(
+            com.puneetfsn.kutumbcare.data.DocumentStore.file(context, name).path
+        ) ?: return
+        val area = RectF(MARGIN, y + 10f, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 84f)
+        val scale = minOf(area.width() / bitmap.width, area.height() / bitmap.height)
+        val w = bitmap.width * scale
+        val h = bitmap.height * scale
+        val dest = RectF(
+            area.left + (area.width() - w) / 2f, area.top + (area.height() - h) / 2f,
+            area.left + (area.width() + w) / 2f, area.top + (area.height() + h) / 2f
+        )
+        canvas.drawBitmap(bitmap, null, dest, null)
+    }
+
     private fun paginateCategory(items: List<ChecklistItem>): List<List<ChecklistItem>> {
         val chunks = mutableListOf<List<ChecklistItem>>()
         var current = mutableListOf<ChecklistItem>()
@@ -303,6 +336,7 @@ class DossierPdfGenerator(private val context: Context) {
         return buildList {
             line(fields.primary?.label(hindi), item.institutionName)?.let { add(it) }
             line(fields.ref?.label(hindi), item.accountRef)?.let { add(it) }
+            fields.maturity?.let { label -> line(label.label(hindi), item.maturityDate)?.let { add(it) } }
             line(fields.location?.label(hindi), item.physicalLocation)?.let { add(it) }
             val contact = listOf(item.contactName, item.contactPhone).filter { it.isNotBlank() }.joinToString("  ·  ")
             val contactLabel = listOfNotNull(fields.contact?.label(hindi), fields.phone?.label(hindi))

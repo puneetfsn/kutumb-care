@@ -90,6 +90,13 @@ data class ChecklistItem(
     val titleHi: String = "",
     val descriptionHi: String = "",
     val sortOrder: Int = 0,
+    /** Which per-entry template (EntryFieldsCatalog key) this record uses.
+     *  Duplicates created with "+" keep the template even though sortOrder is shared. */
+    val specOrder: Int = 0,
+    /** Maturity / expiry date as typed by the family (FD, RD, MF, PPF, passport…). */
+    val maturityDate: String = "",
+    /** JSON array of document-photo file names in the app-private documents folder. */
+    val attachmentsJson: String = "[]",
     val updatedAt: Long = System.currentTimeMillis()
 ) {
     val categoryEnum: AssetCategory get() = AssetCategory.fromRaw(category)
@@ -102,6 +109,12 @@ data class ChecklistItem(
 
     fun displayDescription(hindi: Boolean): String =
         if (hindi && descriptionHi.isNotBlank()) descriptionHi else description
+
+    val attachmentNames: List<String>
+        get() = runCatching {
+            val arr = org.json.JSONArray(attachmentsJson)
+            (0 until arr.length()).map { arr.optString(it) }.filter { it.isNotBlank() }
+        }.getOrDefault(emptyList())
 
     val nomineeAssignments: List<NomineeAssignment>
         get() = listOf(

@@ -59,6 +59,40 @@ class RecordsViewModel(
         viewModelScope.launch { checklistRepository.delete(item) }
     }
 
+    /** A fresh blank copy of a repeatable template (second savings account, another FD…). */
+    fun addAnotherLike(item: ChecklistItem) {
+        val key = item.specOrder.takeIf { it != 0 } ?: item.sortOrder
+        val template = com.puneetfsn.kutumbcare.data.DefaultChecklist.ITEMS
+            .firstOrNull { it.sortOrder == key }
+        val copy = (template ?: item).copy(
+            id = 0,
+            isCompleted = false,
+            institutionName = "", accountRef = "", physicalLocation = "",
+            contactName = "", contactPhone = "", additionalNotes = "",
+            maturityDate = "", attachmentsJson = "[]",
+            nominee1Id = "", nominee1Share = 0, nominee2Id = "", nominee2Share = 0,
+            isUserCreated = false,
+            specOrder = key,
+            sortOrder = key,
+            title = template?.title ?: item.title,
+            titleHi = template?.titleHi ?: item.titleHi,
+            description = template?.description ?: item.description,
+            descriptionHi = template?.descriptionHi ?: item.descriptionHi,
+            category = template?.category ?: item.category,
+            nomineeStatus = template?.nomineeStatus ?: item.nomineeStatus
+        )
+        viewModelScope.launch { checklistRepository.save(copy) }
+    }
+
+    /** Quick-add from the records list: a blank record from a seeded template. */
+    fun createFromTemplate(templateOrder: Int) {
+        val template = com.puneetfsn.kutumbcare.data.DefaultChecklist.ITEMS
+            .firstOrNull { it.sortOrder == templateOrder } ?: return
+        viewModelScope.launch {
+            checklistRepository.save(template.copy(id = 0, specOrder = template.sortOrder))
+        }
+    }
+
     fun createBlank(category: AssetCategory): ChecklistItem = ChecklistItem(
         category = category.name,
         title = "",

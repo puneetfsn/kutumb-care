@@ -35,7 +35,16 @@ object BackupFormat {
         val nominees: List<NomineeProfile>? = null
     )
 
-    fun encode(items: List<ChecklistItem>, preferences: UserPreferences): String {
+    /**
+     * [attachmentData] maps item id → base64 JPEG payloads, supplied by the
+     * caller (kept out of this pure formatter). The web app writes the same
+     * field as data URLs; decoders accept both, so backups stay compatible.
+     */
+    fun encode(
+        items: List<ChecklistItem>,
+        preferences: UserPreferences,
+        attachmentData: Map<Long, List<String>> = emptyMap()
+    ): String {
         val root = JSONObject().apply {
             put("app", APP_ID)
             put("version", SCHEMA_VERSION)
@@ -75,6 +84,9 @@ object BackupFormat {
                         put("nominee2Share", item.nominee2Share)
                         put("isUserCreated", item.isUserCreated)
                         put("sortOrder", item.sortOrder)
+                        put("specId", item.specOrder)
+                        put("maturityDate", item.maturityDate)
+                        put("attachments", JSONArray(attachmentData[item.id] ?: emptyList()))
                         put("updatedAt", item.updatedAt)
                     })
                 }
@@ -129,6 +141,13 @@ object BackupFormat {
                         nominee2Share = obj.optInt("nominee2Share"),
                         isUserCreated = obj.optBoolean("isUserCreated"),
                         sortOrder = obj.optInt("sortOrder", i * 10),
+                        specOrder = obj.optInt("specId"),
+                        maturityDate = obj.optString("maturityDate"),
+                        attachmentsJson = obj.optJSONArray("attachments")?.let { arr ->
+                            JSONArray().also { out ->
+                                for (j in 0 until arr.length()) out.put(arr.optString(j))
+                            }.toString()
+                        } ?: "[]",
                         updatedAt = obj.optLong("updatedAt", System.currentTimeMillis())
                     )
                 )

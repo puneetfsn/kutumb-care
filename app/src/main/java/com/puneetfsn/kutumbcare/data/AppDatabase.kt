@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [ChecklistItem::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -46,6 +46,15 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** 3 → 4 adds maturity date, template key and document-photo list. */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE checklist_items ADD COLUMN specOrder INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE checklist_items ADD COLUMN maturityDate TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE checklist_items ADD COLUMN attachmentsJson TEXT NOT NULL DEFAULT '[]'")
+            }
+        }
+
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
@@ -56,7 +65,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "kutumb_care.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .fallbackToDestructiveMigration()
                     .build()
                     .also { INSTANCE = it }
