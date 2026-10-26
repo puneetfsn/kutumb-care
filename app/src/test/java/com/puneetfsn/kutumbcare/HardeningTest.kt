@@ -22,16 +22,4 @@ class HardeningTest {
         val masked = maskReference("XXXX123456781234")
         assertFalse(masked.contains("12345678"))
     }
-
-    @Test
-    fun `instant lock triggers on any backgrounding`() {
-        var now = 1_000_000L
-        val clock = BackgroundClock(clock = { now })
-        assertFalse(clock.consumeBackgrounded())
-        clock.onBackground()
-        now += 500L // far inside the 30s grace window
-        assertTrue(clock.consumeBackgrounded())
-        // Consumed: a second check without new backgrounding must not relock.
-        assertFalse(clock.consumeBackgrounded())
-    }
 }

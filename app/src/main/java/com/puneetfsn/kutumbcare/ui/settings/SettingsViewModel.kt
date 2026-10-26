@@ -76,14 +76,6 @@ class SettingsViewModel(
         }
     }
 
-    fun setLockInstant(enabled: Boolean) {
-        viewModelScope.launch { settingsRepository.setLockInstant(enabled) }
-    }
-
-    fun setAutoWipe(enabled: Boolean) {
-        viewModelScope.launch { settingsRepository.setAutoWipe(enabled) }
-    }
-
     /** Erase everything: records, photos, nominees, profile and the lock itself. */
     fun eraseEverything() {
         viewModelScope.launch {

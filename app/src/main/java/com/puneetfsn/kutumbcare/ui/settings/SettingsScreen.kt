@@ -17,7 +17,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,7 +53,6 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     var pin by remember { mutableStateOf("") }
     var pinConfirm by remember { mutableStateOf("") }
     var showErase by remember { mutableStateOf(false) }
-    var eraseText by remember { mutableStateOf("") }
     var hydrated by remember { mutableStateOf(false) }
 
     LaunchedEffect(prefs.setupComplete, prefs.primaryUserName, prefs.familyLabel) {
@@ -256,22 +254,6 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 }
             }
         }
-        Spacer(Modifier.height(16.dp))
-        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.weight(1f)) {
-                Text(strings.lockInstant, style = MaterialTheme.typography.bodyLarge)
-                Text(strings.lockInstantNote, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Switch(checked = prefs.lockInstant, onCheckedChange = { viewModel.setLockInstant(it) })
-        }
-        Spacer(Modifier.height(10.dp))
-        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.weight(1f)) {
-                Text(strings.autoWipe, style = MaterialTheme.typography.bodyLarge)
-                Text(strings.autoWipeNote, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Switch(checked = prefs.autoWipe, onCheckedChange = { viewModel.setAutoWipe(it) })
-        }
 
         Spacer(Modifier.height(24.dp))
         Text(strings.noBackupTitle, style = MaterialTheme.typography.titleLarge)
@@ -292,7 +274,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         )
         Spacer(Modifier.height(8.dp))
         OutlinedButton(
-            onClick = { eraseText = ""; showErase = true },
+            onClick = { showErase = true },
             modifier = Modifier.fillMaxWidth(),
             colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
         ) {
@@ -302,21 +284,9 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             AlertDialog(
                 onDismissRequest = { showErase = false },
                 title = { Text(strings.eraseAll) },
-                text = {
-                    Column {
-                        Text(strings.eraseNote, style = MaterialTheme.typography.bodyMedium)
-                        Spacer(Modifier.height(10.dp))
-                        OutlinedTextField(
-                            eraseText, { eraseText = it },
-                            label = { Text(strings.eraseTypeHint) },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                },
+                text = { Text(strings.eraseNote, style = MaterialTheme.typography.bodyMedium) },
                 confirmButton = {
                     TextButton(
-                        enabled = eraseText.trim() == "ERASE",
                         onClick = { showErase = false; viewModel.eraseEverything() }
                     ) { Text(strings.eraseAll, color = MaterialTheme.colorScheme.error) }
                 },

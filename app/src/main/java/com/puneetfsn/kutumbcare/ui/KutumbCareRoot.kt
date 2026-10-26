@@ -145,9 +145,7 @@ private fun KutumbCareRootContent(
             when (event) {
                 Lifecycle.Event.ON_STOP -> lockClock.onBackground()
                 Lifecycle.Event.ON_START -> {
-                    if (preferences.pinEnabled &&
-                        (if (preferences.lockInstant) lockClock.consumeBackgrounded() else lockClock.shouldRelock())
-                    ) unlocked = false
+                    if (preferences.pinEnabled && lockClock.shouldRelock()) unlocked = false
                 }
                 else -> Unit
             }
@@ -164,12 +162,7 @@ private fun KutumbCareRootContent(
     if (preferences.pinEnabled && !unlocked) {
         PinLockScreen(
             settingsRepository = container.settingsRepository,
-            onUnlocked = { unlocked = true },
-            onWipeAll = {
-                container.checklistRepository.wipeAll()
-                container.settingsRepository.wipeAllPreservingLanguage()
-                container.checklistRepository.seedIfEmpty()
-            }
+            onUnlocked = { unlocked = true }
         )
         return
     }
