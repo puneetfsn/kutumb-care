@@ -101,6 +101,35 @@ fun ItemEditorScreen(
         onDispose { viewModel.setEditorDirty(false) }
     }
 
+    // --- Document photo launchers: registered FIRST, unconditionally. ---
+    val docContext = androidx.compose.ui.platform.LocalContext.current
+    val docScope = androidx.compose.runtime.rememberCoroutineScope()
+    var docError by remember { mutableStateOf<String?>(null) }
+    var captureUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    fun importPicked(uris: List<android.net.Uri>) {
+        if (uris.isEmpty()) return
+        docScope.launch {
+            val added = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                uris.mapNotNull { com.puneetfsn.kutumbcare.data.DocumentStore.importImage(docContext, it) }
+            }
+            if (added.isNotEmpty()) {
+                attachments = (attachments + added).take(4)
+                docError = null
+            } else {
+                docError = strings.photoReadFailed
+            }
+        }
+    }
+    val cameraLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.TakePicture()
+    ) { success ->
+        val uri = captureUri
+        if (success && uri != null) importPicked(listOf(uri))
+    }
+    val galleryLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris -> importPicked(uris) }
+
     val editorDirty by viewModel.editorDirty.collectAsStateWithLifecycle()
     var showDiscard by remember { mutableStateOf(false) }
     BackHandler(enabled = editorDirty) { showDiscard = true }
@@ -372,32 +401,6 @@ fun ItemEditorScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.height(8.dp))
-            val docContext = androidx.compose.ui.platform.LocalContext.current
-            val docScope = androidx.compose.runtime.rememberCoroutineScope()
-            var captureUri by remember { mutableStateOf<android.net.Uri?>(null) }
-            val cameraLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-                androidx.activity.result.contract.ActivityResultContracts.TakePicture()
-            ) { success ->
-                val uri = captureUri
-                if (success && uri != null) {
-                    docScope.launch {
-                        val added = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                            com.puneetfsn.kutumbcare.data.DocumentStore.importImage(docContext, uri)
-                        }
-                        if (added != null) attachments = (attachments + added).take(4)
-                    }
-                }
-            }
-            val photoPicker = androidx.activity.compose.rememberLauncherForActivityResult(
-                androidx.activity.result.contract.ActivityResultContracts.PickMultipleVisualMedia(4)
-            ) { uris ->
-                docScope.launch {
-                    val added = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                        uris.mapNotNull { com.puneetfsn.kutumbcare.data.DocumentStore.importImage(docContext, it) }
-                    }
-                    if (added.isNotEmpty()) attachments = (attachments + added).take(4)
-                }
-            }
             if (attachments.isNotEmpty()) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     attachments.forEach { name ->
@@ -425,7 +428,8 @@ fun ItemEditorScreen(
             if (attachments.size < 4) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = {
-                        runCatching {
+                        docError = null
+                        try {
                             val dir = java.io.File(docContext.cacheDir, "camera").apply { mkdirs() }
                             val file = java.io.File.createTempFile("doc_", ".jpg", dir)
                             val uri = androidx.core.content.FileProvider.getUriForFile(
@@ -433,15 +437,22 @@ fun ItemEditorScreen(
                             )
                             captureUri = uri
                             cameraLauncher.launch(uri)
+                        } catch (e: Exception) {
+                            docError = strings.photoOpenFailed
                         }
                     }) { Text(strings.takePhoto) }
                     OutlinedButton(onClick = {
-                        photoPicker.launch(
-                            androidx.activity.result.PickVisualMediaRequest(
-                                androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
-                            )
-                        )
+                        docError = null
+                        try {
+                            galleryLauncher.launch(arrayOf("image/*"))
+                        } catch (e: Exception) {
+                            docError = strings.photoOpenFailed
+                        }
                     }) { Text(strings.addPhoto) }
+                }
+                docError?.let {
+                    Spacer(Modifier.height(6.dp))
+                    Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                 }
                 Spacer(Modifier.height(16.dp))
             }
