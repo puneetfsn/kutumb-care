@@ -22,8 +22,8 @@ When the time comes, print the **Family Emergency Dossier** PDF, seal it, and ke
 - **No internet.** `android.permission.INTERNET` is forbidden and stripped from the manifest.
 - **No account, no cloud, no ads, no analytics.**
 - All records stay in a local Room database on the phone. Record content, nominee cards and document photos are **encrypted at rest** (AES-256-GCM with an Android Keystore key that never leaves the device).
-- Unlock with a **passphrase (6+ characters, or a longer PIN)** — never a short 4-digit code for new users (existing 4-digit PINs keep working until replaced). Android unlock also offers **fingerprint/face** with the passphrase as fallback. Wrong tries are throttled (escalating lockouts), screenshots/recent-apps previews are blocked while the lock is on (`FLAG_SECURE`), and the dossier re-locks after 30 seconds in the background. The unlock secret is never written to a backup.
-- Cloud backup of app data is disabled. You can export your own JSON file.
+- Unlock with a **passphrase (6+ characters, or a longer PIN)** — never a short 4-digit code for new users (existing 4-digit PINs keep working until replaced). Android unlock also offers **fingerprint/face** with the passphrase as fallback. Wrong tries are throttled (escalating lockouts), screenshots/recent-apps previews are blocked while the lock is on (`FLAG_SECURE`), and the dossier re-locks after 30 seconds in the background. No copy of the dossier ever leaves the device.
+- Cloud backup of app data is disabled, and **there is no backup feature at all — by design**. No export, no restore, no portable copy: the dossier exists only inside the app on the owner's device, so nobody else can ever pick it up and use it. If the device is lost or the passphrase is forgotten, the dossier is gone forever. That is the price of maximum security, and it is stated plainly in the app.
 - The printable PDF is generated on-device with Android’s `PdfDocument` API.
 
 ## What the app records (metadata only)
@@ -47,19 +47,19 @@ Identity & civil · Banking & funds · Investments (Demat, EPF/UAN, PPF, NPS, go
 3. **On-device A4 PDF dossier** shared through FileProvider (print, Drive, Bluetooth — your choice). Busy categories spill onto continuation pages instead of truncating.
 4. **Optional passphrase lock** (fingerprint unlock on Android, attempt throttling, screenshot protection) that re-locks 30 seconds after the app goes to the background, dark / light theme, family profile.
 5. **Search** across institution, reference, location, contact and notes.
-6. **JSON backup & restore** via the system file picker, plus an optional **passphrase-encrypted backup** (PBKDF2-HMAC-SHA256, 150k rounds + AES-256-GCM) that opens in both the Android and web apps. The unlock secret is never exported. **There is no recovery backdoor:** write the passphrase on paper and seal it with your will — if it is forgotten, only a backup file can restore the data.
+6. **No backup, no export, no restore — by design.** The only thing that ever leaves the app is the printable PDF dossier, generated on-device after unlock, for the owner to print and seal. **There is no recovery backdoor:** write the passphrase on paper and seal it with your will.
 
 ## Project structure
 
 ```
 app/src/main/java/com/puneetfsn/kutumbcare/
-  data/       Room entities, DAO, seeder, DataStore, JSON backup
+  data/       Room entities, DAO, seeder, DataStore, at-rest encryption
   pdf/        Family Emergency Dossier generator
   ui/         Jetpack Compose screens (dashboard, records, PIN, settings)
   widget/     Glance readiness widget
   di/         Manual app container (no Hilt, no network)
 .github/workflows/build.yml   Cloud APK build
-app/src/test/                 JVM unit tests (readiness, field/backup encryption, backup format, re-lock)
+app/src/test/                 JVM unit tests (readiness, field encryption, re-lock)
 ```
 
 ## Web app (English + हिन्दी)
@@ -74,8 +74,8 @@ cd web && python3 -m http.server 8080   # then open http://localhost:8080
 - First launch asks **English / हिन्दी**; the choice is remembered and can be changed anytime.
 - Same 24 records, readiness score, nominee alerts, search and record editor as Android.
 - Data lives only in that browser on that device (`localStorage`). Clearing browser data
-  erases it — keep a JSON backup or a printed dossier.
-- **JSON backup is interchangeable with the Android app** (same format; the unlock secret is never exported). With a passphrase set, everything in this browser is stored as an encrypted WebCrypto vault (PBKDF2 + AES-256-GCM), and encrypted backups open in both apps.
+  erases it forever — keep a printed dossier; there is no backup or copy anywhere.
+- **No backup, export or restore — by design.** With a passphrase set, everything in this browser is stored as an encrypted WebCrypto vault (PBKDF2-HMAC-SHA256, 150k rounds → AES-256-GCM; key only in memory). The dossier never leaves this device.
 - Two PDF downloads are generated on-device in the chosen language:
   **“Download my dossier”** (filled with your records) and
   **“Download blank form to fill by hand”** (an empty A4 booklet to print and complete with a pen).
@@ -142,8 +142,8 @@ cd web && python3 -m http.server 8080   # then open http://localhost:8080
 - First launch asks **English / हिन्दी**; the choice is remembered and can be changed anytime.
 - Same 24 records, readiness score, nominee alerts, search and record editor as Android.
 - Data lives only in that browser on that device (`localStorage`). Clearing browser data
-  erases it — keep a JSON backup or a printed dossier.
-- **JSON backup is interchangeable with the Android app** (same format; the unlock secret is never exported). With a passphrase set, everything in this browser is stored as an encrypted WebCrypto vault (PBKDF2 + AES-256-GCM), and encrypted backups open in both apps.
+  erases it forever — keep a printed dossier; there is no backup or copy anywhere.
+- **No backup, export or restore — by design.** With a passphrase set, everything in this browser is stored as an encrypted WebCrypto vault (PBKDF2-HMAC-SHA256, 150k rounds → AES-256-GCM; key only in memory). The dossier never leaves this device.
 - Two PDF downloads are generated on-device in the chosen language:
   **“Download my dossier”** (filled with your records) and
   **“Download blank form to fill by hand”** (an empty A4 booklet to print and complete with a pen).

@@ -81,7 +81,7 @@ object NomineeShares {
             .let { if (it.size == 1) single(it.first().profileId) else it }
 }
 
-/** JSON for DataStore and for the backup file (one format, both places). */
+/** JSON encoding for on-device DataStore storage. */
 object NomineesCodec {
 
     fun encode(profiles: List<NomineeProfile>): String {

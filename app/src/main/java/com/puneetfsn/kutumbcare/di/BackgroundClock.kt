@@ -5,7 +5,7 @@ package com.puneetfsn.kutumbcare.di
  * restored after a short grace period.
  *
  * The grace window keeps routine interruptions from being annoying: rotating the
- * phone, answering a call or picking a file to export a backup does not force the
+ * phone, answering a call or attaching a document photo does not force the
  * PIN again, while handing the phone to someone else does.
  */
 class BackgroundClock(

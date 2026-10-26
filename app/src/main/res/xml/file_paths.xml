@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <!-- Only the generated PDF is shared. Backups travel through the system
-         file picker, so they never need a content URI. -->
+    <!-- Only the generated PDF dossier is shared, and only after unlock.
+         There is no backup feature, so nothing else ever needs a content URI. -->
     <cache-path name="dossier" path="dossier/" />
 </paths>

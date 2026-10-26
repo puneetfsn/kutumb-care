@@ -1,7 +1,5 @@
 package com.puneetfsn.kutumbcare.ui.settings
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,7 +24,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -46,7 +43,6 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     val prefs by viewModel.preferences.collectAsStateWithLifecycle()
     val strings = LocalStrings.current
     val message by viewModel.message.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     var name by remember { mutableStateOf("") }
     var family by remember { mutableStateOf("") }
@@ -54,7 +50,6 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     var phone by remember { mutableStateOf("") }
     var pin by remember { mutableStateOf("") }
     var pinConfirm by remember { mutableStateOf("") }
-    var backupPass by remember { mutableStateOf("") }
     var hydrated by remember { mutableStateOf(false) }
 
     LaunchedEffect(prefs.setupComplete, prefs.primaryUserName, prefs.familyLabel) {
@@ -70,22 +65,6 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         if (message != null) {
             delay(3500)
             viewModel.consumeMessage()
-        }
-    }
-
-    val createBackup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri != null) {
-            context.contentResolver.openOutputStream(uri)?.let { viewModel.exportBackup(it) }
-        }
-    }
-    val openBackup = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            context.contentResolver.openInputStream(uri)?.let { viewModel.importBackup(it, backupPass.ifBlank { null }) }
-        }
-    }
-    val createEncryptedBackup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri != null) {
-            context.contentResolver.openOutputStream(uri)?.let { viewModel.exportBackup(it, backupPass) }
         }
     }
 
@@ -274,39 +253,13 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         }
 
         Spacer(Modifier.height(24.dp))
-        Text(strings.offlineBackup, style = MaterialTheme.typography.titleLarge)
+        Text(strings.noBackupTitle, style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
         Text(
-            strings.backupNote,
+            strings.noBackupNote,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(Modifier.height(8.dp))
-        Button(onClick = { createBackup.launch("kutumb-care-backup.json") }, modifier = Modifier.fillMaxWidth()) {
-            Text(strings.exportBackup)
-        }
-        Spacer(Modifier.height(8.dp))
-        OutlinedTextField(
-            backupPass, { backupPass = it },
-            label = { Text(strings.backupPassword) },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(Modifier.height(8.dp))
-        OutlinedButton(
-            onClick = { createEncryptedBackup.launch("kutumb-care-backup-encrypted.json") },
-            enabled = backupPass.length >= 6,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(strings.exportEncrypted)
-        }
-        Spacer(Modifier.height(8.dp))
-        OutlinedButton(
-            onClick = { openBackup.launch(arrayOf("application/json", "text/*", "*/*")) },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(strings.restoreBackup)
-        }
 
         message?.let {
             Spacer(Modifier.height(12.dp))

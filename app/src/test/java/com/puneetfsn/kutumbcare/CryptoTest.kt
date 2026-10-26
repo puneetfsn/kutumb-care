@@ -1,11 +1,9 @@
 package com.puneetfsn.kutumbcare
 
-import com.puneetfsn.kutumbcare.data.BackupCrypto
 import com.puneetfsn.kutumbcare.data.FieldCrypto
 import javax.crypto.KeyGenerator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -32,17 +30,5 @@ class CryptoTest {
         assertFalse(stored.contentEquals(jpeg))
         assertTrue(FieldCrypto.decryptBytes(key, stored).contentEquals(jpeg))
         assertTrue(FieldCrypto.decryptBytes(key, jpeg).contentEquals(jpeg))
-    }
-
-    @Test
-    fun `encrypted backup round trips and rejects wrong passwords`() {
-        val json = """{"app":"kutumb-care","items":[{"title":"Aadhaar card"}]}"""
-        val envelope = BackupCrypto.encrypt("family-secret", json)
-        assertTrue(BackupCrypto.isEncrypted(envelope))
-        assertFalse(envelope.contains("Aadhaar"))
-        assertEquals(json, BackupCrypto.decrypt("family-secret", envelope))
-        assertThrows(Exception::class.java) { BackupCrypto.decrypt("wrong-secret", envelope) }
-        assertThrows(Exception::class.java) { BackupCrypto.encrypt("short", json) }
-        assertFalse(BackupCrypto.isEncrypted(json))
     }
 }

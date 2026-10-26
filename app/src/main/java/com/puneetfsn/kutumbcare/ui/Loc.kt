@@ -89,21 +89,17 @@ class UiStrings(val hindi: Boolean) {
     val newPin get() = pick("New PIN / passphrase (min 6)", "नया PIN / पासफ़्रेज़ (कम से कम 6)")
     val confirmPin get() = pick("Confirm it again", "फिर से लिखकर पुष्टि करें")
     val setPin get() = pick("Set lock", "लॉक बनाएँ")
-    val pinRecovery get() = pick("Write this passphrase on paper and seal it with your will. If it is forgotten, nobody — not even we — can open the encrypted data; only a backup file can restore it.", "इस पासफ़्रेज़ को काग़ज़ पर लिखकर अपनी वसीयत के साथ मुहरबंद रखें। यदि यह भूल जाए, तो कोई भी — हम भी नहीं — एन्क्रिप्ट डेटा नहीं खोल सकता; केवल बैकअप फ़ाइल से बहाली होगी।")
+    val pinRecovery get() = pick("Write this passphrase on paper and seal it with your will. If it is forgotten, nobody — not even we — can open the encrypted data; there is no backup, no copy and no recovery.", "इस पासफ़्रेज़ को काग़ज़ पर लिखकर अपनी वसीयत के साथ मुहरबंद रखें। यदि यह भूल जाए, तो कोई भी — हम भी नहीं — एन्क्रिप्ट डेटा नहीं खोल सकता; कोई बैकअप, कोई प्रति और कोई बहाली नहीं है।")
     val unlockButton get() = pick("Unlock", "खोलें")
     val cancel get() = pick("Cancel", "रद्द करें")
     val useFingerprint get() = pick("Use fingerprint / face", "फ़िंगरप्रिंट / चेहरा उपयोग करें")
     val tooManyTries get() = pick("Too many wrong tries. Wait a little and try again.", "बहुत अधिक गलत प्रयास। थोड़ा प्रतीक्षा करके फिर प्रयास करें।")
-    val backupPassword get() = pick("Backup password (for encrypted backup)", "बैकअप पासवर्ड (एन्क्रिप्ट बैकअप के लिए)")
-    val exportEncrypted get() = pick("Export encrypted backup", "एन्क्रिप्ट बैकअप निर्यात करें")
     val removePin get() = pick("Remove PIN", "PIN हटाएँ")
-    val offlineBackup get() = pick("Offline backup", "ऑफ़लाइन बैकअप")
-    val backupNote get() = pick(
-        "Export a JSON file you can keep on a USB drive. The backup does not include the app PIN.",
-        "JSON फ़ाइल निर्यात करें जिसे आप USB ड्राइव पर रख सकते हैं। बैकअप में ऐप PIN शामिल नहीं होता।"
+    val noBackupTitle get() = pick("No copies, by design", "कोई प्रति नहीं — यही डिज़ाइन है")
+    val noBackupNote get() = pick(
+        "Kutumb Care makes no backup, export or copy of your records, and there is nothing to restore from. Your dossier exists only inside this app on this phone, protected by your passphrase. If this phone is lost or the passphrase is forgotten, the dossier is gone forever — that is the price of nobody else ever being able to use it.",
+        "कुटुम्ब केयर आपके रिकॉर्ड का कोई बैकअप, निर्यात या प्रति नहीं बनाता, और बहाल करने के लिए कुछ नहीं है। आपका दस्तावेज़ केवल इस फ़ोन पर इस ऐप के अंदर, आपके पासफ़्रेज़ से सुरक्षित रहता है। यदि यह फ़ोन खो जाए या पासफ़्रेज़ भूल जाएँ, तो दस्तावेज़ हमेशा के लिए चला जाएगा — यही कीमत है कि कोई और इसे कभी उपयोग न कर सके।"
     )
-    val exportBackup get() = pick("Export JSON backup", "JSON बैकअप निर्यात करें")
-    val restoreBackup get() = pick("Restore JSON backup", "JSON बैकअप बहाल करें")
     val about get() = pick("About", "परिचय")
     val aboutText get() = pick(
         "Kutumb Care is a 100% offline family emergency checklist for India. It helps your people find Aadhaar, bank nominees, LIC policies, EPF / UAN, property deeds and trusted contacts — without ever storing passwords.",

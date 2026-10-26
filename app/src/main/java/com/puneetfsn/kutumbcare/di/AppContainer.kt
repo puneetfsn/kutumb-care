@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.puneetfsn.kutumbcare.data.AppDatabase
-import com.puneetfsn.kutumbcare.data.BackupManager
 import com.puneetfsn.kutumbcare.data.ChecklistRepository
 import com.puneetfsn.kutumbcare.data.SettingsRepository
 import com.puneetfsn.kutumbcare.pdf.DossierPdfGenerator
@@ -17,7 +16,6 @@ class AppContainer(context: Context) {
     val database: AppDatabase = AppDatabase.getInstance(appContext)
     val settingsRepository = SettingsRepository(appContext)
     val checklistRepository = ChecklistRepository(database.checklistDao(), appContext)
-    val backupManager = BackupManager(checklistRepository, settingsRepository)
     val pdfGenerator = DossierPdfGenerator(appContext)
     val backgroundClock = BackgroundClock()
     val viewModelFactory = AppViewModelFactory(this)
@@ -39,8 +37,7 @@ class AppViewModelFactory(
                 RecordsViewModel(container.checklistRepository, container.settingsRepository) as T
             modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
                 SettingsViewModel(
-                    container.settingsRepository,
-                    container.backupManager
+                    container.settingsRepository
                 ) as T
             else -> throw IllegalArgumentException("Unknown ViewModel ${modelClass.name}")
         }

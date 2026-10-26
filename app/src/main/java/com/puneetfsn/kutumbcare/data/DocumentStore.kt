@@ -40,7 +40,7 @@ object DocumentStore {
         return name
     }
 
-    /** Decrypted JPEG bytes (for backups and PDF rendering). */
+    /** Decrypted JPEG bytes (for PDF rendering). */
     fun readBytes(context: Context, name: String): ByteArray? =
         runCatching { VaultCrypto.decryptBytes(file(context, name).readBytes()) }.getOrNull()
 
