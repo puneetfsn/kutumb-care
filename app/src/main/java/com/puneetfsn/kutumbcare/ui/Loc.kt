@@ -148,6 +148,7 @@ class UiStrings(val hindi: Boolean) {
     val fillFromPhoto get() = pick("Fill details from photo", "फ़ोटो से विवरण भरें")
     val ocrFilled get() = pick("Details filled from the photo — please check them before saving.", "फ़ोटो से विवरण भरा गया — सहेजने से पहले जाँच लें।")
     val ocrNone get() = pick("No number or date found in that photo. You can type the details as usual.", "उस फ़ोटो में कोई नंबर या तारीख़ नहीं मिली। आप विवरण सामान्य रूप से लिख सकते हैं।")
+    val ocrFailed get() = pick("The text in that photo could not be read. Try a clearer photo, taken straight-on in good light.", "उस फ़ोटो का टेक्स्ट पढ़ा नहीं जा सका। अच्छी रोशनी में सीधी, साफ़ फ़ोटो लेकर फिर कोशिश करें।")
     val ocrBusy get() = pick("Reading the photo…", "फ़ोटो पढ़ी जा रही है…")
     val addAnother get() = pick("＋ Add another like this", "＋ इसी तरह एक और जोड़ें")
     val addAnotherShort get() = pick("＋ Add", "＋ जोड़ें")
