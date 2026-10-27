@@ -1,0 +1,106 @@
+name: Release trial APK
+
+# Push a version tag (e.g. v0.1.0-trial) — or run this workflow manually —
+# and the debug APK is built, unit-tested, privacy-checked and attached to
+# a GitHub Release with the notes in RELEASE_NOTES.md.
+#
+# Trial releases are DEBUG builds (per project decision: no release
+# signing yet), so every release is marked "pre-release". Android treats
+# each debug build as a different app signature: testers must uninstall
+# the previous trial before installing a newer one, which erases the
+# dossier stored in the app. The release notes say this plainly.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to create (e.g. v0.1.0-trial)"
+        required: true
+        default: "v0.1.0-trial"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish trial APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Resolve release tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "TAG=${{ inputs.tag }}" >> "$GITHUB_ENV"
+          else
+            echo "TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          if [ ! -d "$SDK" ]; then
+            echo "Android SDK not found at $SDK" >&2
+            exit 1
+          fi
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          echo "$SDK/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "$SDK/platform-tools" >> "$GITHUB_PATH"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make wrapper executable
+        run: chmod +x gradlew
+
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug --no-daemon --console=plain
+
+      - name: Run unit tests
+        run: ./gradlew :app:testDebugUnitTest --no-daemon --console=plain
+
+      - name: Verify no network permission
+        run: |
+          set -euo pipefail
+          APK=$(find app/build/outputs/apk/debug -name '*.apk' | head -n 1)
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          AAPT="$SDK/build-tools/34.0.0/aapt2"
+          "$AAPT" dump permissions "$APK"
+          if "$AAPT" dump permissions "$APK" | grep -qiE 'android\.permission\.(INTERNET|ACCESS_NETWORK_STATE|ACCESS_WIFI_STATE)'; then
+            echo "::error::Privacy violation: the built APK requests network permissions."
+            exit 1
+          fi
+          echo "Privacy check passed: no INTERNET permission in the APK."
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          SRC=$(find app/build/outputs/apk/debug -name '*.apk' | head -n 1)
+          ASSET="kutumb-care-${TAG}.apk"
+          cp "$SRC" "$ASSET"
+          TITLE="Kutumb Care ${TAG} — trial (debug build)"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ASSET" --clobber
+          else
+            gh release create "$TAG" \
+              --target "$GITHUB_SHA" \
+              --title "$TITLE" \
+              --notes-file RELEASE_NOTES.md \
+              --prerelease \
+              "$ASSET"
+          fi
+          echo "Published $ASSET to release $TAG"
