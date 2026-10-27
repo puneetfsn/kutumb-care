@@ -36,9 +36,9 @@ When the time comes, print the **Family Emergency Dossier** PDF, seal it, and ke
 | Reference | Policy, account, folio or UAN number |
 | Contact | LIC agent name and phone |
 
-## India-specific checklist — 31 records (auto-seeded, English + हिन्दी)
+## India-specific checklist — 52 records (auto-seeded, English + हिन्दी)
 
-Identity & civil · Banking & funds · Investments (Demat, EPF/UAN, PPF, NPS, gold) · Insurance · Property & loans · Digital legacy · Trusted contacts (CA, lawyer, agent).
+Identity & civil · Banking & funds · Investments (Demat, EPF/UAN, PPF, NPS, gold) · Insurance · Property & loans · Digital legacy · Trusted contacts (CA, lawyer, agent) · **Education documents** (Class X/XII certificates & marksheets, degrees, diploma/ITI, migration certificate) · **Medical documents** (condition reports, prescriptions, vaccination, history & allergies, discharge summaries, diagnostics, ABHA health ID).
 
 ## Features
 
@@ -72,7 +72,7 @@ cd web && python3 -m http.server 8080   # then open http://localhost:8080
 ```
 
 - First launch asks **English / हिन्दी**; the choice is remembered and can be changed anytime.
-- Same 24 records, readiness score, nominee alerts, search and record editor as Android.
+- Same 52 records, readiness score, nominee alerts, search and record editor as Android.
 - Data lives only in that browser on that device (`localStorage`). Clearing browser data
   erases it forever — keep a printed dossier; there is no backup or copy anywhere.
 - **No backup, export or restore — by design.** With a passphrase set, everything in this browser is stored as an encrypted WebCrypto vault (PBKDF2-HMAC-SHA256, 150k rounds → AES-256-GCM; key only in memory). The dossier never leaves this device.
@@ -108,7 +108,7 @@ Aadhaar card never asks for a "branch". Labels follow official guidance:
 ## Languages
 
 Both apps ask **English / हिन्दी** on first launch and remember the choice (changeable in
-Settings). On Android the 24 seeded records carry Hindi titles/descriptions in the database
+Settings). On Android the 52 seeded records carry Hindi titles/descriptions in the database
 (Room v2 migration — existing family data is preserved), and the PDF dossier and widget
 follow the chosen language.
 
@@ -117,7 +117,11 @@ follow the chosen language.
 The shielded-home emblem lives in `assets/kutumb-care-icon.png` and is generated into the
 Android launcher mipmaps / adaptive icon and the web favicons + PWA icons (`web/icons/`).
 
-## Build an APK (GitHub Actions)
+## Download / build an APK (GitHub Actions)
+
+End users: grab the latest trial from the
+[**Releases page**](https://github.com/puneetfsn/kutumb-care/releases) — no
+GitHub account needed, the link never expires.
 
 This repository is set up so you never need Android Studio on a slow laptop.
 
@@ -127,63 +131,33 @@ This repository is set up so you never need Android Studio on a slow laptop.
 
 The debug APK is signed with the public debug keystore. It is installable for testing, not for Play Store.
 
-The workflow also runs the unit tests and then **fails the build if the assembled APK requests
+The workflows also run the unit tests and then **fail the build if the assembled APK requests
 `INTERNET`, `ACCESS_NETWORK_STATE` or `ACCESS_WIFI_STATE`**, so the privacy claim is checked on every push.
 
-## Web app (English + हिन्दी)
+### Cutting a trial release
 
-`web/` is a self-contained offline web app — no build step, no CDN, no network calls
-(`connect-src 'none'`). Open `web/index.html` in any browser, or serve the folder:
+Push a version tag and the *Release trial APK* workflow builds, tests and
+privacy-checks the debug APK, then attaches it to a GitHub Release with the
+notes from `RELEASE_NOTES.md`:
 
 ```bash
-cd web && python3 -m http.server 8080   # then open http://localhost:8080
+git tag v0.1.0-trial
+git push origin v0.1.0-trial
 ```
 
-- First launch asks **English / हिन्दी**; the choice is remembered and can be changed anytime.
-- Same 24 records, readiness score, nominee alerts, search and record editor as Android.
-- Data lives only in that browser on that device (`localStorage`). Clearing browser data
-  erases it forever — keep a printed dossier; there is no backup or copy anywhere.
-- **No backup, export or restore — by design.** With a passphrase set, everything in this browser is stored as an encrypted WebCrypto vault (PBKDF2-HMAC-SHA256, 150k rounds → AES-256-GCM; key only in memory). The dossier never leaves this device.
-- Two PDF downloads are generated on-device in the chosen language:
-  **“Download my dossier”** (filled with your records) and
-  **“Download blank form to fill by hand”** (an empty A4 booklet to print and complete with a pen).
-- Installable as a PWA (“Add to Home Screen”) with the shielded-home icon; the service
-  worker caches only the app shell so it keeps working with no connection.
+(Or run **Actions → Release trial APK → Run workflow** and type the tag.)
+Trial releases are marked *pre-release* on purpose: they are unsigned debug
+builds, so updating between trials requires uninstalling first (which erases
+in-app data). A fixed release key + Play Store signing is the planned step
+before any wide public launch.
 
-## Per-entry fields (not one generic form)
+## Share it with your family
 
-Every record asks only for what that record needs, in the language chosen — an
-Aadhaar card never asks for a "branch". Labels follow official guidance:
+Forward-ready message for WhatsApp:
 
-- **Aadhaar & PAN:** the full numbers are recorded (the family's own sealed copy — forms and logins need them); only OTPs and PINs are never written.
-- **Demat/MF (SEBI 2026 nomination framework):** nominee name + relationship is the
-  mandatory core; share % and contacts are optional.
-- **EPF (EPFO):** e-nomination covers PF + EPS pension + EDLI; shares total 100%,
-  a minor nominee needs a guardian.
-- **Insurance (IRDAI 2024):** nominee name, relationship, contact; appointee for minors.
-- **Digital online assets:** Gmail (Google Inactive Account Manager — 3–18 months,
-  up to 10 phone-verified trusted contacts), Apple ID (Legacy Contact needs the
-  access key + death certificate; Keychain passwords are never shared), other email,
-  Income Tax account, password manager (emergency access), govt portals, social.
-  The app stores **the map, never the keys**: account IDs, registered mobile,
-  recovery email and *where the password is kept*.
-- Navigation: the bottom bar now stays visible inside a record, with a
-  discard-changes prompt for unsaved edits.
-- The printed dossier turns blank fields into writing lines with extra space,
-  so it can be completed by hand, and carries a fine-print privacy note on
-  every page.
-
-## Languages
-
-Both apps ask **English / हिन्दी** on first launch and remember the choice (changeable in
-Settings). On Android the 24 seeded records carry Hindi titles/descriptions in the database
-(Room v2 migration — existing family data is preserved), and the PDF dossier and widget
-follow the chosen language.
-
-## App icon
-
-The shielded-home emblem lives in `assets/kutumb-care-icon.png` and is generated into the
-Android launcher mipmaps / adaptive icon and the web favicons + PWA icons (`web/icons/`).
+> 🏠 **Kutumb Care** — one private place to note where our family's important documents are: Aadhaar, PAN, bank accounts, insurance, property, education & medical papers. 100% offline —nothing leaves the phone, no account, no ads. Fill it, print the dossier, seal it with the will.
+> 📱 Android (trial): https://github.com/puneetfsn/kutumb-care/releases
+> 🌐 Web: https://puneetfsn.github.io/kutumb-care/
 
 ## Build locally
 
