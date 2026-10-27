@@ -4,6 +4,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.HealthAndSafety
+import androidx.compose.material.icons.outlined.LocalHospital
+import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.HomeWork
 import androidx.compose.material.icons.outlined.PeopleOutline
 import androidx.compose.material.icons.outlined.PhonelinkLock
@@ -23,7 +25,9 @@ enum class AssetCategory(
     INSURANCE("Insurance", "Life, health, vehicle", true),
     REAL_ESTATE_LOANS("Property & loans", "Deeds, khata, home loans", false),
     DIGITAL_LEGACY("Digital online assets", "Gmail, Apple ID, ITR, password manager", false),
-    TRUSTED_CONTACTS("Trusted contacts", "CA, lawyer, agent, family", false);
+    TRUSTED_CONTACTS("Trusted contacts", "CA, lawyer, agent, family", false),
+    EDUCATION_DOCS("Education documents", "Certificates, marksheets, degrees", false),
+    MEDICAL_DOCS("Medical documents", "Reports, prescriptions, health ID", false);
 
     val icon: ImageVector
         get() = when (this) {
@@ -34,6 +38,8 @@ enum class AssetCategory(
             REAL_ESTATE_LOANS -> Icons.Outlined.HomeWork
             DIGITAL_LEGACY -> Icons.Outlined.PhonelinkLock
             TRUSTED_CONTACTS -> Icons.Outlined.PeopleOutline
+            EDUCATION_DOCS -> Icons.Outlined.School
+            MEDICAL_DOCS -> Icons.Outlined.LocalHospital
         }
 
     companion object {

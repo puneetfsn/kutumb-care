@@ -48,7 +48,23 @@ object DefaultChecklist {
         280 to ("आयकर (ITR) खाता" to "पोर्टल उपयोगकर्ता नाम (आमतौर पर PAN), पंजीकृत मोबाइल और ईमेल — अंतिम रिटर्न दाखिल करने के लिए चाहिए। पासवर्ड पासवर्ड मैनेजर में रहता है; कहाँ है, लिखें।"),
         290 to ("पासवर्ड मैनेजर" to "Bitwarden, 1Password या KeePass — वॉल्ट ईमेल, आपातकालीन पहुँच संपर्क, और मास्टर-पासवर्ड संकेत या मुहरबंद प्रति कहाँ रखी है। हर लॉगिन सौंपने का सुरक्षित तरीका यही है।"),
         300 to ("सरकारी पोर्टल और आधिकारिक लॉगिन" to "EPFO, बैंक, डीमैट और अन्य आधिकारिक पोर्टल — हर एक का पोर्टल नाम, उपयोगकर्ता नाम/क्लाइंट ID और पंजीकृत मोबाइल, ताकि परिवार आधिकारिक रिकवरी और दावा मार्ग उपयोग कर सके। पासवर्ड कभी नहीं।"),
-        310 to ("सोशल और मैसेजिंग खाते" to "WhatsApp, Facebook, Instagram — उपयोगकर्ता नाम, पंजीकृत मोबाइल, और जहाँ प्लेटफ़ॉर्म देता है वहाँ विरासत/स्मारक संपर्क। पासवर्ड कभी नहीं।")
+        310 to ("सोशल और मैसेजिंग खाते" to "WhatsApp, Facebook, Instagram — उपयोगकर्ता नाम, पंजीकृत मोबाइल, और जहाँ प्लेटफ़ॉर्म देता है वहाँ विरासत/स्मारक संपर्क। पासवर्ड कभी नहीं।"),
+        320 to ("कक्षा X प्रमाणपत्र" to "कक्षा X (माध्यमिक) का बोर्ड प्रमाणपत्र — मूल, प्रतियाँ और DigiLocker प्रति।"),
+        330 to ("कक्षा X अंकतालिका" to "रोल नंबर और बोर्ड सहित कक्षा X अंकतालिका।"),
+        340 to ("कक्षा XII प्रमाणपत्र" to "कक्षा XII (उच्च माध्यमिक) का बोर्ड प्रमाणपत्र — मूल और प्रतियाँ।"),
+        350 to ("कक्षा XII अंकतालिका" to "रोल नंबर और बोर्ड सहित कक्षा XII अंकतालिका।"),
+        360 to ("स्नातक डिग्री" to "विश्वविद्यालय की डिग्री — मूल, प्रतियाँ, और कॉलेज जहाँ से सत्यापन हो सके।"),
+        370 to ("स्नातक अंकतालिकाएँ" to "सभी सेमेस्टर/वर्ष की अंकतालिकाएँ और अंतिम समेकित अंकपत्र।"),
+        380 to ("परास्नातक डिग्री" to "परास्नातक डिग्री और अंकतालिकाएँ — मूल और प्रतियाँ।"),
+        390 to ("डिप्लोमा / ITI / व्यावसायिक प्रमाणपत्र" to "डिप्लोमा, ITI या व्यावसायिक पाठ्यक्रम के प्रमाणपत्र और अंकपत्र।"),
+        400 to ("स्थानांतरण / प्रवास प्रमाणपत्र (TC)" to "स्कूल/कॉलेज का स्थानांतरण या प्रवास प्रमाणपत्र — आगे प्रवेश के लिए अक्सर ज़रूरी।"),
+        410 to ("दीर्घकालिक स्थिति की रिपोर्ट" to "लंबे समय की स्थिति (मधुमेह, BP, थायरॉयड, हृदय) की ताज़ा रिपोर्ट और डॉक्टर के नोट।"),
+        420 to ("वर्तमान पर्चे और दवाएँ" to "ताज़ा पर्चे और नियमित रूप से ली जाने वाली दवाएँ, खुराक सहित।"),
+        430 to ("टीकाकरण रिकॉर्ड" to "टीकाकरण प्रमाणपत्र और कार्ड (बचपन, COVID, यात्रा)।"),
+        440 to ("चिकित्सा इतिहास और एलर्जी" to "पिछली बीमारियाँ, ऑपरेशन, एलर्जी और रक्त समूह — एक सारांश जो परिवार किसी भी डॉक्टर को दे सके।"),
+        450 to ("अस्पताल डिस्चार्ज सारांश" to "पिछले भर्तियों के डिस्चार्ज सारांश और अस्पताल बिल।"),
+        460 to ("जाँच रिपोर्ट" to "रक्त जाँच, ECG, X-ray, MRI/CT रिपोर्ट — सबसे नई सबसे ऊपर।"),
+        470 to ("ABHA स्वास्थ्य ID" to "आयुष्मान भारत स्वास्थ्य खाता (ABHA) नंबर/कार्ड और जुड़े स्वास्थ्य रिकॉर्ड।")
     )
 
     val ITEMS: List<ChecklistItem> = listOf(
@@ -310,7 +326,23 @@ object DefaultChecklist {
             "सोशल और मैसेजिंग खाते",
             "WhatsApp, Facebook, Instagram — उपयोगकर्ता नाम, पंजीकृत मोबाइल, और जहाँ प्लेटफ़ॉर्म देता है वहाँ विरासत/स्मारक संपर्क। पासवर्ड कभी नहीं।",
             NomineeStatus.NOT_APPLICABLE
-        )
+        ),
+        item(AssetCategory.EDUCATION_DOCS, 320, "Class X certificate", "Board certificate for Class X (matriculation) — original, copies and the DigiLocker copy.", "कक्षा X प्रमाणपत्र", "कक्षा X (माध्यमिक) का बोर्ड प्रमाणपत्र — मूल, प्रतियाँ और DigiLocker प्रति।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.EDUCATION_DOCS, 330, "Class X marksheet", "Class X marksheet with roll number and board name.", "कक्षा X अंकतालिका", "रोल नंबर और बोर्ड सहित कक्षा X अंकतालिका।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.EDUCATION_DOCS, 340, "Class XII certificate", "Board certificate for Class XII (senior secondary) — original and copies.", "कक्षा XII प्रमाणपत्र", "कक्षा XII (उच्च माध्यमिक) का बोर्ड प्रमाणपत्र — मूल और प्रतियाँ।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.EDUCATION_DOCS, 350, "Class XII marksheet", "Class XII marksheet with roll number and board name.", "कक्षा XII अंकतालिका", "रोल नंबर और बोर्ड सहित कक्षा XII अंकतालिका।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.EDUCATION_DOCS, 360, "Graduation degree", "University degree certificate — original, copies, and the college that can verify it.", "स्नातक डिग्री", "विश्वविद्यालय की डिग्री — मूल, प्रतियाँ, और कॉलेज जहाँ से सत्यापन हो सके।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.EDUCATION_DOCS, 370, "Graduation marksheets", "All semester/year marksheets and the final consolidated marksheet.", "स्नातक अंकतालिकाएँ", "सभी सेमेस्टर/वर्ष की अंकतालिकाएँ और अंतिम समेकित अंकपत्र।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.EDUCATION_DOCS, 380, "Post-graduation degree", "Post-graduation degree and marksheets — original and copies.", "परास्नातक डिग्री", "परास्नातक डिग्री और अंकतालिकाएँ — मूल और प्रतियाँ।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.EDUCATION_DOCS, 390, "Diploma / ITI / professional certificate", "Diploma, ITI or professional-course certificates and marksheets.", "डिप्लोमा / ITI / व्यावसायिक प्रमाणपत्र", "डिप्लोमा, ITI या व्यावसायिक पाठ्यक्रम के प्रमाणपत्र और अंकपत्र।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.EDUCATION_DOCS, 400, "Migration / transfer certificate (TC)", "School/college transfer or migration certificate — often needed for the next admission.", "स्थानांतरण / प्रवास प्रमाणपत्र (TC)", "स्कूल/कॉलेज का स्थानांतरण या प्रवास प्रमाणपत्र — आगे प्रवेश के लिए अक्सर ज़रूरी।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.MEDICAL_DOCS, 410, "Long-term condition reports", "Reports for a long-lasting condition (diabetes, BP, thyroid, heart) — latest tests and doctor notes, kept together.", "दीर्घकालिक स्थिति की रिपोर्ट", "लंबे समय की स्थिति (मधुमेह, BP, थायरॉयड, हृदय) की ताज़ा रिपोर्ट और डॉक्टर के नोट।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.MEDICAL_DOCS, 420, "Current prescriptions & medicines", "Latest prescriptions and the medicines taken regularly, with doses.", "वर्तमान पर्चे और दवाएँ", "ताज़ा पर्चे और नियमित रूप से ली जाने वाली दवाएँ, खुराक सहित।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.MEDICAL_DOCS, 430, "Vaccination records", "Vaccination certificates and cards — childhood, COVID and travel.", "टीकाकरण रिकॉर्ड", "टीकाकरण प्रमाणपत्र और कार्ड (बचपन, COVID, यात्रा)।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.MEDICAL_DOCS, 440, "Medical history & allergies", "Past illnesses, surgeries, allergies and blood group — one summary the family can hand to any doctor.", "चिकित्सा इतिहास और एलर्जी", "पिछली बीमारियाँ, ऑपरेशन, एलर्जी और रक्त समूह — एक सारांश जो परिवार किसी भी डॉक्टर को दे सके।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.MEDICAL_DOCS, 450, "Hospital discharge summaries", "Discharge summaries and hospital bills from past admissions.", "अस्पताल डिस्चार्ज सारांश", "पिछले भर्तियों के डिस्चार्ज सारांश और अस्पताल बिल।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.MEDICAL_DOCS, 460, "Diagnostic reports", "Blood tests, ECG, X-ray and MRI/CT reports — newest first.", "जाँच रिपोर्ट", "रक्त जाँच, ECG, X-ray, MRI/CT रिपोर्ट — सबसे नई सबसे ऊपर।", NomineeStatus.NOT_APPLICABLE),
+        item(AssetCategory.MEDICAL_DOCS, 470, "ABHA health ID", "Ayushman Bharat Health Account (ABHA) number/card and where the linked health records live.", "ABHA स्वास्थ्य ID", "आयुष्मान भारत स्वास्थ्य खाता (ABHA) नंबर/कार्ड और जुड़े स्वास्थ्य रिकॉर्ड।", NomineeStatus.NOT_APPLICABLE)
     )
 
     private fun item(

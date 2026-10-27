@@ -145,6 +145,10 @@ class UiStrings(val hindi: Boolean) {
     val takePhoto get() = pick("📷 Take a photo", "📷 फ़ोटो लें")
     val photoOpenFailed get() = pick("Could not open the camera/gallery on this phone. Please try again.", "इस फ़ोन पर कैमरा/गैलरी नहीं खुल सकी। कृपया फिर कोशिश करें।")
     val photoReadFailed get() = pick("That photo could not be read. Please try another one.", "वह फ़ोटो पढ़ी नहीं जा सकी। कृपया दूसरी फ़ोटो आज़माएँ।")
+    val fillFromPhoto get() = pick("Fill details from photo", "फ़ोटो से विवरण भरें")
+    val ocrFilled get() = pick("Details filled from the photo — please check them before saving.", "फ़ोटो से विवरण भरा गया — सहेजने से पहले जाँच लें।")
+    val ocrNone get() = pick("No number or date found in that photo. You can type the details as usual.", "उस फ़ोटो में कोई नंबर या तारीख़ नहीं मिली। आप विवरण सामान्य रूप से लिख सकते हैं।")
+    val ocrBusy get() = pick("Reading the photo…", "फ़ोटो पढ़ी जा रही है…")
     val addAnother get() = pick("＋ Add another like this", "＋ इसी तरह एक और जोड़ें")
     val addAnotherShort get() = pick("＋ Add", "＋ जोड़ें")
     val documentCopy get() = pick("Document copy", "दस्तावेज़ प्रति")
@@ -210,6 +214,8 @@ class UiStrings(val hindi: Boolean) {
         AssetCategory.REAL_ESTATE_LOANS -> pick("Property & loans", "संपत्ति और ऋण")
         AssetCategory.DIGITAL_LEGACY -> pick("Digital online assets", "डिजिटल ऑनलाइन संपत्ति")
         AssetCategory.TRUSTED_CONTACTS -> pick("Trusted contacts", "भरोसेमंद संपर्क")
+        AssetCategory.EDUCATION_DOCS -> pick("Education documents", "शिक्षा दस्तावेज़")
+        AssetCategory.MEDICAL_DOCS -> pick("Medical documents", "चिकित्सा दस्तावेज़")
     }
 
     fun categorySubtitle(category: AssetCategory): String = when (category) {
@@ -220,6 +226,8 @@ class UiStrings(val hindi: Boolean) {
         AssetCategory.REAL_ESTATE_LOANS -> pick("Deeds, khata, home loans", "काग़ज़ात, खाता, गृह ऋण")
         AssetCategory.DIGITAL_LEGACY -> pick("Gmail, Apple ID, ITR, password manager", "Gmail, Apple ID, ITR, पासवर्ड मैनेजर")
         AssetCategory.TRUSTED_CONTACTS -> pick("CA, lawyer, agent, family", "CA, वकील, एजेंट, परिवार")
+        AssetCategory.EDUCATION_DOCS -> pick("Certificates, marksheets, degrees", "प्रमाणपत्र, अंकतालिका, डिग्री")
+        AssetCategory.MEDICAL_DOCS -> pick("Reports, prescriptions, health ID", "रिपोर्ट, पर्चे, स्वास्थ्य ID")
     }
 
     fun nominee(status: NomineeStatus): String = when (status) {
