@@ -430,13 +430,18 @@ fun ItemEditorScreen(
                     Button(onClick = {
                         docError = null
                         try {
-                            val dir = java.io.File(docContext.cacheDir, "camera").apply { mkdirs() }
-                            val file = java.io.File.createTempFile("doc_", ".jpg", dir)
-                            val uri = androidx.core.content.FileProvider.getUriForFile(
-                                docContext, docContext.packageName + ".fileprovider", file
-                            )
-                            captureUri = uri
-                            cameraLauncher.launch(uri)
+                            val captureIntent = android.content.Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
+                            if (captureIntent.resolveActivity(docContext.packageManager) == null) {
+                                docError = strings.photoOpenFailed
+                            } else {
+                                val dir = java.io.File(docContext.cacheDir, "camera").apply { mkdirs() }
+                                val file = java.io.File.createTempFile("doc_", ".jpg", dir)
+                                val uri = androidx.core.content.FileProvider.getUriForFile(
+                                    docContext, docContext.packageName + ".fileprovider", file
+                                )
+                                captureUri = uri
+                                cameraLauncher.launch(uri)
+                            }
                         } catch (e: Exception) {
                             docError = strings.photoOpenFailed
                         }
