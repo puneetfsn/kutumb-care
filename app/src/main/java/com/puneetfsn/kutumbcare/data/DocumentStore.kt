@@ -22,6 +22,9 @@ object DocumentStore {
     /** Copies a picked image in, downscaled to 1400px / JPEG 78. Returns the stored name. */
     fun importImage(context: Context, uri: Uri): String? = runCatching {
         val source = context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it) }
+            ?: context.contentResolver.openFileDescriptor(uri, "r")?.use {
+                BitmapFactory.decodeFileDescriptor(it.fileDescriptor)
+            }
             ?: return null
         val scale = minOf(1f, 1400f / maxOf(source.width, source.height))
         val bitmap = if (scale < 1f) {
