@@ -67,6 +67,29 @@ private val NOMINEE_PHONE = f("Nominee / contact phone", "नॉमिनी / �
 
 object EntryFieldsCatalog {
 
+    private val EDUCATION_FIELDS = EntryFields(
+        primary = f("Board / university / institution", "बोर्ड / विश्वविद्यालय / संस्थान", "CBSE / state board / university", "CBSE / राज्य बोर्ड / विश्वविद्यालय"),
+        ref = f("Roll / enrolment number", "रोल / नामांकन नंबर"),
+        location = LOCATION_DOCS,
+        contact = f("School / college office", "स्कूल / कॉलेज कार्यालय"),
+        phone = f("Contact phone", "संपर्क फ़ोन"),
+        notes = NOTES, nomineeRelevant = false,
+        guidanceEn = "Keep the originals together and attach a clear photo of each certificate — boards and universities ask for these for jobs, passports and further study.",
+        guidanceHi = "मूल दस्तावेज़ एक साथ रखें और हर प्रमाणपत्र की स्पष्ट फ़ोटो लगाएँ — नौकरी, पासपोर्ट और आगे की पढ़ाई के लिए बोर्ड व विश्वविद्यालय यही माँगते हैं।"
+    )
+
+    private val MEDICAL_FIELDS = EntryFields(
+        primary = f("Hospital / clinic / doctor", "अस्पताल / क्लीनिक / डॉक्टर"),
+        ref = f("Health ID / file number (ABHA, UHID)", "स्वास्थ्य ID / फ़ाइल नंबर (ABHA, UHID)"),
+        location = LOCATION_DOCS,
+        contact = f("Treating doctor / family contact", "इलाज करने वाले डॉक्टर / पारिवारिक संपर्क"),
+        phone = f("Contact phone", "संपर्क फ़ोन"),
+        notes = f("Condition / medicines summary", "स्थिति / दवाओं का सारांश"),
+        nomineeRelevant = false,
+        guidanceEn = "For a long-lasting condition, keep the latest reports and prescriptions together so any doctor — or the family in an emergency — can see the full picture quickly.",
+        guidanceHi = "लंबे समय की स्थिति के लिए ताज़ा रिपोर्ट और पर्चे एक साथ रखें ताकि कोई भी डॉक्टर — या आपातकाल में परिवार — पूरी तस्वीर जल्दी देख सके।"
+    )
+
     private val BY_ORDER: Map<Int, EntryFields> = mapOf(
         10 to EntryFields(
             primary = null,
@@ -431,7 +454,13 @@ object EntryFieldsCatalog {
             notes = NOTES, nomineeRelevant = false,
             guidanceEn = "Facebook offers a Legacy Contact for a memorialised profile; other platforms close accounts on proof of death. Note which applies — never the password.",
             guidanceHi = "Facebook स्मारक प्रोफ़ाइल के लिए Legacy Contact देता है; अन्य प्लेटफ़ॉर्म मृत्यु के प्रमाण पर खाते बंद करते हैं। कौन-सा लागू है लिखें — पासवर्ड कभी नहीं।"
-        )
+        ),
+        320 to EDUCATION_FIELDS, 330 to EDUCATION_FIELDS, 340 to EDUCATION_FIELDS,
+        350 to EDUCATION_FIELDS, 360 to EDUCATION_FIELDS, 370 to EDUCATION_FIELDS,
+        380 to EDUCATION_FIELDS, 390 to EDUCATION_FIELDS, 400 to EDUCATION_FIELDS,
+        410 to MEDICAL_FIELDS, 420 to MEDICAL_FIELDS, 430 to MEDICAL_FIELDS,
+        440 to MEDICAL_FIELDS, 450 to MEDICAL_FIELDS, 460 to MEDICAL_FIELDS,
+        470 to MEDICAL_FIELDS
     )
 
     fun forItem(item: ChecklistItem): EntryFields {

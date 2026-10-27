@@ -105,6 +105,47 @@ fun ItemEditorScreen(
     val docContext = androidx.compose.ui.platform.LocalContext.current
     val docScope = androidx.compose.runtime.rememberCoroutineScope()
     var docError by remember { mutableStateOf<String?>(null) }
+    var docMsg by remember { mutableStateOf<String?>(null) }
+    var ocrBusy by remember { mutableStateOf(false) }
+
+    /**
+     * On-device OCR: reads the first attached photo and pre-fills the
+     * reference / date fields for the owner to CHECK. Nothing is saved
+     * here, and the image never leaves the phone (bundled ML Kit model).
+     */
+    fun fillFromPhoto() {
+        val name = attachments.firstOrNull() ?: return
+        ocrBusy = true; docMsg = null; docError = null
+        docScope.launch {
+            val bmp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                com.puneetfsn.kutumbcare.data.DocumentStore.loadBitmap(docContext, name)
+            }
+            if (bmp == null) {
+                ocrBusy = false; docError = strings.photoReadFailed; return@launch
+            }
+            val recognizer = com.google.mlkit.vision.text.TextRecognition.getClient(
+                com.google.mlkit.vision.text.latin.TextRecognizerOptions.DEFAULT_OPTIONS
+            )
+            recognizer.process(com.google.mlkit.vision.common.InputImage.fromBitmap(bmp, 0))
+                .addOnSuccessListener { result ->
+                    val text = result.text
+                    val pan = Regex("[A-Z]{5}[0-9]{4}[A-Z]").find(text)?.value
+                    val aadhaar = Regex("\\d{4}\\s\\d{4}\\s\\d{4}").find(text)?.value
+                    val date = Regex("\\d{2}[/-]\\d{2}[/-]\\d{4}").find(text)?.value
+                    var filled = false
+                    if (accountRef.isBlank()) {
+                        val found = pan ?: aadhaar
+                        if (found != null) { accountRef = found; filled = true }
+                    }
+                    if (maturity.isBlank() && date != null) {
+                        maturity = date.replace('-', '/'); filled = true
+                    }
+                    docMsg = if (filled) strings.ocrFilled else strings.ocrNone
+                }
+                .addOnFailureListener { docError = strings.ocrNone }
+                .addOnCompleteListener { ocrBusy = false; recognizer.close() }
+        }
+    }
     var captureUri by remember { mutableStateOf<android.net.Uri?>(null) }
     fun importPicked(uris: List<android.net.Uri>) {
         if (uris.isEmpty()) return
@@ -460,6 +501,20 @@ fun ItemEditorScreen(
                     Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                 }
                 Spacer(Modifier.height(16.dp))
+            }
+            if (attachments.isNotEmpty()) {
+                OutlinedButton(
+                    onClick = { fillFromPhoto() },
+                    enabled = !ocrBusy,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (ocrBusy) strings.ocrBusy else strings.fillFromPhoto)
+                }
+                docMsg?.let {
+                    Spacer(Modifier.height(6.dp))
+                    Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium)
+                }
+                Spacer(Modifier.height(8.dp))
             }
             val templateKey = item.specOrder.takeIf { it != 0 } ?: item.sortOrder
             if (templateKey in com.puneetfsn.kutumbcare.data.DefaultChecklist.REPEATABLE_ORDERS) {

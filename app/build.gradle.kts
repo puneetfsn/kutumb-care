@@ -86,6 +86,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
     implementation("androidx.biometric:biometric:1.1.0")
+    // On-device text recognition (bundled model): OCR runs fully offline,
+    // no image ever leaves the phone. Used only to pre-fill fields for the
+    // owner to check — nothing is saved automatically.
+    implementation("com.google.mlkit:text-recognition:16.0.1")
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation("androidx.glance:glance-material3:1.1.1")
 

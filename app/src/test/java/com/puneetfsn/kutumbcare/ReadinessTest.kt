@@ -89,9 +89,9 @@ class ReadinessTest {
     }
 
     @Test
-    fun `seeded checklist covers all 36 India-specific records`() {
-        assertEquals(36, DefaultChecklist.ITEMS.size)
-        assertEquals(36, DefaultChecklist.ITEMS.map { it.sortOrder }.distinct().size)
+    fun `seeded checklist covers all 52 India-specific records`() {
+        assertEquals(52, DefaultChecklist.ITEMS.size)
+        assertEquals(52, DefaultChecklist.ITEMS.map { it.sortOrder }.distinct().size)
         assertEquals(AssetCategory.entries.size, DefaultChecklist.ITEMS.map { it.category }.distinct().size)
         // Only 1,1,1,1 ... every seeded record starts unrecorded so the score is honest.
         assertTrue(DefaultChecklist.ITEMS.none { it.isCompleted })
