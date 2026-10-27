@@ -112,38 +112,69 @@ fun ItemEditorScreen(
      * On-device OCR: reads the first attached photo and pre-fills the
      * reference / date fields for the owner to CHECK. Nothing is saved
      * here, and the image never leaves the phone (bundled ML Kit model).
+     *
+     * The recognizer gets a sampled (max 2200px) upright bitmap; photos
+     * stored sideways by older builds are retried at 90/180/270 degrees.
+     * Three outcomes are reported honestly: the photo itself could not be
+     * decoded, the recognizer failed, or it read the photo but found no
+     * number/date.
      */
     fun fillFromPhoto() {
         val name = attachments.firstOrNull() ?: return
         ocrBusy = true; docMsg = null; docError = null
         docScope.launch {
-            val bmp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                com.puneetfsn.kutumbcare.data.DocumentStore.loadBitmap(docContext, name)
-            }
-            if (bmp == null) {
-                ocrBusy = false; docError = strings.photoReadFailed; return@launch
-            }
-            val recognizer = com.google.mlkit.vision.text.TextRecognition.getClient(
-                com.google.mlkit.vision.text.latin.TextRecognizerOptions.DEFAULT_OPTIONS
-            )
-            recognizer.process(com.google.mlkit.vision.common.InputImage.fromBitmap(bmp, 0))
-                .addOnSuccessListener { result ->
-                    val text = result.text
-                    val pan = Regex("[A-Z]{5}[0-9]{4}[A-Z]").find(text)?.value
-                    val aadhaar = Regex("\\d{4}\\s\\d{4}\\s\\d{4}").find(text)?.value
-                    val date = Regex("\\d{2}[/-]\\d{2}[/-]\\d{4}").find(text)?.value
-                    var filled = false
-                    if (accountRef.isBlank()) {
-                        val found = pan ?: aadhaar
-                        if (found != null) { accountRef = found; filled = true }
+            // (foundId, foundDate, status) — status: ok | unreadable | failed
+            val outcome = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                val bmp = com.puneetfsn.kutumbcare.data.DocumentStore
+                    .loadForRecognition(docContext, name)
+                if (bmp == null) {
+                    Triple(null, null, "unreadable")
+                } else {
+                    val recognizer = com.google.mlkit.vision.text.TextRecognition.getClient(
+                        com.google.mlkit.vision.text.latin.TextRecognizerOptions.DEFAULT_OPTIONS
+                    )
+                    try {
+                        var foundId: String? = null
+                        var foundDate: String? = null
+                        for (degrees in listOf(0, 90, 180, 270)) {
+                            val text = com.google.android.gms.tasks.Tasks.await(
+                                recognizer.process(
+                                    com.google.mlkit.vision.common.InputImage.fromBitmap(
+                                        rotatedBitmap(bmp, degrees), 0
+                                    )
+                                )
+                            ).text
+                            if (foundId == null) {
+                                foundId = com.puneetfsn.kutumbcare.data.OcrPatterns.findId(text)
+                            }
+                            if (foundDate == null) {
+                                foundDate = com.puneetfsn.kutumbcare.data.OcrPatterns.findDate(text)
+                            }
+                            if (foundId != null && foundDate != null) break
+                        }
+                        Triple(foundId, foundDate, "ok")
+                    } catch (e: Exception) {
+                        Triple(null, null, "failed")
+                    } finally {
+                        recognizer.close()
                     }
-                    if (maturity.isBlank() && date != null) {
-                        maturity = date.replace('-', '/'); filled = true
+                }
+            }
+            ocrBusy = false
+            when (outcome.third) {
+                "unreadable" -> docError = strings.photoReadFailed
+                "failed" -> docError = strings.ocrFailed
+                else -> {
+                    var filled = false
+                    if (accountRef.isBlank() && outcome.first != null) {
+                        accountRef = outcome.first!!; filled = true
+                    }
+                    if (maturity.isBlank() && outcome.second != null) {
+                        maturity = outcome.second!!; filled = true
                     }
                     docMsg = if (filled) strings.ocrFilled else strings.ocrNone
                 }
-                .addOnFailureListener { docError = strings.ocrNone }
-                .addOnCompleteListener { ocrBusy = false; recognizer.close() }
+            }
         }
     }
     var captureUri by remember { mutableStateOf<android.net.Uri?>(null) }
@@ -573,6 +604,14 @@ fun ItemEditorScreen(
             Spacer(Modifier.height(24.dp))
         }
     }
+}
+
+
+/** Returns [source] rotated by [degrees] (0 returns it unchanged) — OCR retry helper. */
+private fun rotatedBitmap(source: android.graphics.Bitmap, degrees: Int): android.graphics.Bitmap {
+    if (degrees == 0) return source
+    val matrix = android.graphics.Matrix().apply { postRotate(degrees.toFloat()) }
+    return android.graphics.Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
 }
 
 
